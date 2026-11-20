@@ -1,0 +1,39 @@
+# Dependencias y archivos generados
+node_modules/
+dist/
+build/
+.cache/
+coverage/
+*.tsbuildinfo
+
+# Variables de entorno — NUNCA commitear .env con secretos reales
+.env
+.env.local
+.env.production
+.env.staging
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Prisma
+prisma/migrations/*/migration_lock.toml
+
+# Uploads y archivos temporales
+uploads/
+tmp/
+temp/

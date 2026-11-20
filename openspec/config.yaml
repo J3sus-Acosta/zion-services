@@ -1,0 +1,152 @@
+schema: spec-driven
+
+context: |
+
+  Project: Zion Services — SATEM Soluciones Inteligentes SpA
+
+  Purpose:
+    Sistema de gestión operacional para Zion Services.
+    Digitaliza el ciclo completo de atenciones de servicio:
+    desde la solicitud del cliente hasta el cierre con documentación,
+    incluyendo checklist de camiones, órdenes de servicio, seguimiento
+    en tiempo real y descarga de expedientes completos.
+
+  Development philosophy:
+    - OpenSpec-driven development
+    - Multi-agent development
+    - Security by design
+    - Minimal changes
+    - Reusable architecture
+    - Strong typing
+    - Automated testing
+    - Maintainability
+
+  Backend:
+    - Node.js (v22+)
+    - TypeScript (strict mode)
+    - Express
+    - REST API
+    - Prisma ORM
+
+  Database:
+    - MySQL
+    - Prisma ORM
+    - Controlled migrations (prisma migrate dev / deploy)
+    - Never prisma db push against production
+
+  Frontend:
+    - React
+    - TypeScript
+    - SATEM Design System (Vanilla CSS + CSS Variables)
+    - Lucide React (iconos)
+    - Sin Tailwind, sin MUI, sin Bootstrap
+
+  Infrastructure:
+    - Docker
+    - EasyPanel
+    - VPS
+    - Environment variables via .env / EasyPanel
+    - Reverse proxy (Nginx)
+
+  Authentication:
+    - JWT
+    - Secure HTTP-only cookies
+    - Refresh token rotation
+    - Role-based authorization (RBAC)
+
+  General coding rules:
+    - TypeScript strict mode; evitar any sin justificación
+    - Controllers delgados: recibir, validar, delegar, responder
+    - Lógica de negocio en services
+    - Acceso a DB solo en repositories/services con Prisma
+    - Validar toda entrada externa con Zod (u otro schema existente)
+    - Nunca hardcodear secretos
+    - Logs sin información sensible
+    - Funciones cohesivas y descriptivas
+    - Eliminar código sin uso
+
+  Frontend rules:
+    - SATEM Design System como única fuente de verdad visual
+    - Dark Mode Premium obligatorio
+    - Responsive design requerido (mobile, tablet, desktop)
+    - Reusar componentes canónicos (Modal, .btn, .badge, .table-container)
+    - Manejar estados: loading, error, empty, data
+    - Accesibilidad básica (aria-*, roles semánticos)
+
+  Database rules:
+    - No ejecutar cambios destructivos en producción sin autorización explícita
+    - Preferir migraciones controladas
+    - Revisar relaciones e índices antes de cambiar schema
+    - Verificar que campos nuevos tienen consumidores en código
+    - Evitar campos sin uso
+
+  API rules:
+    - Validar input de requests
+    - Status codes HTTP consistentes
+    - Estructura de error predecible: { error: { code, message } }
+    - Proteger endpoints autenticados con middleware
+    - Autorización siempre server-side
+    - No exponer detalles internos en errores
+
+  Testing:
+    - Detectar framework existente en el proyecto (Vitest / Jest + Supertest)
+    - Tests de happy path, validación, error y edge cases
+    - Tests de autorización y autenticación
+    - Regresiones para bugs corregidos
+
+  Security:
+    - Autenticación y autorización en toda operación sensible
+    - Validación e sanitización de entrada
+    - Prevención de inyección
+    - CORS explícito
+    - Cookies seguras (HTTP-only, Secure, SameSite)
+    - Gestión de secretos via variables de entorno
+    - Rate limiting en endpoints sensibles
+    - Auditoría de operaciones críticas
+
+  SATEM architecture principle:
+    Preservar la arquitectura existente.
+    No introducir framework o base de datos diferente
+    solo porque el agente lo prefiere.
+    Una migración de tecnología es un proyecto OpenSpec independiente.
+
+rules:
+
+  proposal:
+    - Definir claramente el objetivo de negocio.
+    - Definir scope y non-goals explícitos.
+    - Identificar módulos afectados.
+    - Identificar APIs afectadas.
+    - Identificar modelos de base de datos afectados.
+    - Identificar implicaciones de seguridad.
+    - Identificar impacto en frontend.
+    - Identificar impacto en infraestructura.
+    - Identificar integraciones externas.
+
+  tasks:
+    - Dividir el trabajo en tareas pequeñas e independientemente verificables.
+    - Cada tarea debe identificar archivos o módulos afectados.
+    - Incluir tareas de testing para nueva lógica de negocio.
+    - Incluir validación de seguridad cuando cambie autenticación o autorización.
+    - Incluir validación de migración cuando cambie estructura de DB.
+    - Incluir validación de frontend cuando cambie comportamiento de UI.
+
+operations:
+
+  apply:
+    guidance:
+      - Leer el código existente antes de modificarlo.
+      - No modificar archivos fuera del alcance.
+      - Seguir la arquitectura existente.
+      - Reusar servicios y utilidades existentes.
+      - No introducir dependencias sin justificación.
+      - Ejecutar tests apropiados después de implementar.
+      - Actualizar documentación cuando cambie la arquitectura.
+
+  archive:
+    guidance:
+      - Confirmar que la implementación coincide con OpenSpec.
+      - Confirmar que los tests pasan.
+      - Confirmar que la revisión de seguridad está completa cuando aplica.
+      - Confirmar que la documentación de arquitectura está actualizada.
+      - Confirmar que no quedan tareas pendientes.
