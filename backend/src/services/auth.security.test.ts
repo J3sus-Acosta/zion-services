@@ -1,0 +1,62 @@
+import { describe, it, expect, vi } from 'vitest';
+import { TokenService, TokenPayload } from './token.service.js';
+import { authenticate, authorize, enforceTenantIsolation, AuthenticatedRequest } from '../middleware/auth.middleware.js';
+import { RolUsuario } from '@prisma/client';
+import { Response } from 'express';
+
+describe('Seguridad: Autenticación, RBAC y Tenant Isolation', () => {
+  const mockPayload: TokenPayload = {
+    userId: 'user-123',
+    email: 'cliente@horse.cl',
+    rol: RolUsuario.CLIENTE,
+    empresaClienteId: 'empresa-horse'
+  };
+
+  it('debe generar y verificar tokens JWT válidos', () => {
+    const accessToken = TokenService.generateAccessToken(mockPayload);
+    const decoded = TokenService.verifyAccessToken(accessToken);
+
+    expect(decoded.userId).toBe('user-123');
+    expect(decoded.rol).toBe(RolUsuario.CLIENTE);
+    expect(decoded.empresaClienteId).toBe('empresa-horse');
+  });
+
+  it('debe rechazar acceso si el rol no está permitido (RBAC)', () => {
+    const req = {
+      user: mockPayload
+    } as AuthenticatedRequest;
+
+    const res = {
+      status: vi.fn().mockReturnThis(),
+      json: vi.fn()
+    } as unknown as Response;
+
+    const next = vi.fn();
+
+    // Solo ADMIN y OPERACIONES permitidos
+    const rbacMiddleware = authorize(RolUsuario.ADMIN, RolUsuario.OPERACIONES);
+    rbacMiddleware(req, res, next);
+
+    expect(res.status).toHaveBeenCalledWith(403);
+    expect(next).not.toHaveBeenCalled();
+  });
+
+  it('debe bloquear acceso cruzado entre clientes (Tenant Isolation)', () => {
+    const req = {
+      user: mockPayload, // Pertenece a empresa-horse
+      params: { empresaClienteId: 'empresa-bravo-energy' } // Intenta acceder a otra
+    } as unknown as AuthenticatedRequest;
+
+    const res = {
+      status: vi.fn().mockReturnThis(),
+      json: vi.fn()
+    } as unknown as Response;
+
+    const next = vi.fn();
+
+    enforceTenantIsolation(req, res, next);
+
+    expect(res.status).toHaveBeenCalledWith(403);
+    expect(next).not.toHaveBeenCalled();
+  });
+});

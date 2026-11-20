@@ -1,0 +1,606 @@
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// -------------------------------------------------------------
+// 1. IDENTIDAD, USUARIOS Y ROLES (RBAC)
+// -------------------------------------------------------------
+
+enum RolUsuario {
+  ADMIN
+  OPERACIONES
+  COMERCIAL
+  CONDUCTOR
+  CLIENTE
+}
+
+model Usuario {
+  id               String          @id @default(uuid())
+  email            String          @unique
+  passwordHash     String
+  nombre           String
+  apellido         String
+  rut              String          @unique
+  rol              RolUsuario      @default(CLIENTE)
+  telefono         String?
+  activo           Boolean         @default(true)
+  empresaClienteId String?
+  empresaCliente   EmpresaCliente? @relation(fields: [empresaClienteId], references: [id])
+  conductor        Conductor?
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+
+  historialEstados HistorialEstado[]
+  auditorias       AuditoriaEvento[]
+
+  @@map("usuarios")
+}
+
+// -------------------------------------------------------------
+// 2. CLIENTES, SUCURSALES Y CONTRATOS
+// -------------------------------------------------------------
+
+enum TipoCliente {
+  CONTRACTUAL
+  SPOT
+}
+
+model EmpresaCliente {
+  id             String         @id @default(uuid())
+  rut            String         @unique
+  razonSocial    String
+  nombreFantasia String?
+  giro           String?
+  tipo           TipoCliente    @default(SPOT)
+  activo         Boolean        @default(true)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  usuarios       Usuario[]
+  sucursales     SucursalFaena[]
+  contratos      ContratoCliente[]
+  solicitudes    SolicitudServicio[]
+  estadosDePago  EstadoDePago[]
+
+  @@map("empresas_clientes")
+}
+
+model SucursalFaena {
+  id               String         @id @default(uuid())
+  empresaClienteId String
+  empresaCliente   EmpresaCliente @relation(fields: [empresaClienteId], references: [id])
+  nombre           String
+  direccion        String
+  comuna           String
+  ciudad           String
+  region           String
+  contactoNombre   String?
+  contactoTelefono String?
+  contactoEmail    String?
+  activo           Boolean        @default(true)
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  solicitudes      SolicitudServicio[]
+
+  @@map("sucursales_faenas")
+}
+
+model ContratoCliente {
+  id               String         @id @default(uuid())
+  empresaClienteId String
+  empresaCliente   EmpresaCliente @relation(fields: [empresaClienteId], references: [id])
+  numeroContrato   String         @unique
+  fechaInicio      DateTime
+  fechaTermino     DateTime?
+  activo           Boolean        @default(true)
+  periodicidadCorte String        @default("MENSUAL") // MENSUAL o QUINCENAL
+  requiereOC       Boolean        @default(true)
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  estadosDePago    EstadoDePago[]
+
+  @@map("contratos_clientes")
+}
+
+// -------------------------------------------------------------
+// 3. FLOTA, CONDUCTORES E INSPECCIONES
+// -------------------------------------------------------------
+
+model Vehiculo {
+  id                   String        @id @default(uuid())
+  patente              String        @unique
+  marca                String
+  modelo               String
+  anio                 Int
+  capacidadEstanqueM3  Decimal       @db.Decimal(10, 2)
+  equipoHidrojet       Boolean       @default(false)
+  equipoVacio          Boolean       @default(false)
+  bloqueadoPorSeguridad Boolean      @default(false)
+  motivoBloqueo        String?       @db.Text
+  activo               Boolean       @default(true)
+  createdAt            DateTime      @default(now())
+  updatedAt            DateTime      @updatedAt
+
+  jornadas             Jornada[]
+  inspeccionesSalida   InspeccionSalida_F_GMT[]
+  inspeccionesRetorno  InspeccionRetornoPlanta[]
+
+  @@map("vehiculos")
+}
+
+model Conductor {
+  id               String        @id @default(uuid())
+  usuarioId        String        @unique
+  usuario          Usuario       @relation(fields: [usuarioId], references: [id])
+  licenciaNumero   String
+  licenciaClase    String        @default("A4")
+  licenciaVencimiento DateTime
+  activo           Boolean       @default(true)
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  jornadas         Jornada[]
+  inspeccionesSalida InspeccionSalida_F_GMT[]
+  autochecklistsRuta AutochecklistRuta[]
+  inspeccionesRetorno InspeccionRetornoPlanta[]
+
+  @@map("conductores")
+}
+
+enum EstadoInspeccion {
+  CONFORME
+  NO_CONFORME
+  SUBSANADA
+}
+
+model InspeccionSalida_F_GMT {
+  id               String           @id @default(uuid())
+  vehiculoId       String
+  vehiculo         Vehiculo         @relation(fields: [vehiculoId], references: [id])
+  conductorId      String
+  conductor        Conductor        @relation(fields: [conductorId], references: [id])
+  fechaHora        DateTime         @default(now())
+  kilometraje      Int?
+  horometro        Int?
+  estado           EstadoInspeccion @default(CONFORME)
+  observaciones    String?          @db.Text
+  itemsChecklist   Json             // 80 items del F-GMT-MAN-004 en JSON estructurado
+  aprobadoPor      String?
+  createdAt        DateTime         @default(now())
+
+  fotos360         FotoInspeccion[]
+  jornada          Jornada?
+
+  @@map("inspecciones_salida_fgmt")
+}
+
+enum TipoFotoInspeccion {
+  FRONTAL
+  LATERAL_IZQUIERDA
+  TRASERA
+  LATERAL_DERECHA
+}
+
+model FotoInspeccion {
+  id                   String              @id @default(uuid())
+  inspeccionSalidaId   String?
+  inspeccionSalida     InspeccionSalida_F_GMT? @relation(fields: [inspeccionSalidaId], references: [id])
+  inspeccionRetornoId  String?
+  inspeccionRetorno    InspeccionRetornoPlanta? @relation(fields: [inspeccionRetornoId], references: [id])
+  tipo                 TipoFotoInspeccion
+  archivoUrl           String
+  fechaHora            DateTime            @default(now())
+
+  @@map("fotos_inspeccion")
+}
+
+model AutochecklistRuta {
+  id               String       @id @default(uuid())
+  conductorId      String
+  conductor        Conductor    @relation(fields: [conductorId], references: [id])
+  jornadaId        String
+  jornada          Jornada      @relation(fields: [jornadaId], references: [id])
+  fechaHora        DateTime     @default(now())
+  ubicacionTexto   String?
+  conforme         Boolean      @default(true)
+  detallesJson     Json         // Chequeos rápidos diarios
+  observaciones    String?      @db.Text
+  alertaEmitida    Boolean      @default(false)
+  createdAt        DateTime     @default(now())
+
+  @@map("autochecklists_ruta")
+}
+
+model InspeccionRetornoPlanta {
+  id               String           @id @default(uuid())
+  vehiculoId       String
+  vehiculo         Vehiculo         @relation(fields: [vehiculoId], references: [id])
+  conductorId      String
+  conductor        Conductor        @relation(fields: [conductorId], references: [id])
+  fechaHora        DateTime         @default(now())
+  kilometrajeFinal Int?
+  horometroFinal   Int?
+  estadoGeneral    String?          @db.Text
+  danosDetectados  String?          @db.Text
+  herramientasOK   Boolean          @default(true)
+  observaciones    String?          @db.Text
+  createdAt        DateTime         @default(now())
+
+  fotos360Retorno  FotoInspeccion[]
+  jornada          Jornada?
+
+  @@map("inspecciones_retorno_planta")
+}
+
+// -------------------------------------------------------------
+// 4. JORNADAS, RUTAS Y REGLAS OPERACIONALES
+// -------------------------------------------------------------
+
+enum ModalidadJornada {
+  LOCAL_SANTIAGO
+  VIAJE_INTERREGIONAL
+}
+
+enum EstadoJornada {
+  PROGRAMADA
+  EN_CURSO
+  FINALIZADA
+  CANCELADA
+}
+
+model Jornada {
+  id                     String           @id @default(uuid())
+  vehiculoId             String
+  vehiculo               Vehiculo         @relation(fields: [vehiculoId], references: [id])
+  conductorId            String
+  conductor              Conductor        @relation(fields: [conductorId], references: [id])
+  modalidad              ModalidadJornada @default(LOCAL_SANTIAGO)
+  fechaInicio            DateTime
+  fechaFin               DateTime?
+  estado                 EstadoJornada    @default(PROGRAMADA)
+  inspeccionSalidaId     String?          @unique
+  inspeccionSalida       InspeccionSalida_F_GMT? @relation(fields: [inspeccionSalidaId], references: [id])
+  inspeccionRetornoId    String?          @unique
+  inspeccionRetorno      InspeccionRetornoPlanta? @relation(fields: [inspeccionRetornoId], references: [id])
+  createdAt              DateTime         @default(now())
+  updatedAt              DateTime         @updatedAt
+
+  hojasDeRuta            HojaDeRuta[]
+  autochecklistsRuta     AutochecklistRuta[]
+
+  @@map("jornadas")
+}
+
+model HojaDeRuta {
+  id               String         @id @default(uuid())
+  jornadaId        String
+  jornada          Jornada        @relation(fields: [jornadaId], references: [id])
+  codigo           String         @unique
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  tramosRuta       TramoRuta[]
+
+  @@map("hojas_de_ruta")
+}
+
+enum TipoTramo {
+  HACIA_CLIENTE
+  EN_FAENA_CLIENTE
+  HACIA_PLANTA_DESTINO
+  EN_PLANTA_DESTINO
+  RETORNO_A_BASE
+}
+
+model TramoRuta {
+  id               String         @id @default(uuid())
+  hojaDeRutaId     String
+  hojaDeRuta       HojaDeRuta     @relation(fields: [hojaDeRutaId], references: [id])
+  ordenSecuencia   Int
+  tipo             TipoTramo
+  origenNombre     String
+  destinoNombre    String
+  completado       Boolean        @default(false)
+  fechaHoraInicio  DateTime?
+  fechaHoraFin     DateTime?
+  ordenServicioId  String?
+  ordenServicio    OrdenServicio? @relation(fields: [ordenServicioId], references: [id])
+  createdAt        DateTime       @default(now())
+
+  @@map("tramos_ruta")
+}
+
+// -------------------------------------------------------------
+// 5. SOLICITUDES Y ÓRDENES DE SERVICIO
+// -------------------------------------------------------------
+
+enum EstadoSolicitud {
+  BORRADOR
+  ENVIADA
+  EN_REVISION
+  APROBADA
+  RECHAZADA
+}
+
+model SolicitudServicio {
+  id               String          @id @default(uuid())
+  folio            String          @unique
+  empresaClienteId String
+  empresaCliente   EmpresaCliente  @relation(fields: [empresaClienteId], references: [id])
+  sucursalFaenaId  String
+  sucursalFaena    SucursalFaena   @relation(fields: [sucursalFaenaId], references: [id])
+  fechaSolicitud   DateTime        @default(now())
+  fechaPreferente  DateTime
+  tipoResiduo      String
+  descripcion      String?         @db.Text
+  cantidadEstimada Decimal?        @db.Decimal(10, 2)
+  unidadEstimada   String?         @default("KG")
+  estado           EstadoSolicitud @default(ENVIADA)
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+
+  ordenServicio    OrdenServicio?
+
+  @@map("solicitudes_servicio")
+}
+
+enum EstadoOrdenServicio {
+  EMITIDA
+  PLANIFICADA
+  EN_EJECUCION
+  EJECUTADA
+  LIQUIDADA
+  CERRADA
+  CANCELADA
+}
+
+model OrdenServicio {
+  id                  String              @id @default(uuid())
+  folio               String              @unique
+  solicitudServicioId String              @unique
+  solicitudServicio   SolicitudServicio   @relation(fields: [solicitudServicioId], references: [id])
+  estado              EstadoOrdenServicio @default(EMITIDA)
+  estadoDePagoId      String?
+  estadoDePago        EstadoDePago?       @relation(fields: [estadoDePagoId], references: [id])
+  observaciones       String?             @db.Text
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+
+  tramosRuta          TramoRuta[]
+  cicloTransporte     CicloTransporte?
+  visitaDestino       VisitaDestino?
+  expediente          ExpedienteDocumental?
+
+  @@map("ordenes_servicio")
+}
+
+// -------------------------------------------------------------
+// 6. CICLO DE TRANSPORTE, TERRENO Y RECEPCIÓN
+// -------------------------------------------------------------
+
+enum EstadoCicloTransporte {
+  PENDIENTE
+  EN_RUTA_CLIENTE
+  EN_FAENA
+  FAENA_AUTORIZADA
+  RETIRO_COMPLETADO
+  EN_RUTA_DESTINO
+  DESCARGA_CERTIFICADA
+  FINALIZADO
+}
+
+model CicloTransporte {
+  id                  String                @id @default(uuid())
+  ordenServicioId     String                @unique
+  ordenServicio       OrdenServicio         @relation(fields: [ordenServicioId], references: [id])
+  estado              EstadoCicloTransporte @default(PENDIENTE)
+  horaLlegadaFaena    DateTime?
+  horaSalidaFaena     DateTime?
+  createdAt           DateTime              @default(now())
+  updatedAt           DateTime              @updatedAt
+
+  autorizacionFaena   AutorizacionFaena?
+  fotosFaenaEPP       FotoFaenaEPP[]
+  actaRecepcion       ActaRecepcion?
+
+  @@map("ciclos_transporte")
+}
+
+model AutorizacionFaena {
+  id                 String          @id @default(uuid())
+  cicloTransporteId  String          @unique
+  cicloTransporte    CicloTransporte @relation(fields: [cicloTransporteId], references: [id])
+  nombreCliente      String
+  rutCliente         String
+  firmaClienteSvg    String          @db.Text
+  fechaHoraFirma     DateTime        @default(now())
+
+  @@map("autorizaciones_faena")
+}
+
+model FotoFaenaEPP {
+  id                 String          @id @default(uuid())
+  cicloTransporteId  String
+  cicloTransporte    CicloTransporte @relation(fields: [cicloTransporteId], references: [id])
+  descripcion        String?
+  archivoUrl         String
+  fechaHora          DateTime        @default(now())
+
+  @@map("fotos_faena_epp")
+}
+
+enum TipoRecepcion {
+  CONFORME
+  CON_OBSERVACIONES
+  SIN_FIRMA_RECHAZO
+}
+
+model ActaRecepcion {
+  id                 String          @id @default(uuid())
+  cicloTransporteId  String          @unique
+  cicloTransporte    CicloTransporte @relation(fields: [cicloTransporteId], references: [id])
+  tipo               TipoRecepcion   @default(CONFORME)
+  nombreFirmante     String?
+  rutFirmante        String?
+  firmaSvg           String?         @db.Text
+  observaciones      String?         @db.Text
+  fotoRespaldoUrl    String?
+  fechaHoraFirma     DateTime        @default(now())
+
+  @@map("actas_recepcion")
+}
+
+// -------------------------------------------------------------
+// 7. DESTINO, SIDREP Y COMPROBANTES DE ROMANA
+// -------------------------------------------------------------
+
+model VisitaDestino {
+  id                  String          @id @default(uuid())
+  ordenServicioId     String          @unique
+  ordenServicio       OrdenServicio   @relation(fields: [ordenServicioId], references: [id])
+  plantaDestinoNombre String
+  fechaHoraLlegada    DateTime?
+  fechaHoraDescarga   DateTime?
+  sidrepFolio         String?
+  sidrepOriginalPdfUrl String?        // Descargado de Ventanilla Única
+  sidrepSelladoFotoUrl String?        // Foto de SIDREP con sello y timbre de romana de destino
+  ticketPesajeFotoUrl  String?        // Foto del comprobante de báscula de destino
+  pesoNetoCertificado  Decimal?       @db.Decimal(10, 2)
+  unidadMedida         String?        @default("KG")
+  descargaCompleta     Boolean        @default(false)
+  createdAt            DateTime       @default(now())
+  updatedAt            DateTime       @updatedAt
+
+  @@map("visitas_destino")
+}
+
+// -------------------------------------------------------------
+// 8. EXPEDIENTES DOCUMENTALES Y ARCHIVOS ZERO-PAPER
+// -------------------------------------------------------------
+
+model ExpedienteDocumental {
+  id               String         @id @default(uuid())
+  ordenServicioId  String         @unique
+  ordenServicio    OrdenServicio  @relation(fields: [ordenServicioId], references: [id])
+  completo         Boolean        @default(false)
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  documentos       DocumentoExpediente[]
+
+  @@map("expedientes_documentales")
+}
+
+enum CategoriaDocumento {
+  ORDEN_SERVICIO_PDF
+  CHECKLIST_SALIDA_F_GMT
+  FOTO_CAMION_SALIDA
+  GUIA_DESPACHO_CLIENTE
+  FOTO_FAENA_PROCESO
+  FOTO_EPP_SEGURIDAD
+  ACTA_RECEPCION_FIRMADA
+  SIDREP_VENTANILLA_UNICA
+  SIDREP_SELLADO_ROMANA
+  TICKET_PESAJE_ROMANA
+  CHECKLIST_RETORNO_PLANTA
+  FOTO_CAMION_RETORNO
+  ORDEN_COMPRA
+  OTRO
+}
+
+model DocumentoExpediente {
+  id                     String               @id @default(uuid())
+  expedienteDocumentalId String
+  expedienteDocumental   ExpedienteDocumental @relation(fields: [expedienteDocumentalId], references: [id])
+  categoria              CategoriaDocumento
+  nombreArchivo          String
+  mimeType               String
+  pesoBytes              Int
+  rutaAlmacenamiento     String
+  version                Int                  @default(1)
+  cargadoPorUsuarioId    String?
+  visibleParaCliente     Boolean              @default(true)
+  fechaCarga             DateTime             @default(now())
+
+  @@map("documentos_expediente")
+}
+
+// -------------------------------------------------------------
+// 9. GESTIÓN COMERCIAL: ESTADOS DE PAGO (EDP)
+// -------------------------------------------------------------
+
+enum EstadoLiquidacion {
+  BORRADOR
+  EMITIDO
+  ESPERANDO_OC
+  HABILITADO_FACTURAR
+  FACTURADO
+  PAGADO
+}
+
+model EstadoDePago {
+  id                  String             @id @default(uuid())
+  folio               String             @unique
+  empresaClienteId    String
+  empresaCliente      EmpresaCliente     @relation(fields: [empresaClienteId], references: [id])
+  contratoClienteId   String?
+  contratoCliente     ContratoCliente?   @relation(fields: [contratoClienteId], references: [id])
+  periodoMes          Int
+  periodoAnio         Int
+  periodoQuincena     Int?               // 1 o 2 si es quincenal
+  montoNeto           Decimal            @db.Decimal(12, 2)
+  montoIva            Decimal            @db.Decimal(12, 2)
+  montoTotal          Decimal            @db.Decimal(12, 2)
+  numeroOC            String?
+  archivoOCUrl        String?
+  numeroFactura       String?
+  fechaFactura        DateTime?
+  estado              EstadoLiquidacion  @default(BORRADOR)
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
+
+  ordenesServicio     OrdenServicio[]
+
+  @@map("estados_de_pago")
+}
+
+// -------------------------------------------------------------
+// 10. AUDITORÍA Y TRAZABILIDAD MULTI-ESTADO
+// -------------------------------------------------------------
+
+model HistorialEstado {
+  id            String   @id @default(uuid())
+  entidad       String   // Solicitud, OrdenServicio, CicloTransporte, etc.
+  entidadId     String
+  estadoAnterior String
+  estadoNuevo    String
+  usuarioId      String?
+  usuario        Usuario? @relation(fields: [usuarioId], references: [id])
+  observacion    String?  @db.Text
+  origen         String   @default("SISTEMA") // WEB, TABLET_CONDUCTOR, AUTOMATICO
+  fechaHora      DateTime @default(now())
+
+  @@index([entidad, entidadId])
+  @@map("historial_estados")
+}
+
+model AuditoriaEvento {
+  id            String   @id @default(uuid())
+  usuarioId     String?
+  usuario       Usuario? @relation(fields: [usuarioId], references: [id])
+  accion        String
+  recurso       String
+  recursoId     String?
+  detallesJson  Json?
+  ipAddress     String?
+  fechaHora     DateTime @default(now())
+
+  @@map("auditoria_eventos")
+}

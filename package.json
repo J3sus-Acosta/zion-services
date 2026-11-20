@@ -1,0 +1,27 @@
+{
+  "name": "zion-services",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Zion Services — Plataforma de Gestión Operacional y Residuos Peligrosos",
+  "workspaces": [
+    "backend",
+    "frontend"
+  ],
+  "scripts": {
+    "build": "npm run build --workspace=backend && npm run build --workspace=frontend",
+    "build:backend": "npm run build --workspace=backend",
+    "build:frontend": "npm run build --workspace=frontend",
+    "dev:backend": "npm run dev --workspace=backend",
+    "dev:frontend": "npm run dev --workspace=frontend",
+    "lint": "npm run lint --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present"
+  },
+  "keywords": [
+    "zion-services",
+    "satem",
+    "environmental-management",
+    "waste-logistics"
+  ],
+  "author": "Zion Services & SATEM SpA",
+  "license": "UNLICENSED"
+}
