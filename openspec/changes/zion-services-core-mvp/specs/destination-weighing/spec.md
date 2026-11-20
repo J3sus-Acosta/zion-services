@@ -1,24 +1,24 @@
-# Spec: Destination Weighing
+# Spec: Destination Weighing & SIDREP Certification (Actualizado)
 
 ## ADDED Requirements
 
-### Requirement: Registro y Preservación de Pesajes en Destino
-El sistema SHALL registrar el pesaje de entrada (camión cargado) y el pesaje de salida (camión descargado) en la planta de destino, calculando la cantidad neta y preservando inmutablemente los pesajes brutos originales y sus comprobantes.
+### Requirement: Integración y Obtención de Declaración SIDREP desde Ventanilla Única
+El sistema SHALL permitir descargar y almacenar la Declaración de Residuos Peligrosos (SIDREP) oficial emitida por el cliente generador a través de la plataforma de Ventanilla Única ambiental.
 
-#### Scenario: Registro exitoso de pesajes y cálculo de residuo neto
-GIVEN un camión ingresando a la planta de destino final tras realizar el retiro en el cliente
-WHEN el conductor o el operador registra `pesoEntrada` = 18500 kg y tras descargar registra `pesoSalida` = 12200 kg junto a la foto del ticket
-THEN el sistema calcula `pesoNetoDescargado` = 6300 kg, almacena ambos pesajes originales con unidad, fecha, hora y ticket, y marca la visita como `DESCARGA_COMPLETA`.
+#### Scenario: Descarga y vinculación inicial de SIDREP emitido por generador
+GIVEN una Orden de Servicio planificada cuyo cliente generador ha emitido el SIDREP en Ventanilla Única
+WHEN el sistema o el operador consulta/integra con Ventanilla Única mediante folio de declaración
+THEN el documento SIDREP oficial en formato PDF queda vinculado a la atención y disponible en la tablet del conductor antes de la salida a terreno.
 
-#### Scenario: Rechazo por pesajes inconsistentes o negativos
-GIVEN el registro de pesaje en destino
-WHEN el operador intenta registrar un `pesoSalida` mayor o igual que el `pesoEntrada`
-THEN el sistema rechaza la transacción indicando que el peso de salida tras la descarga debe ser estrictamente menor al peso de entrada.
+### Requirement: Captura Fotográfica de Certificación, Timbre y Ticket de Planta de Destino
+El conductor en terreno SHALL utilizar la cámara de la tablet Android para capturar la Declaración SIDREP debidamente firmada, fechada y sellada por la romana de la planta de destino, junto al comprobante oficial de pesaje emitido por la planta autorizada.
 
-### Requirement: Registro de Antecedentes y Documentación SIDREP
-El sistema SHALL registrar y relacionar los antecedentes, códigos y documentos del Sistema de Declaración y Seguimiento de Residuos Peligrosos (SIDREP) asociados a cada ciclo de transporte en destino.
+#### Scenario: Registro de descarga y carga de SIDREP sellado y ticket de romana
+GIVEN el camión habiendo completado la descarga en la planta de destino final autorizada
+WHEN el conductor recibe el documento SIDREP timbrado con el sello oficial de la romana de destino y el ticket de pesaje
+THEN el conductor fotografía ambos documentos con la cámara de la tablet, el sistema los valida y almacena en el expediente digital, y marca el ciclo de transporte como `DESCARGA_CERTIFICADA_DESTINO`.
 
-#### Scenario: Vinculación de antecedentes SIDREP al ciclo de transporte
-GIVEN una descarga completada en planta de destino
-WHEN se ingresa el número de folio/declaración SIDREP y se adjunta el comprobante emitido
-THEN el sistema asocia el antecedente SIDREP a la Orden de Servicio correspondiente y valida que la documentación regulatoria esté completa para el cierre del ciclo.
+#### Scenario: Prohibición de cierre de atención sin timbre de romana de destino
+GIVEN un ciclo de transporte en planta de destino
+WHEN se intenta registrar la salida de destino sin adjuntar la captura legible del SIDREP sellado por la planta
+THEN el sistema impide avanzar la atención notificando que la certificación de romana de destino es requisito regulatorio obligatorio.

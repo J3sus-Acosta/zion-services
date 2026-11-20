@@ -1,24 +1,16 @@
-# Spec: Service Orders
+# Spec: Service Orders (Actualizado)
 
 ## ADDED Requirements
 
-### Requirement: Generación de Orden de Servicio (OS)
-El sistema SHALL generar automáticamente una Orden de Servicio (OS) formal a partir de una solicitud aprobada comercialmente, asignándole un folio único e inmutable.
+### Requirement: Generación de Orden de Servicio y Autorización de Inicio de Trabajo
+El sistema SHALL generar la Orden de Servicio digital con folio único inmutable y requerir la firma digital de autorización en la tablet Android del conductor por parte del cliente antes de iniciar cualquier faena de succión o limpieza.
 
-#### Scenario: Emisión exitosa de Orden de Servicio
-GIVEN una solicitud en estado `APROBADA_COMERCIALMENTE`
-WHEN el sistema o el analista comercial confirma la emisión de la orden
-THEN se genera una nueva `OrdenDeServicio` con identificador único irrepetible, en estado `LISTA_PARA_PLANIFICAR`, vinculada al cliente, contrato y solicitud original.
+#### Scenario: Emisión y carga de Orden de Servicio en tablet
+GIVEN una solicitud aprobada comercialmente
+WHEN el sistema emite la Orden de Servicio
+THEN queda asignada a la jornada correspondiente y se sincroniza en la tablet del conductor asignado con datos de cliente, residuos a succionar y equipos requeridos.
 
-#### Scenario: Prohibición de duplicación de OS para una misma solicitud
-GIVEN una solicitud que ya cuenta con una Orden de Servicio activa
-WHEN se intenta emitir una segunda Orden de Servicio para la misma solicitud
-THEN el sistema rechaza la operación informando que la solicitud ya fue emitida previamente.
-
-### Requirement: Inmutabilidad y Trazabilidad de la OS
-La Orden de Servicio SHALL mantener un registro de auditoría con la cronología de eventos, personas responsables y especificaciones acordadas de retiro.
-
-#### Scenario: Consulta de trazabilidad de Orden de Servicio
-GIVEN una Orden de Servicio emitida
-WHEN un usuario autorizado consulta el detalle de la orden
-THEN el sistema retorna el historial completo de cambios de estado, fechas, usuario creador y documentos contractuales asociados.
+#### Scenario: Autorización digital de inicio de trabajo por el cliente en faena
+GIVEN el camión posicionado en la instalación del cliente
+WHEN el encargado del cliente revisa las condiciones de seguridad y firma en la pantalla de la tablet la autorización de inicio
+THEN el sistema estampa la firma, RUT y hora exacta, autorizando el encendido de bombas de hidrojet/succión y cambiando el estado a `FAENA_EN_EJECUCION`.

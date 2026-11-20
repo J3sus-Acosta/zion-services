@@ -1,24 +1,24 @@
-# Spec: Journey Routing
+# Spec: Journey Routing (Actualizado)
 
 ## ADDED Requirements
 
-### Requirement: Planificación de Jornadas y Hojas de Ruta
-Operaciones SHALL planificar jornadas asignando fecha, vehículo habilitado, conductor y la secuencia ordenada de atenciones a ejecutar.
+### Requirement: Gestión de Jornadas Locales e Interregionales
+Operaciones SHALL programar jornadas locales (con retorno diario a planta) y viajes fuera de Santiago (interregionales), permitiendo pernoctación en ruta y difiriendo el checklist de retorno vehicular hasta la llegada definitiva a Planta Zion.
 
-#### Scenario: Creación de jornada con secuencia válida
-GIVEN un vehículo con documentación al día, un conductor habilitado y órdenes de servicio en estado `LISTA_PARA_PLANIFICAR`
-WHEN el planificador arma una jornada con ruta ordenada
-THEN el sistema genera la `Jornada` y la `HojaDeRuta` con tramos iniciales en estado `PROGRAMADA`.
+#### Scenario: Programación y ejecución de viaje fuera de Santiago
+GIVEN un camión y conductor asignados a una ruta interregional de varios días
+WHEN el camión realiza servicios y pernocta en la zona de faena
+THEN el sistema mantiene la jornada activa bajo modalidad `VIAJE_INTERREGIONAL`, registrando hitos diarios sin exigir el regreso físico a Planta Zion entre días.
+
+#### Scenario: Cierre definitivo de viaje interregional en Planta Zion
+GIVEN el retorno del camión a la Planta de Zion tras culminar todos los trabajos fuera de Santiago
+WHEN el vehículo ingresa a la base central de Zion
+THEN se activa y ejecuta el checklist de retorno vehicular para auditar la integridad del camión, cerrando formalmente el viaje interregional.
 
 ### Requirement: Invariante Física de Descarga Intermedia Obligatoria
-El motor de backend SHALL validar e imponer que un camión jamás pueda realizar dos retiros consecutivos de clientes sin una visita intermedia a planta de destino con pesaje y descarga completa del retiro anterior.
+El motor de backend SHALL imponer que un camión jamás pueda realizar dos retiros consecutivos de residuos en faenas de clientes sin una visita intermedia a planta de destino con descarga y certificación de SIDREP.
 
-#### Scenario: Intento de planificar o ejecutar dos retiros consecutivos sin descarga intermedia
-GIVEN una jornada donde ya se programó o ejecutó el Retiro en Cliente A
-WHEN un usuario o sistema intenta agendar o registrar la llegada/retiro en Cliente B sin un tramo previo a Planta de Destino con pesaje y descarga finalizada
-THEN el sistema rechaza la transacción con código de error de negocio `INVARIANTE_DESCARGA_PENDIENTE`, bloqueando la acción tanto en planificación como en ejecución en terreno.
-
-#### Scenario: Habilitación legítima del siguiente retiro tras descarga en destino
-GIVEN un ciclo de transporte para el Retiro A cuya visita a Planta de Destino fue completada con pesajes de entrada/salida y descarga registrada
-WHEN el camión solicita iniciar el tramo hacia el Cliente B
-THEN el sistema valida la descarga del servicio anterior y autoriza la navegación y ejecución del Retiro B.
+#### Scenario: Rechazo automático de retiros encadenados sin descarga en destino
+GIVEN una jornada donde se ejecutó el retiro en el Cliente A
+WHEN el conductor o planificador intenta marcar inicio o llegada a Cliente B sin haber registrado la descarga y certificación en planta de destino del retiro A
+THEN el backend bloquea la acción con código `INVARIANTE_DESCARGA_PENDIENTE`.

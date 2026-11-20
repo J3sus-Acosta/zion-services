@@ -1,19 +1,19 @@
-# Spec: Document Dossier
+# Spec: Document Dossier (Actualizado)
 
 ## ADDED Requirements
 
-### Requirement: Expediente Digital Unificado por Atención
-El sistema SHALL gestionar un expediente documental único por cada Orden de Servicio, admitiendo incorporación progresiva de archivos, control de versiones y metadatos de clasificación.
+### Requirement: Digitalización Progresiva en Terreno (Zero-Paper)
+El sistema SHALL asegurar que todos los documentos físicos generados o recibidos durante la atención sean capturados y subidos al expediente digital en el mismo instante por el conductor usando la tablet Android, eliminando el escaneo tardío de documentos en oficina.
 
-#### Scenario: Carga y categorización de documento en el expediente
-GIVEN un usuario con permisos o un conductor en terreno
-WHEN adjunta un archivo categorizado (ej. `GUIA_DESPACHO`, `HOJA_SEGURIDAD`, `TICKET_PESAJE`, `ACTA_RECEPCION`)
-THEN el sistema valida tipo y peso del archivo, lo almacena en el volumen seguro persistente y registra autor, fecha y versión en el expediente.
+#### Scenario: Incorporación progresiva de documentos al expediente
+GIVEN una atención en progreso
+WHEN se ejecutan secuencialmente: 1) Descarga de SIDREP de Ventanilla Única, 2) Firma de inicio de faena en tablet, 3) Foto de Guía de Despacho del cliente, 4) Firma de recepción en tablet, y 5) Foto de SIDREP sellado por romana de destino
+THEN cada documento queda registrado en el expediente en tiempo real, permitiendo a Operaciones y Gestión Comercial monitorear la documentación sin esperar la llegada física del camión a oficina.
 
-### Requirement: Descarga Consolidada en Archivo ZIP
-El sistema SHALL permitir la generación y descarga en tiempo real de un archivo comprimido (.zip) con todos los documentos aprobados del expediente de una atención.
+### Requirement: Generación y Descarga de Expediente Consolidado en ZIP
+El sistema SHALL generar dinámicamente un archivo ZIP con todos los documentos válidos de la atención clasificados por tipo para auditorías ambientales y respaldo del cliente.
 
-#### Scenario: Generación exitosa de paquete ZIP del expediente
-GIVEN un usuario autorizado (interno o cliente) consultando una atención
-WHEN solicita la descarga del expediente completo
-THEN el sistema empaqueta dinámicamente los documentos a los que el usuario tiene permiso de visualización, genera el archivo ZIP estructurado y lo entrega para descarga.
+#### Scenario: Descarga de expediente completo en archivo comprimido
+GIVEN una Orden de Servicio completada
+WHEN el cliente o el equipo comercial solicita descargar el expediente
+THEN el sistema empaqueta en segundos todos los PDFs e imágenes de respaldo en un archivo ZIP nombrado con el folio de la OS y el nombre del cliente.

@@ -1,19 +1,24 @@
-# Spec: Client Portal
+# Spec: Client Portal & Estados de Pago (Actualizado)
 
 ## ADDED Requirements
 
-### Requirement: Portal de Seguimiento y Aislamiento de Clientes
-El sistema SHALL proporcionar un portal seguro para clientes donde cada empresa solo tenga visibilidad estricta de sus propias sucursales, solicitudes, atenciones y documentos autorizados.
+### Requirement: Consolidación Periódica en Estados de Pago (EDP)
+Gestión Comercial SHALL consolidar múltiples Órdenes de Servicio completadas de un mismo cliente en un único Estado de Pago periódico (quincenal o mensual) para su revisión y habilitación a facturación.
 
-#### Scenario: Prevención estricta de acceso cruzado entre clientes (Tenant Isolation)
-GIVEN un usuario autenticado perteneciente al Cliente A
-WHEN intenta acceder a los detalles, órdenes o documentos de una atención perteneciente al Cliente B
-THEN el sistema deniega el acceso con código 403 Forbidden y registra un evento de advertencia de seguridad en la auditoría.
+#### Scenario: Generación exitosa de Estado de Pago consolidado
+GIVEN un conjunto de Órdenes de Servicio ejecutadas con expedientes completos para un cliente durante una quincena o mes
+WHEN Gestión Comercial genera el corte de liquidación
+THEN el sistema agrupa las atenciones en un `EstadoDePago` consolidado, detalla cantidades y montos acordados en contrato, y emite la prefactura para aprobación del cliente.
 
-### Requirement: Visualización de Estados por Hitos Desacoplados
-El cliente SHALL poder consultar el avance de su atención mediante hitos de estado claros (Solicitado, Planificado, En Ruta, En Faena, En Traslado a Destino, Descargado, Documentación Completa), sin exponer datos internos de costos o márgenes.
+#### Scenario: Validación de Orden de Compra previa a facturación
+GIVEN un cliente contractual que exige Orden de Compra (OC) para emitir factura
+WHEN el Estado de Pago se encuentra aprobado
+THEN el sistema exige adjuntar la OC correspondiente antes de habilitar el botón de facturación formal.
 
-#### Scenario: Consulta de estado en tiempo real por el cliente
-GIVEN una atención cuyo camión ha registrado la llegada a la faena del cliente
-WHEN el usuario del cliente ingresa al portal a revisar su servicio
-THEN el sistema muestra el estado operacional `EN_FAENA_RETIRO` con la hora de llegada, ocultando trazados de otros clientes o datos de tarifas internas.
+### Requirement: Portal de Clientes con Tenant Isolation Estricto
+El cliente SHALL acceder únicamente a sus datos, sus solicitudes de retiro, sus órdenes de servicio y a sus Estados de Pago consolidados, sin visibilidad alguna sobre otros clientes.
+
+#### Scenario: Consulta de Estado de Pago y expedientes por el cliente
+GIVEN un cliente autenticado en el portal
+WHEN consulta sus atenciones del período
+THEN visualiza el Estado de Pago emitido y puede descargar con un clic el paquete ZIP consolidado con todos los respaldos (SIDREP sellado, guías de despacho y actas firmadas en tablet).

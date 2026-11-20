@@ -1,77 +1,72 @@
-# Tasks: Implementación Zion Services Core MVP
+# Tasks: Implementación Zion Services Core MVP (Actualizado)
 
 ## 1. Scaffolding y Configuración Base del Monolito
 
-- [ ] 1.1 Inicializar la estructura modular del proyecto (`backend/` y `frontend/`) con TypeScript strict y verificar compilación base con `npm run build`.
-- [ ] 1.2 Configurar Prisma ORM con datasource MySQL 8 y verificar conexión y validación de schema mediante `npx prisma validate`.
-- [ ] 1.3 Configurar variables de entorno y utilidades de log centralizadas sin exposición de credenciales y verificar con prueba unitaria.
+- [ ] 1.1 Configurar estructura de monorepo (`backend/` Express/TypeScript y `frontend/` React/Vite/TypeScript) y verificar compilación base con `npm run build`.
+- [ ] 1.2 Configurar Prisma ORM con MySQL 8 y verificar sintaxis de conexión mediante `npx prisma validate`.
+- [ ] 1.3 Configurar variables de entorno y logger estructurado auditando no exposición de credenciales.
 
 ## 2. Modelo de Datos Prisma y Migraciones
 
-- [ ] 2.1 Definir en `schema.prisma` los modelos de `Usuario`, `Rol`, `EmpresaCliente`, `SucursalFaena`, `Contrato` y verificar sintaxis con `npx prisma validate`.
-- [ ] 2.2 Definir los modelos de `Vehiculo`, `Conductor`, `InspeccionPreoperacional`, `ItemChecklist` con banderas de falla crítica.
-- [ ] 2.3 Definir los modelos de `SolicitudServicio`, `OrdenServicio`, `Jornada`, `HojaDeRuta`, `TramoRuta` y `CicloTransporte`.
-- [ ] 2.4 Definir los modelos de `VisitaDestino`, `RegistroPesaje` (pesaje de entrada, pesaje de salida, comprobantes) y `AntecedenteSIDREP`.
-- [ ] 2.5 Definir los modelos de `ExpedienteDocumental`, `Documento`, `VersionDocumento` e `HistorialEstado`.
-- [ ] 2.6 Generar y aplicar la primera migración estructurada con `npx prisma migrate dev --name init_core_schema` en base de datos local.
+- [ ] 2.1 Definir modelos de `Usuario`, `Rol`, `EmpresaCliente`, `SucursalFaena`, `ContratoCliente` y `EstadoDePago` en `schema.prisma`.
+- [ ] 2.2 Definir modelos de `Vehiculo`, `Conductor`, `InspeccionSalida_F_GMT` (con los 80 ítems del checklist) e `InspeccionRetornoPlanta`.
+- [ ] 2.3 Definir modelos de `SolicitudServicio`, `OrdenServicio`, `Jornada`, `HojaDeRuta`, `CicloTransporte`, `AutorizacionFaena` y `ActaRecepcion`.
+- [ ] 2.4 Definir modelos de `VisitaDestino`, `CertificacionSIDREP`, `ExpedienteDocumental`, `Documento` e `HistorialEstado`.
+- [ ] 2.5 Ejecutar la migración inicial estructurada con `npx prisma migrate dev --name init_zion_schema` y verificar integridad de tablas.
 
-## 3. Autenticación, Seguridad y Auditoría
+## 3. Seguridad, Autenticación y Tenant Isolation
 
-- [ ] 3.1 Implementar servicio de autenticación con JWT y cookies HTTP-only (login, refresh token y logout) y verificar con tests unitarios.
-- [ ] 3.2 Implementar middleware de autorización RBAC (`ADMIN`, `OPERACIONES`, `COMERCIAL`, `CONDUCTOR`, `CLIENTE`) y verificar rechazo 403 ante permisos insuficientes.
-- [ ] 3.3 Implementar middleware de auditoría obligatoria para mutaciones críticas (pesajes y cambios de estado) y verificar persistencia en `HistorialEstado`.
+- [ ] 3.1 Implementar autenticación JWT con HTTP-only cookies y rotación de refresh tokens.
+- [ ] 3.2 Implementar middleware de autorización RBAC (`ADMIN`, `OPERACIONES`, `COMERCIAL`, `CONDUCTOR`, `CLIENTE`).
+- [ ] 3.3 Implementar middleware de Tenant Isolation que impida a clientes acceder a datos o expedientes de otras empresas.
 
-## 4. Dominio Comercial: Solicitudes y Órdenes de Servicio
+## 4. Dominio Comercial: Solicitudes, Órdenes y Estados de Pago
 
-- [ ] 4.1 Implementar endpoints y servicios para creación y consulta de solicitudes de retiro con validación Zod y verificar con tests de integración.
-- [ ] 4.2 Implementar flujo de revisión y aprobación comercial de solicitudes spot y contractuales.
-- [ ] 4.3 Implementar generación de Orden de Servicio con folio inmutable único vinculado a la solicitud y verificar no duplicidad.
+- [ ] 4.1 Implementar endpoints de creación de solicitudes de retiro (spot y contrato) con validación Zod.
+- [ ] 4.2 Implementar flujo de revisión y aprobación comercial emitiendo Orden de Servicio con folio inmutable.
+- [ ] 4.3 Implementar servicio de corte y generación de `EstadoDePago` periódico (quincenal/mensual) agrupando múltiples órdenes de servicio.
+- [ ] 4.4 Implementar validación de Orden de Compra (OC) obligatoria para clientes contractuales antes de habilitar para facturación.
 
-## 5. Flota y Checklist Preoperacional
+## 5. Flota y Checklists Bipolares (Salida F-GMT-MAN-004 y Retorno)
 
-- [ ] 5.1 Implementar endpoints de administración de vehículos y conductores con validación de estado operativo.
-- [ ] 5.2 Implementar registro del checklist preoperacional con verificación estricta de ítems críticos y test unitario que compruebe el bloqueo automático del camión ante fallas de seguridad.
-- [ ] 5.3 Implementar protocolo de desbloqueo auditado por Jefe de Operaciones ante subsanación de fallas.
+- [ ] 5.1 Implementar endpoint para registro del checklist preoperacional `F-GMT-MAN-004` (80 ítems) con bloqueo automático del camión ante fallas críticas.
+- [ ] 5.2 Implementar protocolo de subsanación y desbloqueo auditado por Jefatura de Operaciones y Prevención de Riesgos.
+- [ ] 5.3 Implementar endpoint para checklist de retorno vehicular a Planta Zion (auditoría de herramientas, mangueras y estado general tras viajes locales o interregionales).
 
-## 6. Planificación de Jornadas y Regla Invariante de Descarga Intermedia
+## 6. Motor de Jornadas y Validación de Invariante de Descarga
 
-- [ ] 6.1 Implementar servicio de creación de jornadas y asignación secuencial de hojas de ruta.
-- [ ] 6.2 Implementar validador de regla de negocio en backend (`JourneyValidationService`) que impida programar o iniciar un segundo retiro sin pesaje y descarga completa en destino del retiro previo.
-- [ ] 6.3 Escribir suite de pruebas automatizadas que intenten forzar dos retiros consecutivos y verificar que el backend retorne error `INVARIANTE_DESCARGA_PENDIENTE`.
+- [ ] 6.1 Implementar planificación de jornadas locales y viajes interregionales fuera de Santiago con pernoctación en ruta.
+- [ ] 6.2 Implementar motor de validación `JourneyValidationService` que bloquee estrictamente cualquier intento de retiro en cliente sin haber completado la descarga y certificación SIDREP del retiro anterior.
+- [ ] 6.3 Escribir tests unitarios que verifiquen que el intento de iniciar un segundo retiro consecutivo retorne `INVARIANTE_DESCARGA_PENDIENTE`.
 
-## 7. Terreno: Ciclo de Transporte y Acta de Recepción
+## 7. Terreno en Tablet Android: Firmas Digitales y Captura Fotográfica
 
-- [ ] 7.1 Implementar endpoints móviles para conductores: salida de planta, llegada a cliente, inicio y término de carga.
-- [ ] 7.2 Implementar endpoint para captura de acta de recepción en cliente: firma digital conforme, recepción con observaciones o constancia explícita de negativa de firma sin inventar conformidad.
-- [ ] 7.3 Implementar soporte de almacenamiento local temporal en frontend para tolerar desconexión en faenas remotas.
+- [ ] 7.1 Implementar módulo web responsive para tablet Android con canvas táctil para firma digital de inicio de faena por el cliente.
+- [ ] 7.2 Implementar firma digital de recepción en pantalla táctil con opciones: conforme, disconforme con observaciones o constancia explícita de negativa de firma.
+- [ ] 7.3 Implementar captura directa con cámara de tablet para Guías de Despacho, hojas de seguridad y comprobantes en terreno con compresión en cliente.
 
-## 8. Destino: Pesajes Dobles y Antecedentes SIDREP
+## 8. Destino: Ventanilla Única y Certificación SIDREP
 
-- [ ] 8.1 Implementar registro de visita a planta de destino con captura obligatoria de `pesoEntrada` y su comprobante.
-- [ ] 8.2 Implementar registro de pesaje de salida tras descarga, cálculo de residuo neto descargado y validación de que `pesoSalida < pesoEntrada`.
-- [ ] 8.3 Implementar vinculación de antecedentes documentales y folios del sistema SIDREP a la Orden de Servicio.
+- [ ] 8.1 Implementar conector/descarga del documento oficial SIDREP emitido por el generador desde Ventanilla Única.
+- [ ] 8.2 Implementar endpoint de registro de llegada a planta de destino y subida de fotografía del SIDREP timbrado por romana y ticket de pesaje.
+- [ ] 8.3 Validar que el ciclo de transporte no pueda cerrarse sin la evidencia fotográfica del timbre de romana en el SIDREP.
 
-## 9. Expediente Documental y Descarga ZIP
+## 9. Expediente Digital Zero-Paper y Descarga ZIP
 
-- [ ] 9.1 Implementar puerto de almacenamiento `FileStoragePort` y adaptador local para almacenamiento persistente en volumen Docker.
-- [ ] 9.2 Implementar subida, clasificación por metadatos y versionado de documentos en el expediente de la atención.
-- [ ] 9.3 Implementar servicio de empaquetado y streaming dinámico de archivo comprimido (.zip) con los documentos autorizados según rol del solicitante.
+- [ ] 9.1 Implementar `FileStoragePort` con adaptador a volumen Docker persistente en el VPS.
+- [ ] 9.2 Implementar servicio de expediente digital que compile en tiempo real todos los documentos subidos durante la atención.
+- [ ] 9.3 Implementar empaquetador dinámico en archivo ZIP de todo el expediente de la atención para auditorías y descarga del cliente.
 
-## 10. Portal de Clientes y Aislamiento de Datos
+## 10. Frontend React con SATEM Design System y Cultura Zion
 
-- [ ] 10.1 Implementar middleware de Tenant Isolation que filtre estrictamente todas las consultas para que un cliente solo acceda a sus propias sucursales y expedientes.
-- [ ] 10.2 Implementar endpoint de consulta de estado por hitos para el portal de clientes (sin telemetría interna sensible).
+- [ ] 10.1 Inyectar tokens oficiales SATEM (Dark Mode `#0f172a`, acento `#00a896`, Outfit/Inter) en `src/index.css`.
+- [ ] 10.2 Construir layout para tablet de conductores optimizado para ergonomía táctil (botones ≥ 38px, navegación por pasos).
+- [ ] 10.3 Construir interfaz de Backoffice para Operaciones (planificación de jornadas, mapa de hitos, revisión de checklists).
+- [ ] 10.4 Construir interfaz de Gestión Comercial (aprobación de solicitudes, generación de Estados de Pago periódicos y control de OC).
+- [ ] 10.5 Construir Portal de Clientes con consulta de solicitudes, tracking de hitos y descarga de Estados de Pago con paquete ZIP.
 
-## 11. Frontend React con SATEM Design System
+## 11. Despliegue en VPS con EasyPanel y Validación E2E
 
-- [ ] 11.1 Configurar tipografías Outfit/Inter e inyectar tokens CSS oficiales de SATEM en `src/index.css`.
-- [ ] 11.2 Construir layout base de Backoffice (`AppLayout`, sidebar, header con breadcrumbs y drawer móvil).
-- [ ] 11.3 Construir interfaz responsive del conductor para checklist preoperacional e hitos de faena con botones táctiles ≥ 38px.
-- [ ] 11.4 Construir vistas de gestión de solicitudes, asignación de jornadas, visor de expedientes y descarga ZIP.
-- [ ] 11.5 Construir Portal de Clientes con vista de seguimiento y descarga documental autorizada.
-
-## 12. Dockerización, Despliegue en EasyPanel y Validación E2E
-
-- [ ] 12.1 Crear `Dockerfile` optimizado para frontend (Nginx) y backend (Node Alpine), junto a `docker-compose.yml` para entorno de producción en VPS.
-- [ ] 12.2 Configurar volúmenes persistentes en EasyPanel para `/var/lib/mysql` y `/uploads`.
-- [ ] 12.3 Ejecutar validación integral end-to-end simulando una jornada completa: Checklist -> Retiro -> Destino (Pesajes + SIDREP) -> Segundo Retiro -> Cierre y verificar cumplimiento de todas las invariantes.
+- [ ] 11.1 Crear `Dockerfile` optimizado (multi-stage para Node y Nginx) y `docker-compose.yml` con volúmenes persistentes para MySQL y `/uploads`.
+- [ ] 11.2 Configurar plantilla y variables de entorno en EasyPanel.
+- [ ] 11.3 Ejecutar validación end-to-end simulando el ciclo completo en tablet: Checklist F-GMT-MAN-004 -> Salida -> Faena (Firma inicio + Guía de Despacho + Firma recepción) -> Destino (SIDREP sellado + Ticket romana) -> Siguiente retiro -> Retorno y Checklist de llegada.
