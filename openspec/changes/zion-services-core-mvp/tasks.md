@@ -22,10 +22,10 @@
 
 ## 4. Dominio Comercial: Solicitudes, Órdenes y Estados de Pago
 
-- [ ] 4.1 Implementar endpoints de creación de solicitudes de retiro (spot y contrato) con validación Zod.
-- [ ] 4.2 Implementar flujo de revisión y aprobación comercial emitiendo Orden de Servicio con folio inmutable.
-- [ ] 4.3 Implementar servicio de corte y generación de `EstadoDePago` periódico (quincenal/mensual) agrupando múltiples órdenes de servicio.
-- [ ] 4.4 Implementar validación de Orden de Compra (OC) obligatoria para clientes contractuales antes de habilitar para facturación.
+- [x] 4.1 Implementar endpoints de creación de solicitudes de retiro (spot y contrato) con validación Zod.
+- [x] 4.2 Implementar flujo de revisión y aprobación comercial emitiendo Orden de Servicio con folio inmutable.
+- [x] 4.3 Implementar servicio de corte y generación de `EstadoDePago` periódico (quincenal/mensual) agrupando múltiples órdenes de servicio.
+- [x] 4.4 Implementar validación de Orden de Compra (OC) obligatoria para clientes contractuales antes de habilitar para facturación.
 
 ## 5. Inspecciones de Flota, Fotos 360° y Autocontrol en Ruta
 
@@ -51,8 +51,8 @@
 ## 8. Destino: Ventanilla Única y Certificación SIDREP
 
 - [ ] 8.1 Implementar conector/descarga del documento oficial SIDREP emitido por el generador desde Ventanilla Única.
-- [ ] 8.2 Implementar captura con cámara de la tablet del SIDREP sellado y timbrado por la romana de la planta de destino junto al ticket de pesaje.
-- [ ] 8.3 Validar que el ciclo de transporte no pueda cerrarse sin la evidencia fotográfica del timbre de romana en el SIDREP.
+- [x] 8.2 Implementar captura con cámara de la tablet del SIDREP sellado y timbrado por la romana de la planta de destino junto al ticket de pesaje.
+- [x] 8.3 Validar que el ciclo de transporte no pueda cerrarse sin la evidencia fotográfica del timbre de romana en el SIDREP.
 
 ## 9. Expediente Digital Zero-Paper y Descarga ZIP
 
@@ -62,14 +62,14 @@
 
 ## 10. Frontend React con SATEM Design System y Cultura Zion
 
-- [ ] 10.1 Inyectar tokens oficiales SATEM (Dark Mode `#0f172a`, acento `#00a896`, Outfit/Inter) en `src/index.css`.
-- [ ] 10.2 Construir layout para tablet de conductores con ergonomía táctil (botones ≥ 38px, asistente paso a paso con cámara integrada).
+- [x] 10.1 Inyectar tokens oficiales SATEM (Dark Mode `#0f172a`, acento `#00a896`, Outfit/Inter) en `src/index.css`.
+- [x] 10.2 Construir layout para tablet de conductores con ergonomía táctil (botones ≥ 38px, asistente paso a paso con cámara integrada).
 - [ ] 10.3 Construir interfaz de Backoffice para Operaciones (planificación de jornadas, mapa de hitos, revisión de checklists y visor comparativo 360°).
 - [ ] 10.4 Construir interfaz de Gestión Comercial (aprobación de solicitudes, generación de Estados de Pago periódicos y control de OC).
 - [ ] 10.5 Construir Portal de Clientes con consulta de solicitudes, tracking de hitos y descarga de Estados de Pago con paquete ZIP.
 
 ## 11. Despliegue en VPS con EasyPanel y Validación E2E
 
-- [ ] 11.1 Crear `Dockerfile` optimizado y `docker-compose.yml` con volúmenes persistentes para MySQL y `/uploads`.
+- [x] 11.1 Crear `Dockerfile` optimizado y `docker-compose.yml` con volúmenes persistentes para MySQL y `/uploads`.
 - [ ] 11.2 Configurar plantilla y variables de entorno en EasyPanel.
 - [ ] 11.3 Ejecutar validación end-to-end simulando el ciclo completo en tablet: Checklist F-GMT-MAN-004 + 4 fotos salida -> Salida -> Llegada cliente -> Firma OT -> Fotos Faena/EPP -> Firma Recepción -> Destino (SIDREP sellado + Ticket romana) -> Retorno + 4 fotos llegada.
