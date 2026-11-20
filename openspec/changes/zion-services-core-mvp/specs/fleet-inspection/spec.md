@@ -1,29 +1,37 @@
-# Spec: Fleet Inspection (Actualizado)
+# Spec: Fleet Inspection (Actualizado v3)
 
 ## ADDED Requirements
 
-### Requirement: Checklist Preoperacional de Salida (Formato F-GMT-MAN-004)
-El conductor asignado SHALL completar digitalmente en la tablet Android el checklist preoperacional corporativo oficial F-GMT-MAN-004 antes de iniciar cualquier despacho desde Planta Zion.
+### Requirement: Checklist Preoperacional de Salida y Registro Fotográfico 360° en Planta Zion
+Antes de salir de la Planta Zion, el conductor y supervisor SHALL completar el checklist preoperacional F-GMT-MAN-004 y capturar obligatoriamente cuatro fotografías del estado exterior del vehículo: Frontal, Lateral Izquierda, Trasera y Lateral Derecha.
 
-#### Scenario: Aprobación de inspección preoperacional completa
-GIVEN un conductor asignado a un camión al inicio de una jornada en Planta Zion
-WHEN inspecciona y evalúa como Bueno o No Aplica los 80 ítems distribuidos en Partes Mecánicas (26 ítems), Cabina (20 ítems), Equipamiento del estanque hidrojet/vacío (18 ítems) y Documentos/Señalética (16 ítems)
-THEN el sistema registra la inspección preoperacional como `CONFORME`, guarda la firma digital del conductor y del supervisor, y habilita la salida del vehículo.
+#### Scenario: Aprobación de salida con checklist y 4 fotos obligatorias
+GIVEN un camión en Planta Zion al inicio de su jornada
+WHEN el conductor completa los 80 ítems del checklist F-GMT-MAN-004 sin fallas críticas y captura en la tablet las 4 fotos (Frontal, Lateral Izquierda, Trasera y Lateral Derecha)
+THEN el sistema califica la inspección como `CONFORME`, almacena las fotos con fecha y hora, y autoriza la salida del camión de la base.
 
-#### Scenario: Bloqueo automático por falla crítica de seguridad
-GIVEN una inspección donde se reporta estado Malo en frenos, luces reglamentarias, dirección, válvulas de seguridad del estanque o extintor vencido
-WHEN el conductor registra el hallazgo crítico en la tablet
-THEN el sistema califica la inspección como `NO_CONFORME`, bloquea automáticamente el despacho del vehículo en el backend y notifica a Prevención de Riesgos y Jefatura de Operaciones.
+#### Scenario: Bloqueo de salida por falta de registro fotográfico o falla crítica
+GIVEN una inspección donde se reporta un ítem crítico en estado Malo o el conductor intenta marcar salida omitiendo alguna de las 4 fotos obligatorias
+WHEN el conductor intenta registrar el inicio de ruta
+THEN el sistema bloquea el despacho indicando que el checklist conforme y las 4 fotos perimetrales son requisitos obligatorios.
 
-### Requirement: Checklist de Retorno a Planta Zion
-Al finalizar la jornada o al retornar el camión a la Planta de Zion tras trabajos interregionales fuera de Santiago, el conductor y supervisor SHALL realizar un checklist de retorno para verificar el estado de entrega del vehículo y equipamiento.
+### Requirement: Autochecklist Diario de Ruta en Viajes Fuera de Santiago
+Durante viajes interregionales fuera de Santiago, el conductor SHALL completar cada mañana antes de operar un checklist rápido de autocontrol en ruta a través de la tablet Android, transmitiendo el reporte a la Jefatura de Operaciones en Santiago.
 
-#### Scenario: Registro conforme de retorno a planta
-GIVEN un camión que ingresa a la Planta Zion tras finalizar sus servicios
-WHEN el conductor y el encargado completan el checklist de retorno verificando que no hubo daños en carrocería, estanque ni herramientas
-THEN el sistema registra el checklist de retorno como `RETORNO_CONFORME` y da por cerrada la jornada del vehículo.
+#### Scenario: Autocontrol matutino exitoso en faena remota
+GIVEN un camión operando en una región fuera de Santiago en su segundo día de viaje
+WHEN el conductor completa la verificación de frenos, neumáticos, luces, estanque y mangueras en la tablet y firma digitalmente
+THEN el sistema habilita el inicio de operaciones del día y actualiza el panel de supervisión remota en Santiago con estado `EN_RUTA_OK`.
 
-#### Scenario: Detección de daño o faltante en retorno a planta
-GIVEN un vehículo que sufrió un percance menor, daño en mangueras de succión o faltante de herramientas en faena
-WHEN se registra la observación y fotografías en el checklist de retorno
-THEN el sistema genera un incidente operacional `RETORNO_CON_OBSERVACIONES`, documenta el estado en la bitácora del vehículo y notifica a Mantenimiento.
+#### Scenario: Alerta remota por falla mecánica en faena regional
+GIVEN un conductor que detecta un problema en una válvula o fuga de líquido en el autocontrol diario en región
+WHEN marca la observación en el autochecklist de ruta
+THEN el sistema emite una alerta crítica prioritaria en el panel del Jefe de Operaciones en Santiago y bloquea la operación hasta coordinar soporte técnico.
+
+### Requirement: Checklist de Retorno a Planta Zion y Registro Fotográfico de Cierre
+Al retornar el camión a la Planta Zion tras culminar la jornada local o el viaje fuera de Santiago, el conductor y supervisor SHALL realizar un checklist de retorno y capturar nuevamente las 4 fotografías perimetrales para auditar la integridad del vehículo.
+
+#### Scenario: Inspección de retorno y comparación visual perimetral
+GIVEN un vehículo que arriba a la base central de Zion
+WHEN se completa el checklist de retorno y se capturan las 4 fotos finales (Frontal, Lateral Izq, Trasera, Lateral Der)
+THEN el sistema registra el `RETORNO_A_PLANTA`, pone a disposición del Jefe de Operaciones la vista comparativa (fotos de salida vs. fotos de llegada) y documenta cualquier daño o herramienta faltante.

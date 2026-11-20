@@ -1,24 +1,32 @@
-# Spec: Transport Cycle (Actualizado)
+# Spec: Transport Cycle (Actualizado v3)
 
 ## ADDED Requirements
 
-### Requirement: Operación Digital en Tablet Android y Captura Fotográfica Progresiva
-La aplicación para conductores en tablet Android SHALL permitir registrar hitos cronológicos y capturar con la cámara del dispositivo los documentos físicos generados en terreno en el momento exacto de su emisión.
+### Requirement: Registro de Llegada a Faena y Firma de Orden de Trabajo
+Al arribar a la dirección del cliente, el conductor SHALL registrar la hora exacta de llegada en la tablet Android y solicitar al encargado del cliente la firma digital de la Orden de Trabajo que autoriza el inicio de faena.
 
-#### Scenario: Captura inmediata de Guía de Despacho del cliente
-GIVEN el conductor en la faena del cliente tras cargar el camión
-WHEN el cliente le entrega la Guía de Despacho física o impresa
-THEN el conductor toma la fotografía con la cámara de la tablet, el sistema la adjunta automáticamente al expediente de la atención y la sincroniza al servidor sin esperar el regreso a oficina.
+#### Scenario: Registro de llegada y autorización de inicio de labores
+GIVEN el camión posicionado en la instalación del cliente
+WHEN el conductor pulsa `Marcar Llegada` y el cliente revisa las condiciones y firma en la tablet la Orden de Trabajo
+THEN el sistema estampa la hora de llegada, almacena la firma digital y el RUT del cliente, cambia el estado a `FAENA_AUTORIZADA` y desbloquea el módulo de evidencia fotográfica de faena.
 
-### Requirement: Acta de Recepción y Cierre en Terreno en Tablet
-Al finalizar los trabajos en faena, el cliente SHALL validar y firmar digitalmente en la pantalla de la tablet la recepción del servicio, con registro de observaciones o constancia explícita en caso de disconformidad o rechazo de firma.
+### Requirement: Evidencia Fotográfica de Trabajo en Proceso y Uso de EPP
+Inmediatamente después de firmada la Orden de Trabajo, el sistema SHALL permitir al conductor capturar y subir fotografías del trabajo en ejecución y de la verificación del uso de implementos de seguridad (EPP) por parte de la cuadrilla.
 
-#### Scenario: Firma digital de recepción conforme en tablet
-GIVEN los trabajos de succión y retiro completados
-WHEN el cliente firma en la pantalla táctil de la tablet indicando conformidad
-THEN el sistema genera el acta de recepción digital firmada, la incorpora al expediente y notifica por correo electrónico al cliente y a Gestión Comercial.
+#### Scenario: Carga exitosa de fotografías de faena y seguridad laboral
+GIVEN una faena con Orden de Trabajo firmada por el cliente
+WHEN el conductor toma fotografías de la succión/limpieza en proceso y del personal operando con sus cascos, lentes, guantes, overol y arnés reglamentarios
+THEN el sistema almacena las imágenes en el expediente digital con marca de tiempo y coordenadas GPS para respaldo ante inspecciones y clientes.
 
-#### Scenario: Registro de recepción disconforme o negativa de firma
-GIVEN una discrepancia en el retiro o ausencia del encargado del cliente para firmar
-WHEN el conductor selecciona `Recepción Disconforme` o `Sin Firma`, ingresando el motivo y fotos de respaldo
-THEN el sistema graba el acta con estado `RECEPCION_OBSERVADA` o `RECEPCION_SIN_FIRMA`, alertando inmediatamente al Jefe de Operaciones.
+### Requirement: Acta de Recepción Conforme y Cierre de Faena en Tablet
+Al concluir la extracción y limpieza, el cliente SHALL validar el trabajo firmando en la tablet el acta de recepción conforme, o registrando observaciones detalladas o constancia de negativa de firma sin falsear conformidad.
+
+#### Scenario: Firma digital de recepción conforme en pantalla
+GIVEN la succión concluida y las fotos de faena cargadas
+WHEN el cliente valida los trabajos y firma la recepción conforme en la tablet
+THEN el sistema genera el acta firmada, actualiza el estado a `RETIRO_COMPLETADO` y notifica por correo electrónico a Gestión Comercial y al cliente.
+
+#### Scenario: Registro de recepción con observaciones o rechazo de firma
+GIVEN una discrepancia o negativa del encargado a firmar la recepción
+WHEN el conductor registra la causa en la tablet adjuntando foto de respaldo
+THEN el sistema graba el estado como `RECEPCION_OBSERVADA` o `RECEPCION_SIN_FIRMA` y envía una alerta inmediata a Operaciones.

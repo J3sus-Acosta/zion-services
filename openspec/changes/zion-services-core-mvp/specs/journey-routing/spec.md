@@ -1,24 +1,16 @@
-# Spec: Journey Routing (Actualizado)
+# Spec: Journey Routing (Actualizado v3)
 
 ## ADDED Requirements
 
-### Requirement: Gestión de Jornadas Locales e Interregionales
-Operaciones SHALL programar jornadas locales (con retorno diario a planta) y viajes fuera de Santiago (interregionales), permitiendo pernoctación en ruta y difiriendo el checklist de retorno vehicular hasta la llegada definitiva a Planta Zion.
+### Requirement: Enrutamiento por Modalidad: Local Santiago vs. Viaje Interregional
+Operaciones SHALL programar jornadas clasificadas en modalidad `LOCAL_SANTIAGO` o `VIAJE_INTERREGIONAL`, aplicando reglas de secuenciación adaptadas al alcance geográfico de la operación.
 
-#### Scenario: Programación y ejecución de viaje fuera de Santiago
-GIVEN un camión y conductor asignados a una ruta interregional de varios días
-WHEN el camión realiza servicios y pernocta en la zona de faena
-THEN el sistema mantiene la jornada activa bajo modalidad `VIAJE_INTERREGIONAL`, registrando hitos diarios sin exigir el regreso físico a Planta Zion entre días.
+#### Scenario: Enrutamiento estricto en modalidad Local Santiago
+GIVEN una jornada configurada como `LOCAL_SANTIAGO`
+WHEN se programa la hoja de ruta
+THEN el sistema impone la invariante física estricta: cada retiro de un cliente debe ir seguido inmediatamente de un tramo a planta de destino con descarga y certificación de SIDREP antes de autorizar cualquier otro retiro en la ciudad.
 
-#### Scenario: Cierre definitivo de viaje interregional en Planta Zion
-GIVEN el retorno del camión a la Planta de Zion tras culminar todos los trabajos fuera de Santiago
-WHEN el vehículo ingresa a la base central de Zion
-THEN se activa y ejecuta el checklist de retorno vehicular para auditar la integridad del camión, cerrando formalmente el viaje interregional.
-
-### Requirement: Invariante Física de Descarga Intermedia Obligatoria
-El motor de backend SHALL imponer que un camión jamás pueda realizar dos retiros consecutivos de residuos en faenas de clientes sin una visita intermedia a planta de destino con descarga y certificación de SIDREP.
-
-#### Scenario: Rechazo automático de retiros encadenados sin descarga en destino
-GIVEN una jornada donde se ejecutó el retiro en el Cliente A
-WHEN el conductor o planificador intenta marcar inicio o llegada a Cliente B sin haber registrado la descarga y certificación en planta de destino del retiro A
-THEN el backend bloquea la acción con código `INVARIANTE_DESCARGA_PENDIENTE`.
+#### Scenario: Enrutamiento con traslados consecutivos en Viaje Interregional
+GIVEN un camión asignado a una campaña fuera de Santiago en modalidad `VIAJE_INTERREGIONAL`
+WHEN la hoja de ruta programa múltiples traslados o servicios consecutivos en la zona durante días continuos
+THEN el sistema autoriza la ejecución de los servicios planificados en región, manteniendo el seguimiento de cada atención y postergando la descarga en planta autorizada de destino según la planificación logística regional.

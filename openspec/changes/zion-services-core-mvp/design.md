@@ -1,8 +1,8 @@
-# Design: Arquitectura Técnica y Estrategia de Implementación Zion Services (Actualizado)
+# Design: Arquitectura Técnica y Estrategia de Implementación Zion Services (Actualizado v3)
 
 ## Context
 
-Zion Services gestiona el retiro y transporte de residuos peligrosos mediante camiones equipados con estanques de succión y bombas de hidrojet. La operación actual se basa en carpetas físicas con documentos en papel:
+Zion Services gestiona el retiro y transporte de residuos peligrosos mediante camiones cisterna equipados con equipos de hidrojet y succión. La operación actual se basa en carpetas físicas con documentos en papel:
 - Checklist de camión en papel (`F-GMT-MAN-004`).
 - Declaración de Residuos Peligrosos (SIDREP) emitida por el generador en Ventanilla Única.
 - Guía de Despacho electrónica impresa del cliente generador.
@@ -21,9 +21,11 @@ El sistema se basa en los principios del **Manifiesto Zion Services**:
 ### Goals
 - Proveer una PWA responsive optimizada para tablets con Android OS con soporte de firma táctil y cámara web/móvil.
 - Digitalizar el checklist preoperacional corporativo oficial `F-GMT-MAN-004` (80 ítems en 4 categorías: Partes Mecánicas, Cabina, Equipamiento del Estanque y Señalética/Documentos) con bloqueo automático por fallas críticas.
-- Implementar un **Checklist de Retorno a Planta** que audite la integridad mecánica, herramientas y faltantes tras culminar la jornada local o el viaje fuera de Santiago.
+- Implementar la captura obligatoria de **4 fotos perimetrales 360°** (Frontal, Lateral Izq, Trasera, Lateral Der) en Salida y Retorno a Planta Zion, permitiendo comparativa visual lado a lado para auditoría de integridad vehicular.
+- Implementar el **Autochecklist Diario de Ruta** para viajes interregionales fuera de Santiago con alertas remotas en el panel de Santiago.
+- Implementar el flujo estricto de faena en cliente: Marcado de hora de llegada -> Firma digital de Orden de Trabajo -> Desbloqueo y captura de **fotos del trabajo en proceso y uso de EPP** de la cuadrilla -> Firma de recepción conforme/observada.
+- Diferenciar el enrutamiento: modalidad `LOCAL_SANTIAGO` (invariante estricta: retiro -> descarga) vs. `VIAJE_INTERREGIONAL` (traslados y servicios consecutivos en campaña regional).
 - Integrar la descarga del documento oficial SIDREP emitido por el generador desde la plataforma de Ventanilla Única ambiental.
-- Imponer la **invariante física estricta** en el backend: prohibir dos retiros consecutivos sin visita, descarga y certificación intermedia en planta de destino.
 - Eliminar la digitación manual de pesajes de camión por parte de Zion: la planta de destino certifica el residuo timbrando el SIDREP y entregando su ticket de pesaje, los cuales el conductor fotografía en el acto.
 - Implementar la entidad `EstadoDePago` (EDP) para consolidar periódicamente (quincenal o mensualmente) múltiples órdenes de servicio de un cliente antes de facturar.
 - Almacenar archivos en volumen persistente de EasyPanel/VPS mediante la abstracción `FileStoragePort` y permitir la descarga del expediente consolidado en archivo ZIP.
@@ -35,51 +37,34 @@ El sistema se basa en los principios del **Manifiesto Zion Services**:
 
 ## Decisions
 
-### 1. Aplicación Tablet Android para Conductores (PWA Táctil)
-- **Canvas de Firma Digital**: Componente React con soporte de touch events (`pointerdown`, `pointermove`, `pointerup`) para firma fluida con lápiz stylus o dedo.
-  - Firma 1: Autorización de inicio de trabajo por el cliente en faena.
-  - Firma 2: Recepción conforme o disconforme con observaciones.
-- **Acceso a Cámara Nativa**: Uso de `<input type="file" accept="image/*" capture="environment">` y API MediaDevices para toma directa de fotografías de documentos timbrados (Guía de Despacho, SIDREP sellado por romana de destino, ticket de pesaje de destino).
-- **Compresión en Cliente**: Reducción de imágenes a máximo 1600px y compresión WebP/JPEG antes de subir al servidor para optimizar ancho de banda en faena.
+### 1. PWA Tablet Android: Flujo Secuencial de Operación
+1. **Paso 1: Salida de Planta Zion**:
+   - Checklist F-GMT-MAN-004 (80 ítems evaluados).
+   - Captura guiada de 4 fotos (Frontal, Lateral Izq, Trasera, Lateral Der).
+   - Firma presencial Conductor + Supervisor.
+2. **Paso 2: En Faena del Cliente**:
+   - Botón `Marcar Llegada` (estampa hora exacta).
+   - Presentación de Orden de Trabajo al cliente y firma digital en pantalla.
+   - Activación inmediata del módulo de cámara: captura obligatoria de fotos del trabajo en ejecución y verificación de EPPs en operarios.
+   - Carga fotográfica de Guía de Despacho entregada por el cliente.
+   - Firma digital de recepción conforme o registro de disconformidad/sin firma.
+3. **Paso 3: En Planta de Destino**:
+   - Descarga de residuo en destino.
+   - Captura con cámara del documento SIDREP con timbre húmedo/sello de romana de destino y del ticket oficial de pesaje.
+4. **Paso 4: Retorno a Planta Zion**:
+   - Checklist de retorno vehicular.
+   - Captura de las 4 fotos finales (Frontal, Lateral Izq, Trasera, Lateral Der).
+   - Vista comparativa de fotos de salida vs. retorno en panel de Operaciones.
 
-### 2. Motor de Inspecciones Bipolares (Salida y Retorno)
-Se modelan dos checklists estructurados en el sistema:
-1. `InspeccionPreoperacionalSalida` (`F-GMT-MAN-004`):
-   - **Partes Mecánicas** (26 ítems): Motor, transmisión, frenos de servicio/mano/motor, suspensión, neumáticos, luces, fugas.
-   - **Cabina** (20 ítems): Cinturones, espejos, vidrios, aire, bocinas, botiquín, kit de contención de derrames.
-   - **Equipamiento del Estanque** (18 ítems): Bombas hidrojet y vacío, válvulas primaria/secundaria/seguridad, manómetro, mangueras de succión 3" y descarga 4", compuertas y seguros hidráulicos.
-   - **Documentos y Señalética** (16 ítems): Padrón, revisión técnica, gases, seguro obligatorio, certificado de hermeticidad y lugar de lavado, resolución sanitaria, rombos y UN reflectantes NCH 2190, letreros de residuos peligrosos, extintores y conos.
-   - *Regla de Bloqueo*: Cualquier ítem marcado como `MALO` en la categoría crítica impide el despacho del vehículo.
-2. `InspeccionRetornoPlanta`:
-   - Se ejecuta únicamente cuando el camión regresa físicamente a la Planta Zion (al término de la jornada diaria o al regresar de un viaje fuera de Santiago).
-   - Audita estado de carrocería, mangueras, herramientas y registra incidentes ocurridos en ruta.
+### 2. Arquitectura de Viajes Fuera de Santiago
+- `Modalidad: VIAJE_INTERREGIONAL`:
+  - No exige retorno diario a Planta Zion; el camión puede pernoctar en faena u hotel en región.
+  - Cada mañana, el conductor realiza el "Autochecklist Diario de Ruta" (revisión rápida de frenos, luces, estanque y fugas) y firma en su tablet.
+  - El resultado se transmite a Santiago; si todo está conforme, la tablet habilita operar. Si hay falla crítica, salta alerta en panel de Santiago.
+  - La inspección presencial completa de retorno con sus 4 fotos se ejecuta al concluir la campaña y regresar físicamente a Planta Zion.
+  - Se autoriza la ejecución de traslados y servicios consecutivos en la zona geográfica asignada.
 
-### 3. Flujo SIDREP y Destino (Ventanilla Única + Romana Certificada)
-1. El cliente generador emite la Declaración SIDREP en Ventanilla Única.
-2. El sistema Zion Services obtiene y almacena el PDF original del SIDREP asociándolo a la Orden de Servicio.
-3. El conductor viaja con el residuo hacia la planta de destino autorizada.
-4. En destino, la planta recibe el camión, pesa en su romana, descarga el residuo, emite el ticket de pesaje y estampa su timbre/sello húmedo y firma en el documento SIDREP.
-5. El conductor toma foto del SIDREP sellado y del ticket de romana con la tablet Android y lo sube al sistema.
-6. El backend valida la existencia de la certificación y habilita el siguiente tramo o retiro.
-
-### 4. Modelo de Liquidación Comercial (Estados de Pago Consolidados)
-```
-[OrdenServicio #1] ──┐
-[OrdenServicio #2] ──┼──> [EstadoDePago (EDP) #2026-11-Q1] ──> [Validación OC] ──> [Habilitado para Facturar]
-[OrdenServicio #3] ──┘
-```
-- Cada cliente contractual tiene una periodicidad de corte: `QUINCENAL` o `MENSUAL`.
-- Al cierre del período, Gestión Comercial genera el EDP agrupando todas las OS completadas con expediente cerrado.
-- Si el cliente requiere Orden de Compra (OC), el sistema exige registrar el número y PDF de la OC antes de habilitar la facturación.
-
-### 5. Invariante Física en Viajes Locales e Interregionales
-- La regla física `Planta Zion -> Retiro A -> Destino/Descarga -> [Retiro B]` es inviolable.
-- En viajes interregionales (fuera de Santiago):
-  - El camión puede pernoctar fuera sin volver a Planta Zion.
-  - Pero dentro de la región, no puede retirar en un segundo cliente sin haber descargado en la planta de destino autorizada de esa zona.
-  - La inspección de retorno vehicular se mantiene pendiente hasta el arribo final a Planta Zion.
-
-## Modelo Conceptual de Entidades Actualizado
+### 3. Modelo de Entidades y Expediente con Fotografías
 
 ```
 EmpresaCliente (1) ───< (N) ContratoCliente
@@ -87,22 +72,22 @@ EmpresaCliente (1) ───< (N) ContratoCliente
       │ (1)                    └───< (N) EstadoDePago (1) ───< (N) OrdenServicio
       └───< (N) SucursalFaena (1) ───< (N) SolicitudServicio (1) ───┘
                                                                 │ (1)
-Conductor (1) ───┐                                              ├─── (1) ExpedienteDocumental (1) ──< (N) Documento
-                 ├───< (N) Jornada (1) ─── (1) HojaDeRuta       ├─── (1) CicloTransporte
-Vehiculo (1) ────┘            │                                 │           │ (1)
-                              ├─── (1) InspeccionSalida_F_GMT   │           ├─── (1) AutorizacionInicioFaena (Firma)
+Conductor (1) ───┐                                              ├─── (1) ExpedienteDocumental (1) ──< (N) ArchivoExpediente
+                 ├───< (N) Jornada (Modalidad: LOCAL/REGIONAL)  │                                            │ (Tipo: DOC/FOTO_CAMION/FOTO_FAENA)
+Vehiculo (1) ────┘            │                                 ├─── (1) CicloTransporte
+                              ├─── (1) InspeccionSalida_F_GMT   │           ├─── (1) HitoLlegada (timestamp)
+                              │           └─── (4) Fotos360_Sal │           ├─── (1) AutorizacionInicioFaena (Firma OT)
+                              ├─── (N) AutochecklistRuta        │           ├─── (N) FotosTrabajoYEPP
                               └─── (1) InspeccionRetornoPlanta  │           └─── (1) ActaRecepcionServicio (Firma)
-                                                                └─── (1) VisitaDestino
-                                                                            ├─── (1) DeclaracionSIDREP_VU (PDF original)
+                                          └─── (4) Fotos360_Ret └─── (1) VisitaDestino
+                                                                            ├─── (1) SIDREP_VentanillaUnica (PDF)
                                                                             ├─── (1) SIDREP_SelladoRomana (Foto)
                                                                             └─── (1) TicketPesajeRomana (Foto)
 ```
 
 ## Risks / Trade-offs
 
-- **Riesgo: Fragilidad de tablets en faena pesada (lodo, químicos).**
-  - *Mitigación*: Uso de fundas industriales rugerizadas anti-impacto con grado de protección IP68 y correa para mano.
-- **Riesgo: Mala calidad o ilegibilidad de las fotos tomadas por el conductor.**
-  - *Mitigación*: Previsualización en pantalla con confirmación obligatoria del conductor ("¿La foto es legible y se aprecia el timbre?") antes del envío final.
-- **Riesgo: Intermitencia de Ventanilla Única gubernamental.**
-  - *Mitigación*: Soporte dual: descarga automatizada por API/scraping o carga manual del PDF del SIDREP por Gestión Comercial en caso de caída del portal estatal.
+- **Riesgo: Demoras en faena por captura de múltiples fotos.**
+  - *Mitigación*: Interfaz guiada tipo "asistente paso a paso" con previsualizaciones rápidas y compresión en background en la tablet para no bloquear la pantalla del conductor.
+- **Riesgo: Resistencia de operarios a ser fotografiados con EPP.**
+  - *Mitigación*: Enfoque protocolar de seguridad y prevención de riesgos respaldado por la Jefatura de Operaciones y establecido en los contratos de servicio con clientes.
