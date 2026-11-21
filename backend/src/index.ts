@@ -3,6 +3,10 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import { logger } from './utils/logger.js';
 
+import { authRouter } from './routes/auth.routes.js';
+import { userRouter } from './routes/user.routes.js';
+import { trackingRouter } from './routes/tracking.routes.js';
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 const CORS_ORIGIN = process.env.CORS_ORIGIN || 'http://localhost:5173';
@@ -32,6 +36,11 @@ app.get('/api', (_req: Request, res: Response) => {
     environment: process.env.NODE_ENV || 'development'
   });
 });
+
+// Rutas de API
+app.use('/api/auth', authRouter);
+app.use('/api/usuarios', userRouter);
+app.use('/api', trackingRouter);
 
 // Manejo centralizado de errores
 app.use((err: Error, req: Request, res: Response, _next: NextFunction) => {

@@ -12,7 +12,9 @@ generator client {
 // -------------------------------------------------------------
 
 enum RolUsuario {
+  SUPERADMIN
   ADMIN
+  JEFE_OPERACIONES
   OPERACIONES
   COMERCIAL
   CONDUCTOR

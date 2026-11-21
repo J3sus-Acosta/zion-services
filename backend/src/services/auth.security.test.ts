@@ -41,6 +41,42 @@ describe('Seguridad: Autenticación, RBAC y Tenant Isolation', () => {
     expect(next).not.toHaveBeenCalled();
   });
 
+  it('debe permitir acceso a SUPERADMIN en cualquier ruta administrativa (RBAC Superadmin bypass)', () => {
+    const superadminPayload: TokenPayload = {
+      userId: 'super-01',
+      email: 'super@zion.cl',
+      rol: RolUsuario.SUPERADMIN,
+      empresaClienteId: null
+    };
+
+    const req = { user: superadminPayload } as AuthenticatedRequest;
+    const res = { status: vi.fn().mockReturnThis(), json: vi.fn() } as unknown as Response;
+    const next = vi.fn();
+
+    const rbacMiddleware = authorize(RolUsuario.ADMIN, RolUsuario.JEFE_OPERACIONES);
+    rbacMiddleware(req, res, next);
+
+    expect(next).toHaveBeenCalled();
+  });
+
+  it('debe autorizar a JEFE_OPERACIONES en rutas de operaciones', () => {
+    const opsPayload: TokenPayload = {
+      userId: 'ops-01',
+      email: 'jefe@zion.cl',
+      rol: RolUsuario.JEFE_OPERACIONES,
+      empresaClienteId: null
+    };
+
+    const req = { user: opsPayload } as AuthenticatedRequest;
+    const res = { status: vi.fn().mockReturnThis(), json: vi.fn() } as unknown as Response;
+    const next = vi.fn();
+
+    const rbacMiddleware = authorize(RolUsuario.JEFE_OPERACIONES);
+    rbacMiddleware(req, res, next);
+
+    expect(next).toHaveBeenCalled();
+  });
+
   it('debe bloquear acceso cruzado entre clientes (Tenant Isolation)', () => {
     const req = {
       user: mockPayload, // Pertenece a empresa-horse
@@ -58,5 +94,41 @@ describe('Seguridad: Autenticación, RBAC y Tenant Isolation', () => {
 
     expect(res.status).toHaveBeenCalledWith(403);
     expect(next).not.toHaveBeenCalled();
+  });
+
+  it('debe permitir acceso a SUPERADMIN en cualquier ruta administrativa (RBAC Superadmin bypass)', () => {
+    const superadminPayload: TokenPayload = {
+      userId: 'super-01',
+      email: 'super@zion.cl',
+      rol: RolUsuario.SUPERADMIN,
+      empresaClienteId: null
+    };
+
+    const req = { user: superadminPayload } as AuthenticatedRequest;
+    const res = { status: vi.fn().mockReturnThis(), json: vi.fn() } as unknown as Response;
+    const next = vi.fn();
+
+    const rbacMiddleware = authorize(RolUsuario.ADMIN, RolUsuario.JEFE_OPERACIONES);
+    rbacMiddleware(req, res, next);
+
+    expect(next).toHaveBeenCalled();
+  });
+
+  it('debe autorizar a JEFE_OPERACIONES en rutas de operaciones', () => {
+    const opsPayload: TokenPayload = {
+      userId: 'ops-01',
+      email: 'jefe@zion.cl',
+      rol: RolUsuario.JEFE_OPERACIONES,
+      empresaClienteId: null
+    };
+
+    const req = { user: opsPayload } as AuthenticatedRequest;
+    const res = { status: vi.fn().mockReturnThis(), json: vi.fn() } as unknown as Response;
+    const next = vi.fn();
+
+    const rbacMiddleware = authorize(RolUsuario.JEFE_OPERACIONES);
+    rbacMiddleware(req, res, next);
+
+    expect(next).toHaveBeenCalled();
   });
 });

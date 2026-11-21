@@ -46,7 +46,10 @@ export function authorize(...rolesPermitidos: RolUsuario[]) {
       return;
     }
 
-    if (!rolesPermitidos.includes(req.user.rol)) {
+    // SUPERADMIN tiene acceso automático a todas las operaciones autorizadas
+    const tieneAcceso = rolesPermitidos.includes(req.user.rol) || req.user.rol === RolUsuario.SUPERADMIN;
+
+    if (!tieneAcceso) {
       logger.warn('Acceso denegado por rol insuficiente', {
         userId: req.user.userId,
         rolUsuario: req.user.rol,
