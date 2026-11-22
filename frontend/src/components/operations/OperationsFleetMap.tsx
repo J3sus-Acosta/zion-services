@@ -174,11 +174,20 @@ export const OperationsFleetMap: React.FC = () => {
               </div>
             </CardHeader>
             <CardContent className="p-0">
-              {/* Representación visual de mapa satelital estilizado */}
-              <div className="relative h-80 sm:h-96 w-full bg-slate-950 flex items-center justify-center overflow-hidden">
-                {/* Cuadrícula cartográfica de fondo */}
+              {/* Representación visual de mapa satelital estilizado y adaptativo */}
+              <div className="relative h-80 sm:h-96 w-full bg-slate-100 dark:bg-slate-950 transition-colors duration-200 flex items-center justify-center overflow-hidden border-b border-border">
+                {/* Cuadrícula cartográfica de fondo: Modo Claro (técnica) y Modo Oscuro (cibernética) */}
                 <div
-                  className="absolute inset-0 opacity-20"
+                  className="absolute inset-0 opacity-25 dark:opacity-20 block dark:hidden transition-opacity duration-200"
+                  style={{
+                    backgroundImage:
+                      'radial-gradient(#0284c7 1px, transparent 1px), radial-gradient(#0284c7 1px, var(--card) 1px)',
+                    backgroundSize: '28px 28px',
+                    backgroundPosition: '0 0, 14px 14px'
+                  }}
+                />
+                <div
+                  className="absolute inset-0 opacity-20 hidden dark:block transition-opacity duration-200"
                   style={{
                     backgroundImage:
                       'radial-gradient(#38bdf8 1px, transparent 1px), radial-gradient(#38bdf8 1px, #020617 1px)',
@@ -188,11 +197,12 @@ export const OperationsFleetMap: React.FC = () => {
                 />
 
                 {/* Ruta trazada de Santiago */}
-                <svg className="absolute inset-0 h-full w-full pointer-events-none opacity-40">
+                <svg className="absolute inset-0 h-full w-full pointer-events-none opacity-60 dark:opacity-40">
                   <path
                     d="M 120 320 Q 240 240, 360 180 T 560 120"
                     fill="none"
-                    stroke="#38bdf8"
+                    stroke="currentColor"
+                    className="text-primary dark:text-sky-400"
                     strokeWidth="3"
                     strokeDasharray="6 4"
                   />
@@ -200,8 +210,8 @@ export const OperationsFleetMap: React.FC = () => {
 
                 {/* Marcador Base Planta Zion */}
                 <div className="absolute left-28 bottom-16 flex flex-col items-center">
-                  <div className="h-4 w-4 rounded-full bg-blue-500 border-2 border-white shadow-lg" />
-                  <span className="text-[10px] text-white/90 font-bold bg-black/70 px-1.5 py-0.5 rounded mt-1">
+                  <div className="h-4 w-4 rounded-full bg-blue-500 border-2 border-white dark:border-slate-800 shadow-lg" />
+                  <span className="text-[10px] text-card-foreground dark:text-white/90 font-bold bg-card/90 dark:bg-black/70 border border-border shadow-md px-1.5 py-0.5 rounded mt-1">
                     Planta Zion
                   </span>
                 </div>
@@ -211,24 +221,24 @@ export const OperationsFleetMap: React.FC = () => {
                   <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center animate-in zoom-in-95">
                     <div className="relative">
                       <span className="animate-ping absolute inset-0 rounded-full bg-primary opacity-60 scale-150" />
-                      <div className="h-10 w-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-xl border-2 border-white relative z-10">
+                      <div className="h-10 w-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-xl border-2 border-background relative z-10">
                         <Truck className="h-5 w-5" />
                       </div>
                     </div>
-                    <div className="bg-black/90 border border-primary/40 text-white rounded-lg p-2 text-center mt-2 shadow-xl backdrop-blur-xs">
-                      <div className="text-xs font-bold">{seleccionada.patente}</div>
+                    <div className="bg-card/95 dark:bg-black/90 border border-border dark:border-primary/40 text-card-foreground dark:text-white rounded-lg p-2 text-center mt-2 shadow-xl backdrop-blur-md">
+                      <div className="text-xs font-bold text-foreground dark:text-white">{seleccionada.patente}</div>
                       <div className="text-[10px] text-muted-foreground">{seleccionada.conductorNombre}</div>
-                      <div className="text-[10px] text-primary font-semibold mt-0.5">
+                      <div className="text-[10px] text-primary dark:text-sky-400 font-semibold mt-0.5">
                         {seleccionada.estadoTramo.replace(/_/g, ' ')}
                       </div>
                     </div>
                   </div>
                 )}
 
-                {/* Destino Cliente */}
+                {/* Destino Faena Cliente */}
                 <div className="absolute right-24 top-16 flex flex-col items-center">
                   <MapPin className="h-6 w-6 text-red-500 fill-red-500" />
-                  <span className="text-[10px] text-white/90 font-bold bg-black/70 px-1.5 py-0.5 rounded mt-1">
+                  <span className="text-[10px] text-card-foreground dark:text-white/90 font-bold bg-card/90 dark:bg-black/70 border border-border shadow-md px-1.5 py-0.5 rounded mt-1">
                     Faena Cliente
                   </span>
                 </div>

@@ -6,7 +6,7 @@ Provee autenticación unificada, control de acceso basado en roles jerárquicos 
 ## Requirements
 
 ### Requirement: Autenticación Unificada y Control de Acceso RBAC
-El sistema SHALL autenticar usuarios mediante credenciales seguras, emitir tokens JWT en cookies HTTP-only, proveer una acción explícita de cierre de sesión en la cabecera unificada y aplicar control de acceso RBAC con roles SUPERADMIN, ADMIN, COMERCIAL, JEFE_OPERACIONES, CONDUCTOR y CLIENTE, direccionando a cada usuario según su perfil y restringiendo accesos no autorizados.
+El sistema SHALL autenticar usuarios mediante credenciales seguras, emitir tokens JWT en cookies HTTP-only, proveer una cabecera de navegación responsive universal resiliente al desbordamiento en cualquier resolución (asegurando la visibilidad y operatividad incondicional del botón 'Cerrar Sesión', branding y conmutador de tema) y aplicar control de acceso RBAC con roles SUPERADMIN, ADMIN, COMERCIAL, JEFE_OPERACIONES, CONDUCTOR y CLIENTE, direccionando a cada usuario según su perfil y restringiendo accesos no autorizados.
 
 #### Scenario: Inicio de sesión exitoso con redirección contextual por rol
 - **GIVEN** un usuario registrado y activo en el sistema con credenciales válidas
@@ -17,6 +17,11 @@ El sistema SHALL autenticar usuarios mediante credenciales seguras, emitir token
 - **GIVEN** un usuario autenticado en cualquier módulo de la aplicación
 - **WHEN** presiona el botón 'Cerrar Sesión' visible en la cabecera principal
 - **THEN** el sistema invalida la sesión, destruye la cookie HTTP-only, limpia el estado de autenticación en el cliente y redirige a la pantalla de login.
+
+#### Scenario: Navegación responsive y prevención de desbordamiento horizontal en perfiles multirrol
+- **GIVEN** un usuario autenticado con rol `SUPERADMIN` o con acceso simultáneo a todos los módulos del sistema
+- **WHEN** visualiza la cabecera del sistema en pantallas con ancho inferior a 1200px o dispositivos móviles
+- **THEN** el sistema adapta la barra de navegación agrupando módulos secundarios en un menú desplegable o selector compacto, garantizando que el branding institucional, los enlaces operativos, el conmutador de tema y el botón de 'Cerrar Sesión' permanezcan totalmente visibles y accesibles sin generar scroll horizontal en el viewport.
 
 #### Scenario: Acceso restringido y permisos del rol Comercial en RBAC
 - **GIVEN** un usuario autenticado con rol `COMERCIAL`
@@ -34,12 +39,17 @@ El sistema SHALL autenticar usuarios mediante credenciales seguras, emitir token
 - **THEN** el sistema responde con error 403 Forbidden y bloquea el acceso en el cliente y en el servidor.
 
 ### Requirement: Panel de Gestión y Habilitación de Usuarios
-El sistema SHALL proveer un panel de administración para roles SUPERADMIN y ADMIN para listar usuarios mostrando explícitamente su correo electrónico, crear, habilitar o deshabilitar cuentas, restablecer contraseñas de acceso y actualizar la asignación de roles de usuarios internos y clientes.
+El sistema SHALL proveer un panel de administración para roles SUPERADMIN y ADMIN para listar usuarios mostrando explícitamente su correo electrónico, crear, habilitar o deshabilitar cuentas, restablecer contraseñas de acceso y actualizar la asignación de roles de usuarios internos y clientes, garantizando una disposición simétrica y anchos homogéneos en la columna de acciones para filas activas e inactivas.
 
 #### Scenario: Visualización de correo electrónico en listado de usuarios
 - **GIVEN** un usuario autenticado como `SUPERADMIN` o `ADMIN` en el panel de gestión de usuarios
 - **WHEN** consulta la tabla de usuarios registrados
 - **THEN** el sistema presenta el listado incluyendo visiblemente la columna de correo electrónico junto con nombre, RUT, rol y estado.
+
+#### Scenario: Alineación homogénea y simétrica de acciones independientemente del estado del usuario
+- **GIVEN** un administrador visualizando la tabla de usuarios con registros activos e inactivos intercalados
+- **WHEN** inspecciona la columna de acciones de cada fila
+- **THEN** los botones 'Clave', 'Rol' y el botón de alternancia de estado mantienen un ancho fijo predeterminado y una alineación vertical estricta columna a columna, evitando cualquier desplazamiento lateral o salto visual entre filas de usuarios activos ("Deshabilitar") e inactivos ("Habilitar").
 
 #### Scenario: Restablecimiento administrativo de contraseña de usuario
 - **GIVEN** un administrador en el panel de usuarios gestionando una cuenta existente

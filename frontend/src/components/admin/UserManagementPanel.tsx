@@ -364,7 +364,7 @@ export const UserManagementPanel: React.FC = () => {
                   <th className="px-4 py-3">Rol</th>
                   <th className="px-4 py-3">Entidad / Empresa</th>
                   <th className="px-4 py-3">Estado</th>
-                  <th className="px-4 py-3 text-right">Acciones</th>
+                  <th className="px-4 py-3 text-right w-[276px] min-w-[276px]">Acciones</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
@@ -437,8 +437,8 @@ export const UserManagementPanel: React.FC = () => {
                     </td>
 
                     {/* 6. Acciones */}
-                    <td className="px-4 py-3 text-right">
-                      <div className="flex items-center justify-end gap-1.5">
+                    <td className="px-4 py-3 text-right w-[276px] min-w-[276px]">
+                      <div className="flex items-center justify-end gap-1.5 w-full">
                         <Button
                           size="sm"
                           variant="outline"
@@ -448,11 +448,11 @@ export const UserManagementPanel: React.FC = () => {
                             setModalPasswordError(null);
                             setModalPasswordSuccess(false);
                           }}
-                          className="text-xs h-8 px-2"
+                          className="w-[76px] h-8 px-2 justify-center shrink-0 text-xs"
                           title="Restablecer contraseña administrativa"
                         >
-                          <KeyRound className="h-3.5 w-3.5 sm:mr-1" />
-                          <span className="hidden sm:inline">Clave</span>
+                          <KeyRound className="h-3.5 w-3.5 mr-1 shrink-0" />
+                          <span>Clave</span>
                         </Button>
 
                         <Button
@@ -464,19 +464,19 @@ export const UserManagementPanel: React.FC = () => {
                             setModalEmpresaId(u.empresaClienteId || '');
                             setModalRolError(null);
                           }}
-                          className="text-xs h-8 px-2"
+                          className="w-[68px] h-8 px-2 justify-center shrink-0 text-xs"
                           title="Modificar rol de usuario"
                         >
-                          <Shield className="h-3.5 w-3.5 sm:mr-1" />
-                          <span className="hidden sm:inline">Rol</span>
+                          <Shield className="h-3.5 w-3.5 mr-1 shrink-0" />
+                          <span>Rol</span>
                         </Button>
 
                         <Button
                           size="sm"
                           variant={u.activo ? 'ghost' : 'default'}
                           onClick={() => handleToggleEstado(u.id, u.activo)}
-                          className={`text-xs h-8 px-2.5 ${u.activo
-                              ? 'text-destructive hover:bg-destructive/10'
+                          className={`w-[114px] h-8 px-2.5 justify-center shrink-0 text-xs font-medium transition-colors ${u.activo
+                              ? 'text-destructive hover:bg-destructive/10 border border-destructive/20'
                               : 'bg-emerald-600 hover:bg-emerald-500 text-white'
                             }`}
                         >

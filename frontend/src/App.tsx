@@ -17,7 +17,9 @@ import {
   Sun,
   Moon,
   CloudOff,
-  RefreshCw
+  RefreshCw,
+  Menu,
+  X
 } from 'lucide-react';
 import { Button } from './components/ui/button';
 import { Badge } from './components/ui/badge';
@@ -78,6 +80,7 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isDark, setIsDark] = useState<boolean>(true);
   const [itemsOffline, setItemsOffline] = useState<number>(0);
   const [isSyncing, setIsSyncing] = useState<boolean>(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
 
   useEffect(() => {
     if (isDark) {
@@ -130,84 +133,152 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-background text-foreground transition-colors">
-      <header className="sticky top-0 z-40 h-16 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="max-w-7xl mx-auto h-full px-4 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="h-9 w-9 rounded-lg bg-primary text-primary-foreground font-bold flex items-center justify-center text-sm shadow-sm select-none">
+    <div className="min-h-screen flex flex-col bg-background text-foreground transition-colors overflow-x-hidden">
+      <header className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="max-w-7xl mx-auto h-16 px-3 sm:px-4 flex items-center justify-between gap-2 overflow-hidden">
+          {/* Brand & Usuario */}
+          <div className="flex items-center gap-2.5 sm:gap-3 shrink-0 select-none">
+            <div className="h-9 w-9 rounded-lg bg-primary text-primary-foreground font-bold flex items-center justify-center text-sm shadow-sm shrink-0">
               ZS
             </div>
             <div>
-              <div className="font-semibold text-sm leading-tight tracking-tight flex items-center gap-2">
+              <div className="font-semibold text-xs sm:text-sm leading-tight tracking-tight flex items-center gap-1.5 sm:gap-2">
                 <span>ZION SERVICES</span>
-                <Badge variant="outline" className="text-[10px] uppercase font-mono py-0">
+                <Badge variant="outline" className="text-[9px] sm:text-[10px] uppercase font-mono py-0 px-1 sm:px-1.5">
                   {usuario.rol}
                 </Badge>
               </div>
-              <div className="text-xs text-muted-foreground">{usuario.nombre} {usuario.apellido}</div>
+              <div className="text-[11px] sm:text-xs text-muted-foreground truncate max-w-[120px] sm:max-w-none">
+                {usuario.nombre} {usuario.apellido}
+              </div>
             </div>
           </div>
 
-          {/* Rutas Principales */}
-          <div className="flex items-center gap-2">
-            <div className="hidden sm:flex items-center gap-1.5 p-1 bg-muted rounded-lg border border-border text-xs">
-              {puedeVerTablet && (
-                <Button
-                  variant={location.pathname === '/tablet' ? 'default' : 'ghost'}
-                  size="sm"
-                  onClick={() => navigate('/tablet')}
-                  className="h-8 text-xs flex items-center gap-1.5"
-                >
-                  <Truck className="h-3.5 w-3.5" />
-                  <span>Tablet Conductor</span>
-                </Button>
-              )}
-              {puedeVerOperaciones && (
-                <Button
-                  variant={location.pathname === '/operaciones' ? 'default' : 'ghost'}
-                  size="sm"
-                  onClick={() => navigate('/operaciones')}
-                  className="h-8 text-xs flex items-center gap-1.5"
-                >
-                  <ClipboardList className="h-3.5 w-3.5" />
-                  <span>Jefe Operaciones</span>
-                </Button>
-              )}
-              {puedeVerComercial && (
-                <Button
-                  variant={location.pathname === '/comercial' ? 'default' : 'ghost'}
-                  size="sm"
-                  onClick={() => navigate('/comercial')}
-                  className="h-8 text-xs flex items-center gap-1.5"
-                >
-                  <Briefcase className="h-3.5 w-3.5" />
-                  <span>Gestión Comercial</span>
-                </Button>
-              )}
-              {puedeVerUsuarios && (
-                <Button
-                  variant={location.pathname === '/admin/usuarios' ? 'default' : 'ghost'}
-                  size="sm"
-                  onClick={() => navigate('/admin/usuarios')}
-                  className="h-8 text-xs flex items-center gap-1.5"
-                >
-                  <Users className="h-3.5 w-3.5" />
-                  <span>Gestión Usuarios</span>
-                </Button>
-              )}
-              {puedeVerCliente && (
-                <Button
-                  variant={location.pathname === '/portal-cliente' ? 'default' : 'ghost'}
-                  size="sm"
-                  onClick={() => navigate('/portal-cliente')}
-                  className="h-8 text-xs flex items-center gap-1.5"
-                >
-                  <Building2 className="h-3.5 w-3.5" />
-                  <span>Portal Cliente</span>
-                </Button>
-              )}
-            </div>
+          {/* Rutas Principales: Nivel Desktop Extendido (>= 1200px / xl) */}
+          <div className="hidden xl:flex items-center gap-1.5 p-1 bg-muted rounded-lg border border-border text-xs shrink-0">
+            {puedeVerTablet && (
+              <Button
+                variant={location.pathname === '/tablet' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => navigate('/tablet')}
+                className="h-8 text-xs flex items-center gap-1.5"
+              >
+                <Truck className="h-3.5 w-3.5" />
+                <span>Tablet Conductor</span>
+              </Button>
+            )}
+            {puedeVerOperaciones && (
+              <Button
+                variant={location.pathname === '/operaciones' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => navigate('/operaciones')}
+                className="h-8 text-xs flex items-center gap-1.5"
+              >
+                <ClipboardList className="h-3.5 w-3.5" />
+                <span>Jefe Operaciones</span>
+              </Button>
+            )}
+            {puedeVerComercial && (
+              <Button
+                variant={location.pathname === '/comercial' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => navigate('/comercial')}
+                className="h-8 text-xs flex items-center gap-1.5"
+              >
+                <Briefcase className="h-3.5 w-3.5" />
+                <span>Gestión Comercial</span>
+              </Button>
+            )}
+            {puedeVerUsuarios && (
+              <Button
+                variant={location.pathname === '/admin/usuarios' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => navigate('/admin/usuarios')}
+                className="h-8 text-xs flex items-center gap-1.5"
+              >
+                <Users className="h-3.5 w-3.5" />
+                <span>Gestión Usuarios</span>
+              </Button>
+            )}
+            {puedeVerCliente && (
+              <Button
+                variant={location.pathname === '/portal-cliente' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => navigate('/portal-cliente')}
+                className="h-8 text-xs flex items-center gap-1.5"
+              >
+                <Building2 className="h-3.5 w-3.5" />
+                <span>Portal Cliente</span>
+              </Button>
+            )}
+          </div>
 
+          {/* Rutas Principales: Nivel Compacto Tablets / Pantallas Medianas (768px a 1199px / md a xl) */}
+          <div className="hidden md:flex xl:hidden items-center gap-1 p-1 bg-muted rounded-lg border border-border text-xs shrink-0">
+            {puedeVerTablet && (
+              <Button
+                variant={location.pathname === '/tablet' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => navigate('/tablet')}
+                className="h-8 px-2 text-xs flex items-center gap-1 shrink-0"
+                title="Tablet Conductor"
+              >
+                <Truck className="h-3.5 w-3.5" />
+                <span>Tablet</span>
+              </Button>
+            )}
+            {puedeVerOperaciones && (
+              <Button
+                variant={location.pathname === '/operaciones' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => navigate('/operaciones')}
+                className="h-8 px-2 text-xs flex items-center gap-1 shrink-0"
+                title="Jefe Operaciones"
+              >
+                <ClipboardList className="h-3.5 w-3.5" />
+                <span>Operaciones</span>
+              </Button>
+            )}
+            {puedeVerComercial && (
+              <Button
+                variant={location.pathname === '/comercial' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => navigate('/comercial')}
+                className="h-8 px-2 text-xs flex items-center gap-1 shrink-0"
+                title="Gestión Comercial"
+              >
+                <Briefcase className="h-3.5 w-3.5" />
+                <span>Comercial</span>
+              </Button>
+            )}
+            {puedeVerUsuarios && (
+              <Button
+                variant={location.pathname === '/admin/usuarios' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => navigate('/admin/usuarios')}
+                className="h-8 px-2 text-xs flex items-center gap-1 shrink-0"
+                title="Gestión Usuarios"
+              >
+                <Users className="h-3.5 w-3.5" />
+                <span>Usuarios</span>
+              </Button>
+            )}
+            {puedeVerCliente && (
+              <Button
+                variant={location.pathname === '/portal-cliente' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => navigate('/portal-cliente')}
+                className="h-8 px-2 text-xs flex items-center gap-1 shrink-0"
+                title="Portal Cliente"
+              >
+                <Building2 className="h-3.5 w-3.5" />
+                <span>Portal</span>
+              </Button>
+            )}
+          </div>
+
+          {/* Bloque de Controles Derecho */}
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
             {/* Indicador de cola offline */}
             {itemsOffline > 0 && (
               <Button
@@ -216,15 +287,15 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                 onClick={handleManualSync}
                 disabled={isSyncing}
                 title="Peticiones acumuladas en cola offline. Pulse para sincronizar ahora."
-                className="h-8 text-xs bg-amber-500/10 border-amber-500/30 text-amber-400 hover:bg-amber-500/20 flex items-center gap-1.5"
+                className="h-8 text-xs bg-amber-500/10 border-amber-500/30 text-amber-400 hover:bg-amber-500/20 flex items-center gap-1.5 shrink-0"
               >
                 {isSyncing ? <RefreshCw className="h-3.5 w-3.5 animate-spin" /> : <CloudOff className="h-3.5 w-3.5" />}
-                <span>{itemsOffline} pendientes</span>
+                <span className="hidden sm:inline">{itemsOffline} pendientes</span>
               </Button>
             )}
 
             {/* Indicador de GPS */}
-            <div className="hidden md:block">
+            <div className="hidden lg:block shrink-0">
               <GpsStatusPill status={gpsStatus} location={coords} />
             </div>
 
@@ -233,8 +304,9 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
               variant="outline"
               size="icon"
               onClick={() => setIsDark(!isDark)}
-              className="h-8 w-8"
+              className="h-8 w-8 shrink-0"
               title={isDark ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
+              aria-label={isDark ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
             >
               {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
             </Button>
@@ -244,15 +316,107 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
               variant="ghost"
               size="sm"
               onClick={handleLogout}
-              className="h-8 px-2.5 text-xs font-medium text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors flex items-center gap-1.5"
+              className="h-8 px-2 sm:px-2.5 text-xs font-medium text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors flex items-center gap-1.5 shrink-0"
               title="Cerrar sesión segura de SATEM"
               aria-label="Cerrar sesión"
             >
-              <LogOut className="h-4 w-4" />
+              <LogOut className="h-4 w-4 shrink-0" />
               <span className="hidden sm:inline">Cerrar Sesión</span>
+            </Button>
+
+            {/* Botón Menú Hamburguesa Móvil (< 768px) */}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="md:hidden h-8 w-8 shrink-0 text-muted-foreground hover:text-foreground"
+              title={isMobileMenuOpen ? 'Cerrar menú' : 'Abrir menú de módulos'}
+              aria-label={isMobileMenuOpen ? 'Cerrar menú' : 'Abrir menú de módulos'}
+            >
+              {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </Button>
           </div>
         </div>
+
+        {/* Panel Desplegable Móvil (< 768px) Touch-Friendly */}
+        {isMobileMenuOpen && (
+          <div className="md:hidden border-t border-border bg-card/95 backdrop-blur-md px-4 py-3 space-y-3 shadow-lg animate-in slide-in-from-top-2 duration-200">
+            <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground px-1">
+              Módulos del Sistema
+            </div>
+            <nav className="flex flex-col gap-1.5">
+              {puedeVerTablet && (
+                <Button
+                  variant={location.pathname === '/tablet' ? 'default' : 'ghost'}
+                  onClick={() => {
+                    navigate('/tablet');
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className="w-full justify-start h-10 px-3 text-sm flex items-center gap-2.5 font-medium"
+                >
+                  <Truck className="h-4 w-4 shrink-0" />
+                  <span>Tablet Conductor</span>
+                </Button>
+              )}
+              {puedeVerOperaciones && (
+                <Button
+                  variant={location.pathname === '/operaciones' ? 'default' : 'ghost'}
+                  onClick={() => {
+                    navigate('/operaciones');
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className="w-full justify-start h-10 px-3 text-sm flex items-center gap-2.5 font-medium"
+                >
+                  <ClipboardList className="h-4 w-4 shrink-0" />
+                  <span>Jefe Operaciones</span>
+                </Button>
+              )}
+              {puedeVerComercial && (
+                <Button
+                  variant={location.pathname === '/comercial' ? 'default' : 'ghost'}
+                  onClick={() => {
+                    navigate('/comercial');
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className="w-full justify-start h-10 px-3 text-sm flex items-center gap-2.5 font-medium"
+                >
+                  <Briefcase className="h-4 w-4 shrink-0" />
+                  <span>Gestión Comercial</span>
+                </Button>
+              )}
+              {puedeVerUsuarios && (
+                <Button
+                  variant={location.pathname === '/admin/usuarios' ? 'default' : 'ghost'}
+                  onClick={() => {
+                    navigate('/admin/usuarios');
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className="w-full justify-start h-10 px-3 text-sm flex items-center gap-2.5 font-medium"
+                >
+                  <Users className="h-4 w-4 shrink-0" />
+                  <span>Gestión Usuarios</span>
+                </Button>
+              )}
+              {puedeVerCliente && (
+                <Button
+                  variant={location.pathname === '/portal-cliente' ? 'default' : 'ghost'}
+                  onClick={() => {
+                    navigate('/portal-cliente');
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className="w-full justify-start h-10 px-3 text-sm flex items-center gap-2.5 font-medium"
+                >
+                  <Building2 className="h-4 w-4 shrink-0" />
+                  <span>Portal Cliente</span>
+                </Button>
+              )}
+            </nav>
+            <div className="pt-2 border-t border-border flex items-center justify-between text-xs text-muted-foreground px-1">
+              <span className="truncate max-w-[180px]">{usuario.email}</span>
+              <GpsStatusPill status={gpsStatus} location={coords} />
+            </div>
+          </div>
+        )}
       </header>
 
       <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
