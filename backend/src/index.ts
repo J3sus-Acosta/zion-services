@@ -6,6 +6,11 @@ import { logger } from './utils/logger.js';
 import { authRouter } from './routes/auth.routes.js';
 import { userRouter } from './routes/user.routes.js';
 import { trackingRouter } from './routes/tracking.routes.js';
+import { inspeccionRouter } from './routes/inspeccion.routes.js';
+import { cicloTransporteRouter } from './routes/ciclo-transporte.routes.js';
+import { solicitudesRouter } from './routes/solicitudes.routes.js';
+import { ordenesRouter } from './routes/ordenes.routes.js';
+import { expedienteRouter } from './routes/expediente.routes.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -40,6 +45,11 @@ app.get('/api', (_req: Request, res: Response) => {
 // Rutas de API
 app.use('/api/auth', authRouter);
 app.use('/api/usuarios', userRouter);
+app.use('/api/inspecciones', inspeccionRouter);
+app.use('/api/ciclo-transporte', cicloTransporteRouter);
+app.use('/api/solicitudes', solicitudesRouter);
+app.use('/api/ordenes', ordenesRouter);
+app.use('/api/expedientes', expedienteRouter);
 app.use('/api', trackingRouter);
 
 // Manejo centralizado de errores

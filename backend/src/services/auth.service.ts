@@ -1,7 +1,8 @@
-import { RolUsuario } from '@prisma/client';
+import { RolUsuario, Usuario, Conductor } from '@prisma/client';
 import { TokenService, TokenPayload } from './token.service.js';
 import { CryptoUtil } from '../utils/crypto.js';
 import { logger } from '../utils/logger.js';
+import { prisma } from '../utils/prisma.js';
 import { z } from 'zod';
 
 export const LoginSchema = z.object({
@@ -28,90 +29,34 @@ export interface AuthResult {
   refreshToken: string;
 }
 
-// Repositorio en memoria precargado para pruebas y desarrollo
-const INITIAL_USERS: (UsuarioDTO & { passwordHash: string })[] = [
-  {
-    id: 'usr-superadmin-01',
-    email: 'superadmin@zion.cl',
-    passwordHash: CryptoUtil.hashPassword('SuperAdmin2026!'),
-    nombre: 'Super',
-    apellido: 'Administrador',
-    rut: '1-9',
-    rol: RolUsuario.SUPERADMIN,
-    activo: true
-  },
-  {
-    id: 'usr-admin-01',
-    email: 'admin@zion.cl',
-    passwordHash: CryptoUtil.hashPassword('Admin2026!'),
-    nombre: 'Administrador',
-    apellido: 'Zion',
-    rut: '2-7',
-    rol: RolUsuario.ADMIN,
-    activo: true
-  },
-  {
-    id: 'usr-jefe-ops-01',
-    email: 'operaciones@zion.cl',
-    passwordHash: CryptoUtil.hashPassword('Ops2026!'),
-    nombre: 'Jefe',
-    apellido: 'Operaciones',
-    rut: '3-5',
-    rol: RolUsuario.JEFE_OPERACIONES,
-    activo: true
-  },
-  {
-    id: 'usr-conductor-01',
-    email: 'conductor@zion.cl',
-    passwordHash: CryptoUtil.hashPassword('Conductor2026!'),
-    nombre: 'Carlos',
-    apellido: 'Sánchez',
-    rut: '4-3',
-    rol: RolUsuario.CONDUCTOR,
-    conductorId: 'cond-01',
-    activo: true
-  },
-  {
-    id: 'usr-cliente-01',
-    email: 'cliente@horse.cl',
-    passwordHash: CryptoUtil.hashPassword('Cliente2026!'),
-    nombre: 'Contacto',
-    apellido: 'Horse Chile',
-    rut: '5-1',
-    rol: RolUsuario.CLIENTE,
-    empresaClienteId: 'empresa-horse',
-    activo: true
-  },
-  {
-    id: 'usr-cliente-inactivo',
-    email: 'inactivo@cliente.cl',
-    passwordHash: CryptoUtil.hashPassword('Inactivo2026!'),
-    nombre: 'Usuario',
-    apellido: 'Inactivo',
-    rut: '6-K',
-    rol: RolUsuario.CLIENTE,
-    empresaClienteId: 'empresa-horse',
-    activo: false
-  }
-];
+export function toUsuarioDTO(user: Usuario & { conductor?: Conductor | null }): UsuarioDTO {
+  return {
+    id: user.id,
+    email: user.email,
+    nombre: user.nombre,
+    apellido: user.apellido,
+    rut: user.rut,
+    rol: user.rol,
+    telefono: user.telefono ?? null,
+    activo: user.activo,
+    empresaClienteId: user.empresaClienteId ?? null,
+    conductorId: user.conductor?.id ?? null
+  };
+}
 
 export class AuthService {
-  private static usersStore = new Map<string, UsuarioDTO & { passwordHash: string }>(
-    INITIAL_USERS.map(u => [u.email.toLowerCase(), { ...u }])
-  );
-
-  static getUsersStore() {
-    return this.usersStore;
-  }
-
   /**
-   * Autentica un usuario con email y contraseña, verificando estado activo
+   * Autentica un usuario con email y contraseña consultando la base de datos MySQL vía Prisma
    */
   static async login(input: unknown): Promise<AuthResult> {
     const validated = LoginSchema.parse(input);
     const emailKey = validated.email.toLowerCase().trim();
 
-    const user = this.usersStore.get(emailKey);
+    const user = await prisma.usuario.findFirst({
+      where: { email: emailKey },
+      include: { conductor: true }
+    });
+
     if (!user) {
       logger.warn('Intento de login fallido: usuario no encontrado', { email: validated.email });
       const error: any = new Error('Credenciales incorrectas o usuario no registrado.');
@@ -137,19 +82,19 @@ export class AuthService {
       throw error;
     }
 
+    const usuario = toUsuarioDTO(user);
     const payload: TokenPayload = {
-      userId: user.id,
-      email: user.email,
-      rol: user.rol,
-      empresaClienteId: user.empresaClienteId || null,
-      conductorId: user.conductorId || null
+      userId: usuario.id,
+      email: usuario.email,
+      rol: usuario.rol,
+      empresaClienteId: usuario.empresaClienteId ?? null,
+      conductorId: usuario.conductorId ?? null
     };
 
     const accessToken = TokenService.generateAccessToken(payload);
     const refreshToken = TokenService.generateRefreshToken(payload);
 
-    const { passwordHash: _, ...usuario } = user;
-    logger.info('Inicio de sesión exitoso', { userId: user.id, rol: user.rol, email: user.email });
+    logger.info('Inicio de sesión exitoso', { userId: usuario.id, rol: usuario.rol, email: usuario.email });
 
     return {
       usuario,
@@ -159,7 +104,7 @@ export class AuthService {
   }
 
   /**
-   * Refresca sesión con token de refresco válido
+   * Refresca sesión con token de refresco válido y usuario activo en MySQL
    */
   static async refresh(refreshToken: string): Promise<{ accessToken: string; refreshToken: string; usuario: UsuarioDTO }> {
     if (!refreshToken) {
@@ -170,7 +115,10 @@ export class AuthService {
     }
 
     const decoded = TokenService.verifyRefreshToken(refreshToken);
-    const user = Array.from(this.usersStore.values()).find(u => u.id === decoded.userId);
+    const user = await prisma.usuario.findUnique({
+      where: { id: decoded.userId },
+      include: { conductor: true }
+    });
 
     if (!user || !user.activo) {
       const error: any = new Error('Usuario inválido o cuenta desactivada.');
@@ -179,33 +127,37 @@ export class AuthService {
       throw error;
     }
 
+    const usuario = toUsuarioDTO(user);
     const payload: TokenPayload = {
-      userId: user.id,
-      email: user.email,
-      rol: user.rol,
-      empresaClienteId: user.empresaClienteId || null,
-      conductorId: user.conductorId || null
+      userId: usuario.id,
+      email: usuario.email,
+      rol: usuario.rol,
+      empresaClienteId: usuario.empresaClienteId ?? null,
+      conductorId: usuario.conductorId ?? null
     };
 
     const newAccessToken = TokenService.generateAccessToken(payload);
     const newRefreshToken = TokenService.generateRefreshToken(payload);
 
-    const { passwordHash: _, ...usuario } = user;
     return { accessToken: newAccessToken, refreshToken: newRefreshToken, usuario };
   }
 
   /**
-   * Obtiene el perfil del usuario autenticado
+   * Obtiene el perfil del usuario autenticado directamente desde MySQL
    */
   static async getProfile(userId: string): Promise<UsuarioDTO> {
-    const user = Array.from(this.usersStore.values()).find(u => u.id === userId);
+    const user = await prisma.usuario.findUnique({
+      where: { id: userId },
+      include: { conductor: true }
+    });
+
     if (!user) {
       const error: any = new Error('Usuario no encontrado.');
       error.code = 'USER_NOT_FOUND';
       error.statusCode = 404;
       throw error;
     }
-    const { passwordHash: _, ...usuario } = user;
-    return usuario;
+
+    return toUsuarioDTO(user);
   }
 }

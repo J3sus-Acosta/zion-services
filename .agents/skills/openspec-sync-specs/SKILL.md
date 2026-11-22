@@ -10,6 +10,21 @@ metadata:
   generatedBy: "2.0.0"
 ---
 
+## SATEM Multi-Agent Orchestration Mandate (OBLIGATORIO)
+
+Este proyecto opera bajo el ecosistema **SATEM Multi-Agente**. La sincronización e integración de especificaciones debe ser coordinada por el SATEM Orchestrator.
+
+Al activarse este comando:
+1. **Definir e Invocar al Orchestrator**:
+   - Cargar `.agents/subagents/orchestrator.md` y registrarlo mediante `define_subagent` como `satem-orchestrator` con `EnableSubagentTools: true` y `EnableWriteTools: true`.
+   - Cargar y registrar a `requirements-analyst` (`.agents/subagents/requirements-analyst.md`).
+   - Invocar a `satem-orchestrator` vía `invoke_subagent` con Role `SATEM Orchestrator`.
+2. **Merge Inteligente con Requirements Analyst**:
+   - El Orchestrator delega en `requirements-analyst` la comparación minuciosa entre los deltas de `specs/` y las especificaciones principales en `openspec/specs/`.
+   - `requirements-analyst` aplica la fusión inteligente de requerimientos y escenarios, preservando el histórico y la coherencia formal del sistema.
+
+---
+
 Sync delta specs from a change to main specs.
 
 This is an **agent-driven** operation - you will read delta specs and directly edit main specs to apply the changes. This allows intelligent merging (e.g., adding a scenario without copying the entire requirement).

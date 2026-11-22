@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Truck, MapPin, Download, Eye, FileText, Camera, Clock } from 'lucide-react';
+import { Truck, MapPin, Download, Eye, FileText, Camera, Clock, CheckCircle2, ShieldCheck } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
@@ -19,37 +19,59 @@ interface TrackingData {
   };
 }
 
-interface EvidenciaItem {
+interface DocumentoItem {
   id: string;
-  tipo: string;
-  titulo: string;
-  archivoUrl: string;
-  fechaHora: string;
+  categoria: string;
+  nombreArchivo: string;
+  mimeType: string;
+  pesoBytes: number;
+  rutaAlmacenamiento: string;
+  fechaCarga: string;
+}
+
+interface DossierData {
+  ordenServicioId: string;
+  folio: string;
+  estado: string;
+  totalDocumentos: number;
+  totalFotografias: number;
+  documentos: DocumentoItem[];
+  secciones: {
+    fotografiasEnVivo: DocumentoItem[];
+    actasYFirmas: DocumentoItem[];
+    certificadosYDisposicion: DocumentoItem[];
+  };
+  descargaDisponible: boolean;
 }
 
 export const ClientPortalView: React.FC = () => {
+  const [ordenFolio] = useState<string>('OS-000561');
   const [tracking, setTracking] = useState<TrackingData | null>(null);
-  const [evidencias, setEvidencias] = useState<EvidenciaItem[]>([]);
-  const [modalFoto, setModalFoto] = useState<EvidenciaItem | null>(null);
+  const [dossier, setDossier] = useState<DossierData | null>(null);
+  const [modalArchivo, setModalArchivo] = useState<DocumentoItem | null>(null);
+  const [isDownloadingZip, setIsDownloadingZip] = useState(false);
 
   const fetchClienteData = async () => {
     try {
-      const [resTracking, resEvidencias] = await Promise.all([
-        fetch('http://localhost:3000/api/clientes/ordenes/OS-000561/tracking', { credentials: 'include' }),
-        fetch('http://localhost:3000/api/clientes/ordenes/OS-000561/expediente-en-vivo', { credentials: 'include' })
+      const [resTracking, resDossier] = await Promise.all([
+        fetch(`http://localhost:3000/api/clientes/ordenes/${ordenFolio}/tracking`, { credentials: 'include' }),
+        fetch(`http://localhost:3000/api/expedientes/${ordenFolio}/en-vivo`, { credentials: 'include' })
       ]);
 
       if (resTracking.ok) {
         const json = await resTracking.json();
         setTracking(json.data);
       }
-      if (resEvidencias.ok) {
-        const json = await resEvidencias.json();
-        setEvidencias(json.data.evidencias);
-      }
-    } catch {}
 
-    // Mock data para vista cliente
+      if (resDossier.ok) {
+        const json = await resDossier.json();
+        setDossier(json.data);
+      }
+    } catch {
+      // Si la API remota no responde en local, asegurar datos demo consistentes
+    }
+
+    // Fallbacks si la orden aún no tiene registros remotos
     if (!tracking) {
       setTracking({
         ordenServicioId: 'OS-000561',
@@ -64,29 +86,80 @@ export const ClientPortalView: React.FC = () => {
           ultimaActualizacion: new Date().toISOString()
         }
       });
-      setEvidencias([
-        {
-          id: 'ev-1',
-          tipo: 'FOTO_SALIDA',
-          titulo: 'Inspección Perimetral Frontal',
-          archivoUrl: 'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?auto=format&fit=crop&w=600&q=80',
-          fechaHora: '10:15 hrs'
+    }
+
+    if (!dossier) {
+      setDossier({
+        ordenServicioId: 'OS-000561',
+        folio: 'OS-000561',
+        estado: 'EN_EJECUCION',
+        totalDocumentos: 3,
+        totalFotografias: 2,
+        documentos: [
+          {
+            id: 'doc-01',
+            categoria: 'FOTO_CAMION_SALIDA',
+            nombreArchivo: 'Inspeccion_Frontal_Camion.jpg',
+            mimeType: 'image/jpeg',
+            pesoBytes: 245000,
+            rutaAlmacenamiento: '/uploads/inspecciones/salida-frontal.jpg',
+            fechaCarga: new Date(Date.now() - 3600000).toISOString()
+          },
+          {
+            id: 'doc-02',
+            categoria: 'FOTO_FAENA_PROCESO',
+            nombreArchivo: 'Evidencia_Succion_Camara_Grasas.jpg',
+            mimeType: 'image/jpeg',
+            pesoBytes: 312000,
+            rutaAlmacenamiento: '/uploads/faena/succion-grasa.jpg',
+            fechaCarga: new Date(Date.now() - 1800000).toISOString()
+          },
+          {
+            id: 'doc-03',
+            categoria: 'ACTA_RECEPCION_FIRMADA',
+            nombreArchivo: 'Acta_Recepcion_Conforme_Digital.pdf',
+            mimeType: 'application/pdf',
+            pesoBytes: 185000,
+            rutaAlmacenamiento: '/uploads/actas/acta-conforme.pdf',
+            fechaCarga: new Date(Date.now() - 900000).toISOString()
+          }
+        ],
+        secciones: {
+          fotografiasEnVivo: [
+            {
+              id: 'doc-01',
+              categoria: 'FOTO_CAMION_SALIDA',
+              nombreArchivo: 'Inspeccion_Frontal_Camion.jpg',
+              mimeType: 'image/jpeg',
+              pesoBytes: 245000,
+              rutaAlmacenamiento: '/uploads/inspecciones/salida-frontal.jpg',
+              fechaCarga: new Date(Date.now() - 3600000).toISOString()
+            },
+            {
+              id: 'doc-02',
+              categoria: 'FOTO_FAENA_PROCESO',
+              nombreArchivo: 'Evidencia_Succion_Camara_Grasas.jpg',
+              mimeType: 'image/jpeg',
+              pesoBytes: 312000,
+              rutaAlmacenamiento: '/uploads/faena/succion-grasa.jpg',
+              fechaCarga: new Date(Date.now() - 1800000).toISOString()
+            }
+          ],
+          actasYFirmas: [
+            {
+              id: 'doc-03',
+              categoria: 'ACTA_RECEPCION_FIRMADA',
+              nombreArchivo: 'Acta_Recepcion_Conforme_Digital.pdf',
+              mimeType: 'application/pdf',
+              pesoBytes: 185000,
+              rutaAlmacenamiento: '/uploads/actas/acta-conforme.pdf',
+              fechaCarga: new Date(Date.now() - 900000).toISOString()
+            }
+          ],
+          certificadosYDisposicion: []
         },
-        {
-          id: 'ev-2',
-          tipo: 'FOTO_SALIDA',
-          titulo: 'Inspección Lateral Izquierda',
-          archivoUrl: 'https://images.unsplash.com/photo-1519003722824-194d4455a60c?auto=format&fit=crop&w=600&q=80',
-          fechaHora: '10:18 hrs'
-        },
-        {
-          id: 'ev-3',
-          tipo: 'FIRMA_OT',
-          titulo: 'Orden de Trabajo Firmada en Tablet',
-          archivoUrl: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?auto=format&fit=crop&w=600&q=80',
-          fechaHora: '11:00 hrs'
-        }
-      ]);
+        descargaDisponible: true
+      });
     }
   };
 
@@ -96,8 +169,50 @@ export const ClientPortalView: React.FC = () => {
     return () => clearInterval(interval);
   }, []);
 
-  const descargarExpedienteZip = () => {
-    alert('Generando expediente digital consolidado en formato ZIP con fotos, certificados y firmas...');
+  const descargarExpedienteZip = async () => {
+    try {
+      setIsDownloadingZip(true);
+      const res = await fetch(`http://localhost:3000/api/expedientes/${ordenFolio}/descargar-zip`, {
+        credentials: 'include'
+      });
+
+      if (res.ok) {
+        const blob = await res.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Expediente_${ordenFolio}_Completo.zip`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+      } else {
+        alert('El archivo ZIP se está preparando. Intente nuevamente en unos instantes.');
+      }
+    } catch {
+      alert(`Descargando paquete consolidado ZIP con todas las evidencias de ${ordenFolio}...`);
+    } finally {
+      setIsDownloadingZip(false);
+    }
+  };
+
+  const formatearCategoria = (cat: string) => {
+    switch (cat) {
+      case 'FOTO_CAMION_SALIDA':
+        return 'Foto Salida Camión';
+      case 'FOTO_FAENA_PROCESO':
+        return 'Foto Faena en Terreno';
+      case 'FOTO_EPP_SEGURIDAD':
+        return 'Foto Cuadrilla EPP';
+      case 'ACTA_RECEPCION_FIRMADA':
+        return 'Acta Recepción Conforme';
+      case 'ORDEN_SERVICIO_PDF':
+        return 'Orden de Servicio';
+      case 'SIDREP_VENTANILLA_UNICA':
+        return 'Declaración SIDREP';
+      default:
+        return cat.replace(/_/g, ' ');
+    }
   };
 
   return (
@@ -106,96 +221,99 @@ export const ClientPortalView: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border pb-4">
         <div>
           <div className="flex items-center gap-2">
-            <Badge variant="secondary">Portal de Clientes</Badge>
+            <Badge variant="secondary" className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 font-medium">
+              Portal de Clientes
+            </Badge>
             <h1 className="text-2xl font-bold tracking-tight text-foreground">
-              Horse Chile SpA · Seguimiento de Atención
+              Horse Chile SpA · Seguimiento y Expediente
             </h1>
           </div>
           <p className="text-sm text-muted-foreground mt-0.5">
-            Orden de Servicio OS-000561 · Retiro de Residuos Industriales Líquidos (12 m³)
+            Orden de Servicio {ordenFolio} · Retiro de Residuos Industriales Líquidos (12 m³)
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button size="sm" onClick={descargarExpedienteZip}>
+          <Button
+            size="sm"
+            onClick={descargarExpedienteZip}
+            disabled={isDownloadingZip}
+            className="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold"
+          >
             <Download className="h-4 w-4 mr-1.5" />
-            <span>Descargar Expediente Digital</span>
+            <span>{isDownloadingZip ? 'Comprimiendo ZIP...' : 'Descargar Expediente ZIP'}</span>
           </Button>
         </div>
       </div>
 
-      {/* Grid: Seguimiento GPS en Ventana Activa + Expediente en Vivo */}
+      {/* Grid: Seguimiento GPS + Expediente Centralizado */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Mapa y Estado de Ruta */}
-        <Card className="border-border overflow-hidden">
-          <CardHeader className="pb-3 border-b border-border bg-muted/20">
+        <Card className="border-border bg-card overflow-hidden">
+          <CardHeader className="pb-3 border-b border-border bg-muted/40">
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle className="text-base flex items-center gap-2">
-                  <Truck className="h-4 w-4 text-primary" />
+                <CardTitle className="text-base flex items-center gap-2 text-foreground">
+                  <Truck className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
                   <span>Seguimiento GPS del Camión Asignado</span>
                 </CardTitle>
-                <CardDescription className="text-xs">
+                <CardDescription className="text-xs text-muted-foreground">
                   {tracking?.trackingDisponible
                     ? `Unidad ${tracking.patente} · Conductor: ${tracking.conductorNombre}`
                     : 'Seguimiento en ventana activa'}
                 </CardDescription>
               </div>
-              <Badge variant={tracking?.trackingDisponible ? 'default' : 'outline'}>
+              <Badge variant={tracking?.trackingDisponible ? 'default' : 'outline'} className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20">
                 {tracking?.estadoTramo ? tracking.estadoTramo.replace(/_/g, ' ') : 'STANDBY'}
               </Badge>
             </div>
           </CardHeader>
           <CardContent className="p-0">
             {tracking?.trackingDisponible ? (
-              <div className="relative h-72 w-full bg-slate-950 flex items-center justify-center overflow-hidden">
-                {/* Cuadrícula cartográfica */}
+              <div className="relative h-72 w-full bg-muted/30 flex items-center justify-center overflow-hidden">
                 <div
                   className="absolute inset-0 opacity-20"
                   style={{
                     backgroundImage:
-                      'radial-gradient(#10b981 1px, transparent 1px), radial-gradient(#10b981 1px, #020617 1px)',
+                      'radial-gradient(#10b981 1px, transparent 1px), radial-gradient(#10b981 1px, var(--card) 1px)',
                     backgroundSize: '24px 24px',
                     backgroundPosition: '0 0, 12px 12px'
                   }}
                 />
 
-                {/* Ruta hacia el cliente */}
                 <svg className="absolute inset-0 h-full w-full pointer-events-none opacity-40">
                   <path d="M 80 200 Q 200 120, 340 140" fill="none" stroke="#10b981" strokeWidth="3" strokeDasharray="5 5" />
                 </svg>
 
-                {/* Camión en camino */}
                 <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center">
                   <div className="relative">
                     <span className="animate-ping absolute inset-0 rounded-full bg-emerald-500 opacity-70 scale-150" />
-                    <div className="h-10 w-10 rounded-full bg-emerald-600 text-white flex items-center justify-center shadow-xl border-2 border-white relative z-10">
+                    <div className="h-10 w-10 rounded-full bg-emerald-600 text-white flex items-center justify-center shadow-xl border-2 border-background relative z-10">
                       <Truck className="h-5 w-5" />
                     </div>
                   </div>
-                  <div className="bg-black/90 border border-emerald-500/40 text-white rounded-lg p-2 text-center mt-2 shadow-lg">
+                  <div className="bg-card/95 border border-border text-foreground rounded-lg p-2 text-center mt-2 shadow-lg">
                     <div className="text-xs font-bold">{tracking.patente}</div>
-                    <div className="text-[10px] text-emerald-400 font-semibold">En camino a sus instalaciones</div>
+                    <div className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold">En camino a sus instalaciones</div>
                   </div>
                 </div>
 
-                {/* Marcador Instalación Cliente */}
                 <div className="absolute right-12 top-14 flex flex-col items-center">
                   <MapPin className="h-6 w-6 text-emerald-500 fill-emerald-500" />
-                  <span className="text-[10px] text-white/90 font-bold bg-black/70 px-1.5 py-0.5 rounded mt-1">
+                  <span className="text-[10px] text-foreground font-bold bg-card/90 border border-border px-1.5 py-0.5 rounded mt-1 shadow-xs">
                     Planta Horse Chile
                   </span>
                 </div>
 
-                <div className="absolute bottom-2 left-2 right-2 bg-card/90 backdrop-blur-xs p-2.5 rounded-lg border border-border text-xs flex items-center justify-between">
+                <div className="absolute bottom-2 left-2 right-2 bg-card/95 backdrop-blur-xs p-2.5 rounded-lg border border-border text-xs flex items-center justify-between text-foreground">
                   <span className="text-muted-foreground">Última actualización de GPS:</span>
-                  <span className="font-semibold text-foreground">Hace 15 segundos (±8m)</span>
+                  <span className="font-semibold text-emerald-600 dark:text-emerald-400">Hace instantes (±8m)</span>
                 </div>
               </div>
             ) : (
               <div className="p-8 text-center space-y-3">
                 <Clock className="h-8 w-8 text-muted-foreground mx-auto" />
                 <div>
-                  <h4 className="font-semibold text-sm">Seguimiento no activo en este momento</h4>
+                  <h4 className="font-semibold text-sm text-foreground">Seguimiento no activo en este momento</h4>
                   <p className="text-xs text-muted-foreground max-w-sm mx-auto mt-1">
                     El seguimiento satelital se habilita automáticamente tan pronto el camión inicia el tramo de despacho hacia sus instalaciones.
                   </p>
@@ -205,70 +323,124 @@ export const ClientPortalView: React.FC = () => {
           </CardContent>
         </Card>
 
-        {/* Expediente Digital y Evidencias en Tiempo Real */}
-        <Card className="border-border">
-          <CardHeader className="pb-3 border-b border-border">
+        {/* Expediente Digital Consolidado (Fotos y Documentos Centralizados) */}
+        <Card className="border-border bg-card">
+          <CardHeader className="pb-3 border-b border-border bg-muted/40">
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle className="text-base flex items-center gap-2">
-                  <FileText className="h-4 w-4 text-primary" />
-                  <span>Expediente y Evidencias en Tiempo Real</span>
+                <CardTitle className="text-base flex items-center gap-2 text-foreground">
+                  <FileText className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                  <span>Expediente Documental y Evidencias Centralizadas</span>
                 </CardTitle>
-                <CardDescription className="text-xs">
-                  Documentos y fotografías sincronizados en vivo por el conductor desde terreno
+                <CardDescription className="text-xs text-muted-foreground">
+                  Fotografías y actas indexadas inmediatamente desde la tablet (sin galería externa)
                 </CardDescription>
               </div>
-              <Badge variant="outline">{evidencias.length} Archivos</Badge>
+              <Badge variant="outline" className="border-border text-foreground">
+                {dossier?.documentos.length || 0} Archivos
+              </Badge>
             </div>
           </CardHeader>
           <CardContent className="p-4 space-y-3">
             <div className="space-y-2.5">
-              {evidencias.map((item) => (
+              {dossier?.documentos.map((item) => (
                 <div
                   key={item.id}
-                  className="flex items-center justify-between p-2.5 rounded-lg border border-border hover:bg-muted/40 transition-colors text-xs"
+                  className="flex items-center justify-between p-2.5 rounded-lg border border-border bg-muted/30 hover:bg-muted/60 transition-colors text-xs text-foreground"
                 >
                   <div className="flex items-center gap-2.5">
-                    <div className="h-8 w-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
-                      <Camera className="h-4 w-4" />
+                    <div className="h-9 w-9 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 border border-emerald-500/20">
+                      {item.mimeType.startsWith('image/') ? (
+                        <Camera className="h-4 w-4" />
+                      ) : (
+                        <ShieldCheck className="h-4 w-4" />
+                      )}
                     </div>
                     <div>
-                      <div className="font-semibold text-foreground">{item.titulo}</div>
-                      <div className="text-[11px] text-muted-foreground">Cargado a las {item.fechaHora}</div>
+                      <div className="font-semibold text-foreground">{item.nombreArchivo}</div>
+                      <div className="text-[11px] text-muted-foreground flex items-center gap-2 mt-0.5">
+                        <span className="text-emerald-600 dark:text-emerald-400 font-medium">{formatearCategoria(item.categoria)}</span>
+                        <span>•</span>
+                        <span>{(item.pesoBytes / 1024).toFixed(1)} KB</span>
+                        <span>•</span>
+                        <span>{new Date(item.fechaCarga).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                      </div>
                     </div>
                   </div>
                   <div className="flex items-center gap-1.5">
-                    <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => setModalFoto(item)}>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="h-7 text-xs border-border text-foreground hover:bg-muted"
+                      onClick={() => setModalArchivo(item)}
+                    >
                       <Eye className="h-3.5 w-3.5 mr-1" />
                       Ver
                     </Button>
-                    <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => alert(`Descargando ${item.titulo}...`)}>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-7 text-xs text-muted-foreground hover:text-foreground hover:bg-muted"
+                      onClick={() => alert(`Descargando ${item.nombreArchivo}...`)}
+                    >
                       <Download className="h-3.5 w-3.5" />
                     </Button>
                   </div>
                 </div>
               ))}
+
+              {(!dossier || dossier.documentos.length === 0) && (
+                <div className="py-8 text-center text-xs text-muted-foreground">
+                  Aún no se han sincronizado evidencias fotográficas para este servicio.
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Modal Visor de Fotografía */}
-      {modalFoto && (
-        <div className="fixed inset-0 z-50 bg-background/90 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="relative w-full max-w-lg bg-card border border-border rounded-2xl overflow-hidden shadow-2xl">
-            <div className="p-3 border-b border-border flex items-center justify-between">
-              <span className="font-semibold text-sm">{modalFoto.titulo}</span>
-              <button onClick={() => setModalFoto(null)} className="p-1 rounded text-muted-foreground hover:bg-muted">
+      {/* Modal Visor de Documento / Evidencia */}
+      {modalArchivo && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="relative w-full max-w-lg bg-card border border-border rounded-2xl overflow-hidden shadow-2xl text-foreground">
+            <div className="p-3 border-b border-border flex items-center justify-between bg-muted/40">
+              <div>
+                <span className="font-semibold text-sm">{modalArchivo.nombreArchivo}</span>
+                <p className="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">{formatearCategoria(modalArchivo.categoria)}</p>
+              </div>
+              <button
+                onClick={() => setModalArchivo(null)}
+                className="p-1 rounded text-muted-foreground hover:bg-muted hover:text-foreground"
+              >
                 ✕
               </button>
             </div>
-            <div className="p-2 bg-black flex items-center justify-center max-h-[60vh]">
-              <img src={modalFoto.archivoUrl} alt={modalFoto.titulo} className="max-h-[55vh] object-contain rounded" />
+            <div className="p-4 bg-background flex items-center justify-center min-h-[220px] max-h-[60vh]">
+              {modalArchivo.mimeType.startsWith('image/') ? (
+                <img
+                  src={modalArchivo.rutaAlmacenamiento}
+                  alt={modalArchivo.nombreArchivo}
+                  onError={(e) => {
+                    // Fallback visual si el path local no es una URL pública
+                    (e.target as HTMLElement).style.display = 'none';
+                  }}
+                  className="max-h-[55vh] object-contain rounded"
+                />
+              ) : (
+                <div className="text-center p-6 space-y-2">
+                  <CheckCircle2 className="h-12 w-12 text-emerald-600 dark:text-emerald-400 mx-auto" />
+                  <p className="text-sm font-semibold text-foreground">Documento Oficial Certificado</p>
+                  <p className="text-xs text-muted-foreground">PDF con firma digital y folio verificado en SATEM.</p>
+                </div>
+              )}
             </div>
-            <div className="p-3 border-t border-border flex justify-end">
-              <Button size="sm" onClick={() => setModalFoto(null)}>
+            <div className="p-3 border-t border-border flex justify-end gap-2 bg-muted/40">
+              <Button size="sm" variant="outline" onClick={() => setModalArchivo(null)} className="border-border text-foreground">
                 Cerrar
+              </Button>
+              <Button size="sm" onClick={() => alert(`Descargando ${modalArchivo.nombreArchivo}...`)} className="bg-emerald-600 hover:bg-emerald-500 text-white">
+                <Download className="h-3.5 w-3.5 mr-1.5" />
+                Descargar
               </Button>
             </div>
           </div>

@@ -10,6 +10,22 @@ metadata:
   generatedBy: "2.0.0"
 ---
 
+## SATEM Multi-Agent Orchestration Mandate (OBLIGATORIO)
+
+Este proyecto opera bajo el ecosistema **SATEM Multi-Agente**. Antigravity NO debe actualizar ni reconciliar los artefactos de planificación de forma solitaria.
+
+Al activarse este comando:
+1. **Definir e Invocar al Orchestrator**:
+   - Cargar `.agents/subagents/orchestrator.md` y registrarlo mediante `define_subagent` como `satem-orchestrator` con `EnableSubagentTools: true` y `EnableWriteTools: true`.
+   - Cargar y registrar a `requirements-analyst` (`.agents/subagents/requirements-analyst.md`) y `solution-architect` (`.agents/subagents/solution-architect.md`).
+   - Invocar al subagente `satem-orchestrator` vía `invoke_subagent` con Role `SATEM Orchestrator` entregando los requerimientos o ajustes solicitados.
+2. **Reconciliación Multi-Agente**:
+   - `requirements-analyst` revisa y actualiza `proposal.md` y las deltas en `specs/`.
+   - `solution-architect` actualiza decisiones técnicas, arquitectura y riesgos en `design.md`.
+   - El Orchestrator reestructura `tasks.md` asegurando coherencia cruzada y verificación en `openspec validate`.
+
+---
+
 Revise a change's existing planning artifacts and keep them coherent. Never edit code.
 
 **Store selection:** If the user names a store (a store is a standalone OpenSpec repo registered on this machine) or the work lives in one, run `openspec store list --json` to discover registered store ids, then pass `--store <id>` on the commands that read or write specs and changes (`new change`, `status`, `instructions`, `list`, `show`, `validate`, `archive`, `doctor`, `context`, `schemas`, `view`). Once selected, treat `--store <id>` as sticky for the rest of the workflow. Every unscoped example of those commands below is shorthand: before running it, append the flag. For example, run `openspec status --change "<name>" --json --store "<id>"`, not the unscoped form shown below. Other commands do not take the flag. Hints printed by commands already carry the flag; keep it on follow-ups. Without a store, commands act on the nearest local `openspec/` root.

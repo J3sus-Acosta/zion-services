@@ -1,6 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { Usuario, RolUsuario } from '../../types/auth';
-import { UserPlus, Shield, CheckCircle2, XCircle, Search, Filter, RefreshCw, KeyRound, Building2 } from 'lucide-react';
+import {
+  UserPlus,
+  Shield,
+  CheckCircle2,
+  XCircle,
+  Search,
+  Filter,
+  RefreshCw,
+  KeyRound,
+  Building2,
+  Lock,
+  AlertCircle
+} from 'lucide-react';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Badge } from '../ui/badge';
@@ -23,6 +35,20 @@ export const UserManagementPanel: React.FC = () => {
   const [nuevoEmpresaId, setNuevoEmpresaId] = useState('');
   const [formError, setFormError] = useState<string | null>(null);
 
+  // Modal Cambio de Password
+  const [modalPasswordUser, setModalPasswordUser] = useState<Usuario | null>(null);
+  const [modalPasswordNueva, setModalPasswordNueva] = useState('');
+  const [modalPasswordError, setModalPasswordError] = useState<string | null>(null);
+  const [modalPasswordSuccess, setModalPasswordSuccess] = useState(false);
+  const [isSubmittingPassword, setIsSubmittingPassword] = useState(false);
+
+  // Modal Cambio de Rol
+  const [modalRolUser, setModalRolUser] = useState<Usuario | null>(null);
+  const [modalNuevoRol, setModalNuevoRol] = useState<RolUsuario>('CONDUCTOR');
+  const [modalEmpresaId, setModalEmpresaId] = useState('');
+  const [modalRolError, setModalRolError] = useState<string | null>(null);
+  const [isSubmittingRol, setIsSubmittingRol] = useState(false);
+
   const fetchUsuarios = async () => {
     setLoading(true);
     try {
@@ -33,13 +59,14 @@ export const UserManagementPanel: React.FC = () => {
         setLoading(false);
         return;
       }
-    } catch {}
+    } catch { }
 
     // Mock fallback si el backend no está corriendo
     setUsuarios([
       { id: 'usr-1', email: 'superadmin@zion.cl', nombre: 'Super', apellido: 'Administrador', rut: '1-9', rol: 'SUPERADMIN', activo: true },
       { id: 'usr-2', email: 'admin@zion.cl', nombre: 'Administrador', apellido: 'Zion', rut: '2-7', rol: 'ADMIN', activo: true },
       { id: 'usr-3', email: 'operaciones@zion.cl', nombre: 'Jefe', apellido: 'Operaciones', rut: '3-5', rol: 'JEFE_OPERACIONES', activo: true },
+      { id: 'usr-comercial', email: 'comercial@zion.cl', nombre: 'Andrea', apellido: 'Ventas', rut: '6-8', rol: 'COMERCIAL', activo: true },
       { id: 'usr-4', email: 'conductor@zion.cl', nombre: 'Carlos', apellido: 'Sánchez', rut: '4-3', rol: 'CONDUCTOR', conductorId: 'cond-01', activo: true },
       { id: 'usr-5', email: 'cliente@horse.cl', nombre: 'Contacto', apellido: 'Horse Chile', rut: '5-1', rol: 'CLIENTE', empresaClienteId: 'empresa-horse', activo: true },
       { id: 'usr-6', email: 'inactivo@cliente.cl', nombre: 'Usuario', apellido: 'Inactivo', rut: '6-K', rol: 'CLIENTE', empresaClienteId: 'empresa-horse', activo: false }
@@ -60,7 +87,7 @@ export const UserManagementPanel: React.FC = () => {
         credentials: 'include',
         body: JSON.stringify({ activo: nuevoEstado })
       });
-    } catch {}
+    } catch { }
 
     setUsuarios((prev) =>
       prev.map((u) => (u.id === id ? { ...u, activo: nuevoEstado } : u))
@@ -102,7 +129,7 @@ export const UserManagementPanel: React.FC = () => {
         resetForm();
         return;
       }
-    } catch {}
+    } catch { }
 
     // Fallback local
     const nuevoLocal: Usuario = {
@@ -118,6 +145,102 @@ export const UserManagementPanel: React.FC = () => {
     setUsuarios((prev) => [nuevoLocal, ...prev]);
     setIsModalOpen(false);
     resetForm();
+  };
+
+  const handleCambiarPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!modalPasswordUser) return;
+    setModalPasswordError(null);
+
+    if (modalPasswordNueva.length < 6) {
+      setModalPasswordError('La contraseña debe tener al menos 6 caracteres.');
+      return;
+    }
+
+    setIsSubmittingPassword(true);
+    try {
+      const res = await fetch(`http://localhost:3000/api/usuarios/${modalPasswordUser.id}/password`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ password: modalPasswordNueva })
+      });
+
+      if (res.ok) {
+        setModalPasswordSuccess(true);
+        setTimeout(() => {
+          setModalPasswordUser(null);
+          setModalPasswordNueva('');
+          setModalPasswordSuccess(false);
+        }, 1200);
+        return;
+      }
+
+      const err = await res.json().catch(() => null);
+      setModalPasswordError(err?.error?.message || 'Error al actualizar la contraseña');
+    } catch {
+      // Fallback local
+      setModalPasswordSuccess(true);
+      setTimeout(() => {
+        setModalPasswordUser(null);
+        setModalPasswordNueva('');
+        setModalPasswordSuccess(false);
+      }, 1200);
+    } finally {
+      setIsSubmittingPassword(false);
+    }
+  };
+
+  const handleCambiarRol = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!modalRolUser) return;
+    setModalRolError(null);
+
+    if (modalNuevoRol === 'CLIENTE' && !modalEmpresaId && !modalRolUser.empresaClienteId) {
+      setModalRolError('Debe especificar la empresa cliente asociada.');
+      return;
+    }
+
+    setIsSubmittingRol(true);
+    try {
+      const res = await fetch(`http://localhost:3000/api/usuarios/${modalRolUser.id}/rol`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          rol: modalNuevoRol,
+          empresaClienteId: modalNuevoRol === 'CLIENTE' ? modalEmpresaId || modalRolUser.empresaClienteId : null
+        })
+      });
+
+      if (res.ok) {
+        const json = await res.json();
+        setUsuarios((prev) =>
+          prev.map((u) => (u.id === modalRolUser.id ? json.data.usuario : u))
+        );
+        setModalRolUser(null);
+        return;
+      }
+
+      const err = await res.json().catch(() => null);
+      setModalRolError(err?.error?.message || 'Error al cambiar el rol.');
+    } catch {
+      // Fallback local
+      setUsuarios((prev) =>
+        prev.map((u) =>
+          u.id === modalRolUser.id
+            ? {
+              ...u,
+              rol: modalNuevoRol,
+              empresaClienteId: modalNuevoRol === 'CLIENTE' ? modalEmpresaId || u.empresaClienteId : null
+            }
+            : u
+        )
+      );
+      setModalRolUser(null);
+    } finally {
+      setIsSubmittingRol(false);
+    }
   };
 
   const resetForm = () => {
@@ -156,7 +279,7 @@ export const UserManagementPanel: React.FC = () => {
             <span>Gestión y Habilitación de Usuarios</span>
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Administración de cuentas internas y habilitación de usuarios para empresas clientes.
+            Administración de cuentas internas, restablecimiento de claves y asignación de roles RBAC.
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -198,6 +321,7 @@ export const UserManagementPanel: React.FC = () => {
                 <option value="SUPERADMIN">Superadmin</option>
                 <option value="ADMIN">Admin</option>
                 <option value="JEFE_OPERACIONES">Jefe de Operaciones</option>
+                <option value="COMERCIAL">Comercial</option>
                 <option value="CONDUCTOR">Conductor</option>
                 <option value="CLIENTE">Cliente</option>
               </select>
@@ -227,7 +351,7 @@ export const UserManagementPanel: React.FC = () => {
             <Badge variant="outline">{usuarios.filter((u) => u.activo).length} Habilitados</Badge>
           </div>
           <CardDescription>
-            Conmute el estado para autorizar o suspender inmediatamente el acceso a la plataforma.
+            Conmute el estado, actualice contraseñas y reasigne roles corporativos con efecto inmediato.
           </CardDescription>
         </CardHeader>
         <CardContent className="p-0">
@@ -236,38 +360,56 @@ export const UserManagementPanel: React.FC = () => {
               <thead className="bg-muted text-xs uppercase tracking-wider text-muted-foreground border-y border-border">
                 <tr>
                   <th className="px-4 py-3">Usuario / RUT</th>
+                  <th className="px-4 py-3">Email Corporativo</th>
                   <th className="px-4 py-3">Rol</th>
                   <th className="px-4 py-3">Entidad / Empresa</th>
-                  <th className="px-4 py-3">Estado de Cuenta</th>
-                  <th className="px-4 py-3 text-right">Acción</th>
+                  <th className="px-4 py-3">Estado</th>
+                  <th className="px-4 py-3 text-right">Acciones</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
                 {usuariosFiltrados.map((u) => (
                   <tr key={u.id} className="hover:bg-muted/40 transition-colors">
+                    {/* 1. Nombre y RUT */}
                     <td className="px-4 py-3">
                       <div className="font-semibold text-foreground">
                         {u.nombre} {u.apellido}
                       </div>
                       <div className="text-xs text-muted-foreground">
-                        {u.email} · RUT: {u.rut}
+                        RUT: {u.rut}
                       </div>
                     </td>
+
+                    {/* 2. Columna Visible y Destacada de Email */}
+                    <td className="px-4 py-3">
+                      <span className="font-mono text-xs font-medium text-foreground bg-muted/60 px-2 py-1 rounded inline-block border border-border/50">
+                        {u.email}
+                      </span>
+                    </td>
+
+                    {/* 3. Rol */}
                     <td className="px-4 py-3">
                       <Badge
                         variant={
                           u.rol === 'SUPERADMIN'
                             ? 'default'
                             : u.rol === 'ADMIN'
-                            ? 'secondary'
-                            : u.rol === 'JEFE_OPERACIONES'
-                            ? 'outline'
-                            : 'outline'
+                              ? 'secondary'
+                              : u.rol === 'COMERCIAL'
+                                ? 'default'
+                                : 'outline'
+                        }
+                        className={
+                          u.rol === 'COMERCIAL'
+                            ? 'bg-blue-500/10 text-blue-500 border-blue-500/20'
+                            : undefined
                         }
                       >
                         {u.rol}
                       </Badge>
                     </td>
+
+                    {/* 4. Entidad / Empresa */}
                     <td className="px-4 py-3">
                       {u.empresaClienteId ? (
                         <div className="flex items-center gap-1.5 text-xs font-medium">
@@ -275,9 +417,11 @@ export const UserManagementPanel: React.FC = () => {
                           <span>{u.empresaClienteId}</span>
                         </div>
                       ) : (
-                        <span className="text-xs text-muted-foreground">Zion Services</span>
+                        <span className="text-xs text-muted-foreground">Zion Fleet</span>
                       )}
                     </td>
+
+                    {/* 5. Estado */}
                     <td className="px-4 py-3">
                       {u.activo ? (
                         <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-500">
@@ -291,15 +435,54 @@ export const UserManagementPanel: React.FC = () => {
                         </span>
                       )}
                     </td>
+
+                    {/* 6. Acciones */}
                     <td className="px-4 py-3 text-right">
-                      <Button
-                        size="sm"
-                        variant={u.activo ? 'outline' : 'default'}
-                        onClick={() => handleToggleEstado(u.id, u.activo)}
-                        className="text-xs h-8"
-                      >
-                        {u.activo ? 'Deshabilitar' : 'Habilitar Cuenta'}
-                      </Button>
+                      <div className="flex items-center justify-end gap-1.5">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            setModalPasswordUser(u);
+                            setModalPasswordNueva('');
+                            setModalPasswordError(null);
+                            setModalPasswordSuccess(false);
+                          }}
+                          className="text-xs h-8 px-2"
+                          title="Restablecer contraseña administrativa"
+                        >
+                          <KeyRound className="h-3.5 w-3.5 sm:mr-1" />
+                          <span className="hidden sm:inline">Clave</span>
+                        </Button>
+
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            setModalRolUser(u);
+                            setModalNuevoRol(u.rol);
+                            setModalEmpresaId(u.empresaClienteId || '');
+                            setModalRolError(null);
+                          }}
+                          className="text-xs h-8 px-2"
+                          title="Modificar rol de usuario"
+                        >
+                          <Shield className="h-3.5 w-3.5 sm:mr-1" />
+                          <span className="hidden sm:inline">Rol</span>
+                        </Button>
+
+                        <Button
+                          size="sm"
+                          variant={u.activo ? 'ghost' : 'default'}
+                          onClick={() => handleToggleEstado(u.id, u.activo)}
+                          className={`text-xs h-8 px-2.5 ${u.activo
+                              ? 'text-destructive hover:bg-destructive/10'
+                              : 'bg-emerald-600 hover:bg-emerald-500 text-white'
+                            }`}
+                        >
+                          {u.activo ? 'Deshabilitar' : 'Habilitar'}
+                        </Button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -375,6 +558,7 @@ export const UserManagementPanel: React.FC = () => {
                     >
                       <option value="CLIENTE">CLIENTE (Portal)</option>
                       <option value="CONDUCTOR">CONDUCTOR (Tablet)</option>
+                      <option value="COMERCIAL">COMERCIAL</option>
                       <option value="JEFE_OPERACIONES">JEFE DE OPERACIONES</option>
                       <option value="ADMIN">ADMINISTRADOR</option>
                       <option value="SUPERADMIN">SUPERADMIN</option>
@@ -431,6 +615,145 @@ export const UserManagementPanel: React.FC = () => {
                     Cancelar
                   </Button>
                   <Button type="submit">Guardar y Habilitar</Button>
+                </div>
+              </form>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Modal Cambio de Contraseña */}
+      {modalPasswordUser && (
+        <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <Card className="w-full max-w-md border-border shadow-2xl">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base flex items-center gap-2">
+                <Lock className="h-5 w-5 text-primary" />
+                <span>Restablecer Contraseña</span>
+              </CardTitle>
+              <CardDescription>
+                Modificación de clave para <strong>{modalPasswordUser.nombre} {modalPasswordUser.apellido}</strong> ({modalPasswordUser.email}).
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {modalPasswordSuccess ? (
+                <div className="p-4 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-center text-xs font-semibold text-emerald-500 flex items-center justify-center gap-2">
+                  <CheckCircle2 className="h-4 w-4" />
+                  <span>¡Contraseña actualizada con éxito!</span>
+                </div>
+              ) : (
+                <form onSubmit={handleCambiarPassword} className="space-y-4">
+                  {modalPasswordError && (
+                    <div className="p-2.5 rounded-lg bg-destructive/10 text-destructive text-xs border border-destructive/20 flex items-center gap-1.5">
+                      <AlertCircle className="h-4 w-4 shrink-0" />
+                      <span>{modalPasswordError}</span>
+                    </div>
+                  )}
+
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-medium text-muted-foreground">Nueva Contraseña</label>
+                    <input
+                      type="password"
+                      value={modalPasswordNueva}
+                      onChange={(e) => setModalPasswordNueva(e.target.value)}
+                      placeholder="Mínimo 6 caracteres"
+                      className="w-full h-9 px-3 rounded-lg border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
+                      required
+                    />
+                    <p className="text-[11px] text-muted-foreground">
+                      La contraseña debe incluir al menos una letra y un número.
+                    </p>
+                  </div>
+
+                  <div className="flex justify-end gap-2 pt-2 border-t border-border">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setModalPasswordUser(null)}
+                      disabled={isSubmittingPassword}
+                    >
+                      Cancelar
+                    </Button>
+                    <Button type="submit" size="sm" disabled={isSubmittingPassword}>
+                      {isSubmittingPassword ? 'Actualizando...' : 'Guardar Contraseña'}
+                    </Button>
+                  </div>
+                </form>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Modal Cambio de Rol */}
+      {modalRolUser && (
+        <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <Card className="w-full max-w-md border-border shadow-2xl">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base flex items-center gap-2">
+                <Shield className="h-5 w-5 text-primary" />
+                <span>Modificar Rol de Usuario</span>
+              </CardTitle>
+              <CardDescription>
+                Reasignar privilegios RBAC para <strong>{modalRolUser.nombre} {modalRolUser.apellido}</strong>.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleCambiarRol} className="space-y-4">
+                {modalRolError && (
+                  <div className="p-2.5 rounded-lg bg-destructive/10 text-destructive text-xs border border-destructive/20 flex items-center gap-1.5">
+                    <AlertCircle className="h-4 w-4 shrink-0" />
+                    <span>{modalRolError}</span>
+                  </div>
+                )}
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-muted-foreground">Rol Seleccionado</label>
+                  <select
+                    value={modalNuevoRol}
+                    onChange={(e) => setModalNuevoRol(e.target.value as RolUsuario)}
+                    className="w-full h-9 px-2 rounded-lg border border-border bg-background text-sm"
+                  >
+                    <option value="SUPERADMIN">SUPERADMIN (Acceso Total)</option>
+                    <option value="ADMIN">ADMINISTRADOR</option>
+                    <option value="JEFE_OPERACIONES">JEFE DE OPERACIONES</option>
+                    <option value="COMERCIAL">COMERCIAL</option>
+                    <option value="CONDUCTOR">CONDUCTOR (Tablet Terreno)</option>
+                    <option value="CLIENTE">CLIENTE (Portal Institucional)</option>
+                  </select>
+                </div>
+
+                {modalNuevoRol === 'CLIENTE' && (
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-medium text-primary flex items-center gap-1">
+                      <Building2 className="h-3.5 w-3.5" />
+                      <span>Identificador de Empresa Cliente</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={modalEmpresaId}
+                      onChange={(e) => setModalEmpresaId(e.target.value)}
+                      placeholder="ej: empresa-horse, bravo-energy"
+                      className="w-full h-9 px-3 rounded-lg border border-border bg-background text-sm"
+                      required
+                    />
+                  </div>
+                )}
+
+                <div className="flex justify-end gap-2 pt-2 border-t border-border">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setModalRolUser(null)}
+                    disabled={isSubmittingRol}
+                  >
+                    Cancelar
+                  </Button>
+                  <Button type="submit" size="sm" disabled={isSubmittingRol}>
+                    {isSubmittingRol ? 'Guardando...' : 'Aplicar Nuevo Rol'}
+                  </Button>
                 </div>
               </form>
             </CardContent>

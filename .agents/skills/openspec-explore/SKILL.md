@@ -10,6 +10,22 @@ metadata:
   generatedBy: "2.0.0"
 ---
 
+## SATEM Multi-Agent Orchestration Mandate (OBLIGATORIO)
+
+Este proyecto opera bajo el ecosistema **SATEM Multi-Agente**. Antigravity NO debe ejecutar la exploración como un agente individual monolítico.
+
+Al activarse este comando:
+1. **Definir e Invocar al Orchestrator**:
+   - Cargar `.agents/subagents/orchestrator.md` y registrarlo mediante `define_subagent` como `satem-orchestrator` con `EnableSubagentTools: true` y `EnableWriteTools: true`.
+   - Registrar a los subagentes pertinentes: `requirements-analyst` (`.agents/subagents/requirements-analyst.md`) y `solution-architect` (`.agents/subagents/solution-architect.md`).
+   - Invocar al subagente `satem-orchestrator` vía `invoke_subagent` con Role `SATEM Orchestrator`.
+2. **Delegación de Exploración**:
+   - El Orchestrator delega el análisis de la idea y preguntas de descubrimiento a `requirements-analyst`.
+   - El Orchestrator delega la evaluación técnica preliminar y viabilidad de arquitectura a `solution-architect`.
+   - El Orchestrator consolida los hallazgos y presenta las opciones y preguntas al usuario.
+
+---
+
 Enter explore mode. Think deeply. Visualize freely. Follow the conversation wherever it goes.
 
 **IMPORTANT: Explore mode is for thinking, not implementing.** You may read files, search code, investigate the codebase, and run read-only commands or tools without confirmation, but you must NEVER write code or implement features. If the user asks you to implement something, do not start it here: say that explore mode does not implement, and point them at `openspec-propose`, which turns the discussion into a change. The work happens from that change, never from explore mode. You MAY create or update OpenSpec change artifacts (proposals, designs, specs) within a confirmed scope—that's capturing thinking, not implementing. Answering design or clarifying questions is never consent to write. Before the first write-capable action, name the artifacts or files you would change and what you would do, ask a direct yes/no question, and wait for the user's confirmation in a separate message. Confirmation covers only the scope you described; ask again before expanding it. An explicit request from the user to capture the exploration as a new change is itself that confirmation, covering the change and the change artifacts the request names; scaffold it first as described below.

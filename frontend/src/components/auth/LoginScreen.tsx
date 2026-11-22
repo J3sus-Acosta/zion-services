@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { RolUsuario } from '../../types/auth';
-import { Lock, Mail, ShieldAlert, KeyRound, Truck, Building2, UserCheck, ShieldCheck } from 'lucide-react';
+import { Lock, Mail, ShieldAlert, KeyRound, Truck, Building2, UserCheck, ShieldCheck, Briefcase } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
@@ -30,6 +30,7 @@ export const LoginScreen: React.FC = () => {
     { rol: 'SUPERADMIN', label: 'Superadmin', email: 'superadmin@zion.cl', pass: 'SuperAdmin2026!', icon: ShieldCheck },
     { rol: 'ADMIN', label: 'Admin', email: 'admin@zion.cl', pass: 'Admin2026!', icon: KeyRound },
     { rol: 'JEFE_OPERACIONES', label: 'Jefe Operaciones', email: 'operaciones@zion.cl', pass: 'Ops2026!', icon: UserCheck },
+    { rol: 'COMERCIAL', label: 'Comercial', email: 'comercial@zion.cl', pass: 'Comercial2026!', icon: Briefcase },
     { rol: 'CONDUCTOR', label: 'Conductor (Tablet)', email: 'conductor@zion.cl', pass: 'Conductor2026!', icon: Truck },
     { rol: 'CLIENTE', label: 'Cliente (Portal)', email: 'cliente@horse.cl', pass: 'Cliente2026!', icon: Building2 },
   ];

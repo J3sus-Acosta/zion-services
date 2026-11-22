@@ -10,6 +10,23 @@ metadata:
   generatedBy: "2.0.0"
 ---
 
+## SATEM Multi-Agent Orchestration Mandate (OBLIGATORIO)
+
+Este proyecto opera bajo el ecosistema **SATEM Multi-Agente**. El cierre y archivado de un cambio debe ser auditado y coordinado por el SATEM Orchestrator.
+
+Al activarse este comando:
+1. **Definir e Invocar al Orchestrator**:
+   - Cargar `.agents/subagents/orchestrator.md` y registrarlo mediante `define_subagent` como `satem-orchestrator` con `EnableSubagentTools: true` y `EnableWriteTools: true`.
+   - Cargar y registrar a `documentation` (`.agents/subagents/documentation.md`), `tester` (`.agents/subagents/tester.md`), `requirements-analyst` (`.agents/subagents/requirements-analyst.md`) y `devops` (`.agents/subagents/devops.md`).
+   - Invocar a `satem-orchestrator` vía `invoke_subagent` con Role `SATEM Orchestrator`.
+2. **Validación Previa al Archivo**:
+   - El Orchestrator coordina con `tester` para confirmar que todas las suites de prueba pasen al 100%.
+   - El Orchestrator coordina con `requirements-analyst` para garantizar que todos los specs estén sincronizados.
+   - El Orchestrator coordina con `documentation` para actualizar manuales o guías si hubo cambios arquitectónicos.
+   - Una vez aprobado el pipeline, se ejecuta el archivado del cambio en `openspec/changes/archive/`.
+
+---
+
 Archive a completed change in the experimental workflow.
 
 **Store selection:** If the user names a store (a store is a standalone OpenSpec repo registered on this machine) or the work lives in one, run `openspec store list --json` to discover registered store ids, then pass `--store <id>` on the commands that read or write specs and changes (`new change`, `status`, `instructions`, `list`, `show`, `validate`, `archive`, `doctor`, `context`, `schemas`, `view`). Once selected, treat `--store <id>` as sticky for the rest of the workflow. Every unscoped example of those commands below is shorthand: before running it, append the flag. For example, run `openspec status --change "<name>" --json --store "<id>"`, not the unscoped form shown below. Other commands do not take the flag. Hints printed by commands already carry the flag; keep it on follow-ups. Without a store, commands act on the nearest local `openspec/` root.

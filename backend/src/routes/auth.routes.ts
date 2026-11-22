@@ -10,6 +10,13 @@ authRouter.post('/login', async (req: Request, res: Response, next: NextFunction
     const result = await AuthService.login(req.body);
 
     // Configurar cookies HTTP-only
+    res.cookie('satem_auth_token', result.accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 15 * 60 * 1000 // 15 minutos
+    });
+
     res.cookie('accessToken', result.accessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
@@ -46,8 +53,21 @@ authRouter.post('/login', async (req: Request, res: Response, next: NextFunction
 
 // POST /api/auth/logout
 authRouter.post('/logout', (_req: Request, res: Response) => {
-  res.clearCookie('accessToken');
-  res.clearCookie('refreshToken');
+  res.clearCookie('satem_auth_token', {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax'
+  });
+  res.clearCookie('accessToken', {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax'
+  });
+  res.clearCookie('refreshToken', {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax'
+  });
   res.status(200).json({
     data: {
       message: 'Sesión cerrada exitosamente.'
@@ -74,6 +94,13 @@ authRouter.post('/refresh', async (req: Request, res: Response, next: NextFuncti
   try {
     const token = req.cookies?.refreshToken || req.body?.refreshToken;
     const result = await AuthService.refresh(token);
+
+    res.cookie('satem_auth_token', result.accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 15 * 60 * 1000
+    });
 
     res.cookie('accessToken', result.accessToken, {
       httpOnly: true,

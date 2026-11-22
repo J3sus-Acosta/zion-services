@@ -6,12 +6,12 @@ TBD - created by archiving change zion-services-core-mvp. Update Purpose after a
 ## Requirements
 
 ### Requirement: Registro de Llegada a Faena y Firma de Orden de Trabajo
-Al arribar a la dirección del cliente, el conductor SHALL registrar la hora exacta de llegada en la tablet Android y solicitar al encargado del cliente la firma digital de la Orden de Trabajo que autoriza el inicio de faena.
+Al arribar a la dirección del cliente, el conductor SHALL registrar la hora exacta de llegada en la tablet y solicitar al encargado del cliente la autorización de inicio de faena, capturando su firma corta manuscrita exclusivamente mediante trazo en pantalla táctil o stylus e ingresando obligatoriamente su Nombre, Apellido y RUT, sin permitir carga de imágenes externas ni certificados criptográficos.
 
 #### Scenario: Registro de llegada y autorización de inicio de labores
-GIVEN el camión posicionado en la instalación del cliente
-WHEN el conductor pulsa `Marcar Llegada` y el cliente revisa las condiciones y firma en la tablet la Orden de Trabajo
-THEN el sistema estampa la hora de llegada, almacena la firma digital y el RUT del cliente, cambia el estado a `FAENA_AUTORIZADA` y desbloquea el módulo de evidencia fotográfica de faena.
+- **GIVEN** el camión posicionado en la instalación del cliente
+- **WHEN** el conductor pulsa `Marcar Llegada` y el encargado del cliente ingresa su nombre, apellido, RUT y traza su firma manuscrita corta directamente sobre la pantalla táctil de la tablet
+- **THEN** el sistema estampa la hora de llegada, almacena el trazo de la firma y los datos del encargado, cambia el estado a `FAENA_AUTORIZADA` y desbloquea la captura de evidencias fotográficas de faena y EPP.
 
 ### Requirement: Evidencia Fotográfica de Trabajo en Proceso y Uso de EPP
 Inmediatamente después de firmada la Orden de Trabajo, el sistema SHALL permitir al conductor capturar y subir fotografías del trabajo en ejecución y de la verificación del uso de implementos de seguridad (EPP) por parte de la cuadrilla.

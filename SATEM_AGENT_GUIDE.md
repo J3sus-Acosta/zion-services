@@ -11,18 +11,16 @@ Este documento es el **manual permanente del equipo**. Define la arquitectura de
 Zion Services
       │
       ▼
-  Antigravity
+  Antigravity (Main Agent)
       │
-      ▼
-  OpenSpec
+      ▼ (define_subagent + invoke_subagent)
+  SATEM Orchestrator
       │
   ┌───┴───────────┐
   │               │
 Planning       Tasks
   │               │
   └───────┬───────┘
-          ▼
-     Orchestrator
           │
   ┌───────┼─────────────┐
   │       │             │
@@ -44,6 +42,27 @@ Backend  Frontend    Database
           ▼
    OpenSpec archive
 ```
+
+---
+
+## Mandato Multi-Agente Antigravity (CRÍTICO)
+
+En el ecosistema SATEM, **Antigravity nunca opera como un agente monolítico individual** en tareas de desarrollo o flujos OpenSpec. 
+
+Cada comando OpenSpec (`/openspec-propose`, `/openspec-explore`, `/openspec-update-change`, `/openspec-apply-change`, `/openspec-sync-specs`, `/openspec-archive-change`) activa una skill que **define e invoca obligatoriamente al `satem-orchestrator`** (`.agents/subagents/orchestrator.md`) con herramientas de subagentes habilitadas (`EnableSubagentTools: true`). A su vez, el orquestador delega cada fase en los subagentes especializados correspondientes.
+
+### Skills OpenSpec Multi-Agente Integradas (.agents/skills/)
+
+| Skill | Comando Slash | Subagentes Involucrados | Objetivo |
+|-------|---------------|-------------------------|----------|
+| `openspec-explore` | `/openspec-explore` | `orchestrator` → `requirements-analyst`, `solution-architect` | Explorar ideas, requisitos y viabilidad técnica previa |
+| `openspec-propose` | `/openspec-propose` | `orchestrator` → `requirements-analyst`, `solution-architect` | Generar proposal, delta specs y tasks estructurados |
+| `openspec-update-change` | `/openspec-update-change` | `orchestrator` → `requirements-analyst`, `solution-architect` | Actualizar artefactos de cambio manteniéndolos coherentes |
+| `openspec-apply-change` | `/openspec-apply-change` | `orchestrator` → `backend-node`, `frontend-react`, `database-prisma`, `tester`, `security-reviewer`, `code-reviewer`, `devops` | Implementar tareas secuenciales con pipeline de testing y revisión |
+| `openspec-sync-specs` | `/openspec-sync-specs` | `orchestrator` → `requirements-analyst` | Sincronizar deltas aprobadas con las especificaciones base |
+| `openspec-archive-change` | `/openspec-archive-change` | `orchestrator` → `tester`, `requirements-analyst`, `documentation` | Auditar tests, sync de specs y archivar cambio |
+| `satem-code-review` | N/A | `code-reviewer`, `security-reviewer` | Revisión estricta de estándares y seguridad |
+| `satem-design-system` | N/A | `frontend-react` | Sistema visual Dark Mode, CSS Variables y componentes |
 
 ---
 
@@ -103,25 +122,26 @@ Review
 Merge
 ```
 
-### Feature Compleja (OpenSpec completo)
+### Feature Compleja (Flujo OpenSpec Multi-Agente)
 
 ```
-1.  openspec proposal          → definir objetivo y scope
-2.  requirements-analyst       → requisitos técnicos claros
-3.  solution-architect         → diseño técnico
-4.  openspec spec              → especificación técnica formal
-5.  openspec tasks             → desglose en tareas
-6.  orchestrator               → coordina implementación
-7.  backend-node               → implementar API y lógica
-    frontend-react             → implementar UI
-    database-prisma            → schema y migraciones
-8.  tester                     → validar comportamiento
-9.  security-reviewer          → auditar seguridad
-10. code-reviewer              → revisar calidad
-11. performance-reviewer       → revisar rendimiento
-12. devops                     → validar deploy
-13. Marcar tareas completadas
-14. openspec archive
+1.  /openspec-propose       → define_subagent(orchestrator)
+                               └── invoke_subagent(requirements-analyst)  (proposal + deltas)
+                               └── invoke_subagent(solution-architect)    (design.md)
+                               └── orquestador genera tasks.md
+2.  Validación y Acuerdo    → usuario revisa y aprueba proposal/specs/tasks
+3.  /openspec-apply-change  → define_subagent(orchestrator, EnableSubagentTools: true)
+                               ├── Tarea N:
+                               │   ├── invoke_subagent(backend-node / frontend-react / database-prisma)
+                               │   ├── invoke_subagent(tester)
+                               │   ├── invoke_subagent(security-reviewer)
+                               │   └── invoke_subagent(code-reviewer)
+                               └── Todas las tareas completadas
+4.  /openspec-sync-specs    → define_subagent(orchestrator)
+                               └── invoke_subagent(requirements-analyst) (actualiza openspec/specs/)
+5.  /openspec-archive-change→ define_subagent(orchestrator)
+                               └── invoke_subagent(tester + requirements-analyst + documentation)
+                               └── cambio archivado en openspec/changes/archive/
 ```
 
 ---

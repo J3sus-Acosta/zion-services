@@ -50,6 +50,38 @@ Los agentes determinan **cómo implementarlo correctamente** dentro de la arquit
 
 Todos los agentes deben respetar los siguientes principios.
 
+## 2.0 Mandato de Orquestación Antigravity Multi-Agente (CRÍTICO)
+
+En SATEM, **Antigravity nunca debe operar como un agente monolítico individual** al ejecutar comandos OpenSpec (`/openspec-propose`, `/openspec-explore`, `/openspec-update-change`, `/openspec-apply-change`, `/openspec-sync-specs`, `/openspec-archive-change`).
+
+Cada comando OpenSpec debe seguir el flujo estricto de delegación mediante las herramientas nativas de subagentes de Antigravity:
+
+```text
+Comando OpenSpec (Antigravity Main Agent)
+           │
+           ▼
+    define_subagent("satem-orchestrator", EnableSubagentTools: true, EnableWriteTools: true)
+           │
+           ▼
+    invoke_subagent("satem-orchestrator")
+           │
+           ▼
+    SATEM Orchestrator (.agents/subagents/orchestrator.md)
+           │
+           ├── invoke_subagent("requirements-analyst")  → Requisitos y deltas de spec
+           ├── invoke_subagent("solution-architect")    → Diseño y arquitectura técnica
+           ├── invoke_subagent("backend-node")          → Implementación backend
+           ├── invoke_subagent("frontend-react")        → Implementación frontend
+           ├── invoke_subagent("database-prisma")       → Base de datos y schema
+           ├── invoke_subagent("tester")                → Validación y testing automatizado
+           ├── invoke_subagent("security-reviewer")     → Auditoría de seguridad
+           ├── invoke_subagent("code-reviewer")         → Revisión de calidad de código
+           ├── invoke_subagent("devops")                → Infraestructura, build y docker
+           └── invoke_subagent("documentation")         → Documentación y expedientes
+```
+
+**Regla de Oro**: Ninguna tarea de código o especificación debe ejecutarse directamente en el hilo principal sin pasar por el Orquestador y sus subagentes especializados.
+
 ## 2.1 OpenSpec es la fuente de verdad
 
 Cuando existe un cambio activo de OpenSpec:
@@ -216,6 +248,18 @@ La estructura esperada será:
 
 .agents/
 └── skills/
+    ├── openspec-explore/
+    │   └── SKILL.md
+    ├── openspec-propose/
+    │   └── SKILL.md
+    ├── openspec-update-change/
+    │   └── SKILL.md
+    ├── openspec-apply-change/
+    │   └── SKILL.md
+    ├── openspec-sync-specs/
+    │   └── SKILL.md
+    ├── openspec-archive-change/
+    │   └── SKILL.md
     ├── satem-code-review/
     │   └── SKILL.md
     └── satem-design-system/
@@ -1366,6 +1410,38 @@ Declara las variables en `:root`:
 
 ---
 
+# 25.2 Skills de Integración OpenSpec Multi-Agente (CRÍTICO)
+
+Para garantizar que ningún comando de OpenSpec opere como un agente monolítico solitario, el proyecto cuenta con 6 skills de OpenSpec adaptadas con el mandato de orquestación multi-agente en `.agents/skills/`:
+
+```text
+.agents/skills/
+├── openspec-explore/SKILL.md        → Invoca al Orchestrator para explorar y consultar con requirements-analyst y solution-architect.
+├── openspec-propose/SKILL.md        → Invoca al Orchestrator para generar proposal, specs y tasks delegando en requirements-analyst y solution-architect.
+├── openspec-update-change/SKILL.md  → Invoca al Orchestrator para actualizar cambios coherentemente consultando a analistas y arquitectos.
+├── openspec-apply-change/SKILL.md   → Invoca al Orchestrator con EnableSubagentTools: true para implementar secuencialmente tareas delegando en backend-node, frontend-react, database-prisma, tester, security-reviewer, code-reviewer y devops.
+├── openspec-sync-specs/SKILL.md     → Invoca al Orchestrator para sincronizar deltas hacia openspec/specs/ con requirements-analyst.
+└── openspec-archive-change/SKILL.md → Invoca al Orchestrator para auditoría de cierre (QA, specs y docs) antes de archivar.
+```
+
+Cada skill contiene como directriz preliminar obligatoria la definición e invocación de `satem-orchestrator` utilizando las tools nativas de Antigravity:
+```typescript
+define_subagent({
+  Name: "satem-orchestrator",
+  Description: "Orquestador principal SATEM",
+  SystemPrompt: "<contenido de .agents/subagents/orchestrator.md>",
+  EnableSubagentTools: true,
+  EnableWriteTools: true
+})
+invoke_subagent({
+  TypeName: "satem-orchestrator",
+  Role: "SATEM Orchestrator",
+  Prompt: "..."
+})
+```
+
+---
+
 # 26. Feature Orchestrator
 
 Crear:
@@ -1374,7 +1450,7 @@ Crear:
 .agents/subagents/orchestrator.md
 ```
 
-El flujo será:
+El flujo del Orchestrator será:
 
 ```text
 1. Detect OpenSpec
@@ -1383,9 +1459,17 @@ El flujo será:
 4. Read design
 5. Read tasks
 6. Analyze dependencies
-7. Assign task
-8. Implement
-9. Test
+7. Define y llama a Subagentes especializados según la fase:
+   - FASE 1: Análisis y Arquitectura (requirements-analyst, solution-architect)
+   - FASE 2: Implementación Técnica (backend-node, frontend-react, database-prisma)
+   - FASE 3: Testing y Verificación (tester)
+   - FASE 4: Auditoría de Calidad y Seguridad (security-reviewer, code-reviewer, performance-reviewer)
+   - FASE 5: Infraestructura y Documentación (devops, documentation)
+8. Fix blocking findings (máximo 2 ciclos)
+9. Validate build y tests
+10. Mark task completed
+11. Final verification report
+```
 10. Security review
 11. Code review
 12. Performance review
@@ -2183,7 +2267,14 @@ Verificar:
 También:
 
 ```text
+.agents/skills/openspec-explore/SKILL.md
+.agents/skills/openspec-propose/SKILL.md
+.agents/skills/openspec-update-change/SKILL.md
+.agents/skills/openspec-apply-change/SKILL.md
+.agents/skills/openspec-sync-specs/SKILL.md
+.agents/skills/openspec-archive-change/SKILL.md
 .agents/skills/satem-code-review/SKILL.md
+.agents/skills/satem-design-system/SKILL.md
 openspec/config.yaml
 SATEM_AGENT_GUIDE.md
 BOOTSTRAP.md
@@ -2385,6 +2476,12 @@ El Orchestrator debe terminar mostrando:
 
 ## Skills
 
+- [ ] openspec-explore
+- [ ] openspec-propose
+- [ ] openspec-update-change
+- [ ] openspec-apply-change
+- [ ] openspec-sync-specs
+- [ ] openspec-archive-change
 - [ ] satem-code-review
 - [ ] satem-design-system (tokens, components, layouts, branding, responsive, migration)
 

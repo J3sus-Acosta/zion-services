@@ -131,4 +131,46 @@ describe('Seguridad: Autenticación, RBAC y Tenant Isolation', () => {
 
     expect(next).toHaveBeenCalled();
   });
+
+  it('debe autenticar mediante la cookie HTTP-only satem_auth_token', () => {
+    const token = TokenService.generateAccessToken(mockPayload);
+    const req = {
+      cookies: {
+        satem_auth_token: token
+      },
+      headers: {}
+    } as unknown as AuthenticatedRequest;
+
+    const res = { status: vi.fn().mockReturnThis(), json: vi.fn() } as unknown as Response;
+    const next = vi.fn();
+
+    authenticate(req, res, next);
+
+    expect(next).toHaveBeenCalled();
+    expect(req.user?.userId).toBe('user-123');
+    expect(req.user?.rol).toBe(RolUsuario.CLIENTE);
+  });
+
+  it('debe bloquear acceso de COMERCIAL, CONDUCTOR y CLIENTE a rutas exclusivas de administración de usuarios', () => {
+    const rolesRestringidos = [RolUsuario.COMERCIAL, RolUsuario.CONDUCTOR, RolUsuario.CLIENTE];
+
+    for (const rol of rolesRestringidos) {
+      const req = {
+        user: {
+          userId: `usr-${rol.toLowerCase()}`,
+          email: `${rol.toLowerCase()}@zion.cl`,
+          rol
+        }
+      } as AuthenticatedRequest;
+
+      const res = { status: vi.fn().mockReturnThis(), json: vi.fn() } as unknown as Response;
+      const next = vi.fn();
+
+      const userAdminRbac = authorize(RolUsuario.SUPERADMIN, RolUsuario.ADMIN);
+      userAdminRbac(req, res, next);
+
+      expect(res.status).toHaveBeenCalledWith(403);
+      expect(next).not.toHaveBeenCalled();
+    }
+  });
 });

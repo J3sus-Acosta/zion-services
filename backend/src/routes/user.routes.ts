@@ -84,3 +84,47 @@ userRouter.patch('/:id/estado', async (req: AuthenticatedRequest, res: Response,
     next(error);
   }
 });
+
+// PATCH /api/usuarios/:id/password
+userRouter.patch('/:id/password', async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  try {
+    const usuario = await UserManagementService.cambiarPassword(req.params.id, req.body);
+    res.status(200).json({ data: { usuario, message: 'Contraseña actualizada exitosamente.' } });
+  } catch (error: any) {
+    if (error.name === 'ZodError') {
+      res.status(400).json({
+        error: { code: 'VALIDATION_ERROR', message: error.errors[0]?.message || 'Datos de contraseña inválidos.' }
+      });
+      return;
+    }
+    if (error.statusCode) {
+      res.status(error.statusCode).json({
+        error: { code: error.code || 'PASSWORD_ERROR', message: error.message }
+      });
+      return;
+    }
+    next(error);
+  }
+});
+
+// PATCH /api/usuarios/:id/rol
+userRouter.patch('/:id/rol', async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  try {
+    const usuario = await UserManagementService.cambiarRol(req.params.id, req.body);
+    res.status(200).json({ data: { usuario, message: 'Rol de usuario actualizado exitosamente.' } });
+  } catch (error: any) {
+    if (error.name === 'ZodError') {
+      res.status(400).json({
+        error: { code: 'VALIDATION_ERROR', message: error.errors[0]?.message || 'Datos de rol inválidos.' }
+      });
+      return;
+    }
+    if (error.statusCode) {
+      res.status(error.statusCode).json({
+        error: { code: error.code || 'ROLE_ERROR', message: error.message }
+      });
+      return;
+    }
+    next(error);
+  }
+});

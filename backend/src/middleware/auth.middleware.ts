@@ -9,7 +9,7 @@ export interface AuthenticatedRequest extends Request {
 
 // 1. Middleware de Autenticación JWT via Cookies HTTP-Only o Bearer Header
 export function authenticate(req: AuthenticatedRequest, res: Response, next: NextFunction): void {
-  const token = req.cookies?.accessToken || req.headers.authorization?.replace('Bearer ', '');
+  const token = req.cookies?.satem_auth_token || req.cookies?.accessToken || req.headers.authorization?.replace('Bearer ', '');
 
   if (!token) {
     res.status(401).json({

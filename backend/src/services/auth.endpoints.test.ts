@@ -1,9 +1,13 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeAll } from 'vitest';
 import { AuthService } from './auth.service.js';
 import { UserManagementService } from './user-management.service.js';
 import { RolUsuario } from '@prisma/client';
+import { seedDemoData } from '../../prisma/seed.js';
 
 describe('AuthService y UserManagementService (RBAC & Habilitación de Cuentas)', () => {
+  beforeAll(async () => {
+    await seedDemoData();
+  });
   it('debe permitir login con credenciales válidas de SUPERADMIN', async () => {
     const result = await AuthService.login({
       email: 'superadmin@zion.cl',
@@ -67,7 +71,7 @@ describe('AuthService y UserManagementService (RBAC & Habilitación de Cuentas)'
       password: 'PasswordSegura2026!',
       nombre: 'Pedro',
       apellido: 'González',
-      rut: '12.345.678-9',
+      rut: `12.${Date.now().toString().slice(-6)}-9`,
       rol: RolUsuario.CLIENTE,
       empresaClienteId: 'empresa-acme',
       activo: true
@@ -99,7 +103,7 @@ describe('AuthService y UserManagementService (RBAC & Habilitación de Cuentas)'
       password: 'PasswordSegura2026!',
       nombre: 'Juan',
       apellido: 'Pérez',
-      rut: '11.222.333-4',
+      rut: `11.${Date.now().toString().slice(-6)}-4`,
       rol: RolUsuario.CONDUCTOR,
       activo: true
     });
@@ -128,5 +132,99 @@ describe('AuthService y UserManagementService (RBAC & Habilitación de Cuentas)'
       password: 'PasswordSegura2026!'
     });
     expect(loginOk.usuario.activo).toBe(true);
+  });
+
+  it('UserManagementService: cambiarPassword debe actualizar la clave y permitir login con nueva contraseña', async () => {
+    const usuario = await UserManagementService.crearUsuario({
+      email: `pwd.change.${Date.now()}@test.cl`,
+      password: 'PasswordInicial2026!',
+      nombre: 'Clave',
+      apellido: 'Test',
+      rut: `15.${Date.now().toString().slice(-6)}-1`,
+      rol: RolUsuario.CONDUCTOR,
+      activo: true
+    });
+
+    const updated = await UserManagementService.cambiarPassword(usuario.id, {
+      password: 'NuevaClaveSegura2026!'
+    });
+    expect(updated.id).toBe(usuario.id);
+
+    // Login con clave anterior debe fallar
+    await expect(
+      AuthService.login({
+        email: usuario.email,
+        password: 'PasswordInicial2026!'
+      })
+    ).rejects.toThrow('Credenciales incorrectas');
+
+    // Login con nueva clave debe ser exitoso
+    const loginOk = await AuthService.login({
+      email: usuario.email,
+      password: 'NuevaClaveSegura2026!'
+    });
+    expect(loginOk.usuario.id).toBe(usuario.id);
+  });
+
+  it('UserManagementService: cambiarPassword debe validar longitud mínima y complejidad', async () => {
+    const usuario = await UserManagementService.crearUsuario({
+      email: `pwd.val.${Date.now()}@test.cl`,
+      password: 'PasswordInicial2026!',
+      nombre: 'Complejidad',
+      apellido: 'Test',
+      rut: `16.${Date.now().toString().slice(-6)}-2`,
+      rol: RolUsuario.CONDUCTOR,
+      activo: true
+    });
+
+    // Menos de 6 caracteres
+    await expect(
+      UserManagementService.cambiarPassword(usuario.id, { password: '123' })
+    ).rejects.toThrow();
+
+    // Sin números
+    await expect(
+      UserManagementService.cambiarPassword(usuario.id, { password: 'sololetras' })
+    ).rejects.toThrow();
+
+    // Sin letras
+    await expect(
+      UserManagementService.cambiarPassword(usuario.id, { password: '12345678' })
+    ).rejects.toThrow();
+  });
+
+  it('UserManagementService: cambiarRol debe reasignar rol correctamente y validar cliente', async () => {
+    const usuario = await UserManagementService.crearUsuario({
+      email: `rol.test.${Date.now()}@test.cl`,
+      password: 'PasswordSegura2026!',
+      nombre: 'Rol',
+      apellido: 'Prueba',
+      rut: `17.${Date.now().toString().slice(-6)}-3`,
+      rol: RolUsuario.JEFE_OPERACIONES,
+      activo: true
+    });
+
+    expect(usuario.rol).toBe(RolUsuario.JEFE_OPERACIONES);
+
+    // Cambiar a COMERCIAL
+    const updatedComercial = await UserManagementService.cambiarRol(usuario.id, {
+      rol: RolUsuario.COMERCIAL
+    });
+    expect(updatedComercial.rol).toBe(RolUsuario.COMERCIAL);
+
+    // Cambiar a CLIENTE sin empresa existente o en payload debe fallar
+    await expect(
+      UserManagementService.cambiarRol(usuario.id, {
+        rol: RolUsuario.CLIENTE
+      })
+    ).rejects.toThrow();
+
+    // Cambiar a CLIENTE con empresaClienteId válido
+    const updatedCliente = await UserManagementService.cambiarRol(usuario.id, {
+      rol: RolUsuario.CLIENTE,
+      empresaClienteId: 'empresa-acme'
+    });
+    expect(updatedCliente.rol).toBe(RolUsuario.CLIENTE);
+    expect(updatedCliente.empresaClienteId).toBe('empresa-acme');
   });
 });

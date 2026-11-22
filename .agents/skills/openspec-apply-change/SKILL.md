@@ -10,6 +10,32 @@ metadata:
   generatedBy: "2.0.0"
 ---
 
+## SATEM Multi-Agent Orchestration Mandate (OBLIGATORIO)
+
+Este proyecto opera bajo el ecosistema **SATEM Multi-Agente**. Antigravity NO debe implementar código directamente como un agente único. La implementación DEBE ejecutarse mediante el SATEM Orchestrator y sus subagentes especializados.
+
+Al activarse este comando:
+1. **Definir e Invocar al Orchestrator**:
+   - Cargar `.agents/subagents/orchestrator.md` y registrarlo mediante `define_subagent` como `satem-orchestrator` con `EnableSubagentTools: true` y `EnableWriteTools: true`.
+   - Cargar y registrar los subagentes de implementación y calidad:
+     - `backend-node` (`.agents/subagents/backend-node.md`)
+     - `frontend-react` (`.agents/subagents/frontend-react.md`)
+     - `database-prisma` (`.agents/subagents/database-prisma.md`)
+     - `tester` (`.agents/subagents/tester.md`)
+     - `security-reviewer` (`.agents/subagents/security-reviewer.md`)
+     - `code-reviewer` (`.agents/subagents/code-reviewer.md`)
+     - `devops` (`.agents/subagents/devops.md`)
+   - Invocar al subagente `satem-orchestrator` vía `invoke_subagent` con Role `SATEM Orchestrator` y prompt con las tareas a implementar.
+2. **Pipeline de Ejecución por Tarea**:
+   - El Orchestrator lee `tasks.md` y ejecuta cada tarea asignándola al agente especialista:
+     - Backend/APIs → `backend-node`
+     - Interfaz/Componentes UI → `frontend-react`
+     - Base de datos/Schema → `database-prisma`
+   - Tras cada implementación, el Orchestrator invoca a `tester` para pruebas y a `security-reviewer`/`code-reviewer` para control de calidad.
+   - Tras aprobación (máximo 2 ciclos de corrección), el Orchestrator actualiza el checkbox `- [x]` en `tasks.md`.
+
+---
+
 Implement tasks from an OpenSpec change.
 
 **Store selection:** If the user names a store (a store is a standalone OpenSpec repo registered on this machine) or the work lives in one, run `openspec store list --json` to discover registered store ids, then pass `--store <id>` on the commands that read or write specs and changes (`new change`, `status`, `instructions`, `list`, `show`, `validate`, `archive`, `doctor`, `context`, `schemas`, `view`). Once selected, treat `--store <id>` as sticky for the rest of the workflow. Every unscoped example of those commands below is shorthand: before running it, append the flag. For example, run `openspec status --change "<name>" --json --store "<id>"`, not the unscoped form shown below. Other commands do not take the flag. Hints printed by commands already carry the flag; keep it on follow-ups. Without a store, commands act on the nearest local `openspec/` root.

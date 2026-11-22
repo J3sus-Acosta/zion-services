@@ -41,6 +41,15 @@ const USUARIOS_DEMO: Record<RolUsuario, Usuario> = {
     rol: 'JEFE_OPERACIONES',
     activo: true
   },
+  COMERCIAL: {
+    id: 'usr-comercial-01',
+    email: 'comercial@zion.cl',
+    nombre: 'Andrea',
+    apellido: 'Ventas',
+    rut: '6-8',
+    rol: 'COMERCIAL',
+    activo: true
+  },
   CONDUCTOR: {
     id: 'usr-conductor-01',
     email: 'conductor@zion.cl',

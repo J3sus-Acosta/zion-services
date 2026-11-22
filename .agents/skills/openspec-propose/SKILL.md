@@ -10,6 +10,25 @@ metadata:
   generatedBy: "2.0.0"
 ---
 
+## SATEM Multi-Agent Orchestration Mandate (OBLIGATORIO)
+
+Este proyecto opera bajo el ecosistema **SATEM Multi-Agente**. Antigravity NO debe redactar los artefactos de planificación como un agente individual monolítico.
+
+Al activarse este comando:
+1. **Definir e Invocar al Orchestrator**:
+   - Cargar `.agents/subagents/orchestrator.md` y registrarlo mediante `define_subagent` como `satem-orchestrator` con `EnableSubagentTools: true` y `EnableWriteTools: true`.
+   - Cargar y registrar los subagentes especializados pertinentes:
+     - `requirements-analyst` (`.agents/subagents/requirements-analyst.md`)
+     - `solution-architect` (`.agents/subagents/solution-architect.md`)
+   - Invocar al subagente `satem-orchestrator` vía `invoke_subagent` con Role `SATEM Orchestrator` y prompt del cambio a planificar.
+2. **Pipeline de Generación de Artefactos**:
+   - El Orchestrator invoca a `requirements-analyst` para redactar `proposal.md` y las especificaciones delta en `specs/<capability-path>/spec.md`.
+   - El Orchestrator invoca a `solution-architect` para redactar `design.md`.
+   - El Orchestrator desglosa, estructura y secuencia `tasks.md` organizando las tareas por dependencias y subagentes ejecutores.
+   - Antigravity valida el estado final con `openspec validate` y reporta al usuario.
+
+---
+
 Propose a new change - create the change and generate all artifacts in one step.
 
 **Planning boundary**: This workflow creates planning artifacts only. The user request that selected or triggered this workflow authorizes planning only, even if it asks to build or fix something. Do not edit project code. After the planning artifacts are complete, stop. Do not start implementation in the same response, even if the initial request asks for it. Wait for a new user request after the artifacts are presented; then start the apply workflow.

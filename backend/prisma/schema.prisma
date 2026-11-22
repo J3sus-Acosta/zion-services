@@ -276,6 +276,7 @@ model Jornada {
 
   hojasDeRuta            HojaDeRuta[]
   autochecklistsRuta     AutochecklistRuta[]
+  registrosTelemetria    RegistroTelemetriaGPS[]
 
   @@map("jornadas")
 }
@@ -379,6 +380,7 @@ model OrdenServicio {
   cicloTransporte     CicloTransporte?
   visitaDestino       VisitaDestino?
   expediente          ExpedienteDocumental?
+  registrosTelemetria RegistroTelemetriaGPS[]
 
   @@map("ordenes_servicio")
 }
@@ -606,3 +608,28 @@ model AuditoriaEvento {
 
   @@map("auditoria_eventos")
 }
+
+// -------------------------------------------------------------
+// 12. TELEMETRÍA Y POSICIONAMIENTO GPS
+// -------------------------------------------------------------
+
+model RegistroTelemetriaGPS {
+  id              String         @id @default(uuid())
+  jornadaId       String?
+  jornada         Jornada?       @relation(fields: [jornadaId], references: [id])
+  ordenServicioId String?
+  ordenServicio   OrdenServicio? @relation(fields: [ordenServicioId], references: [id])
+  latitud         Float
+  longitud        Float
+  precisionMts    Float?
+  velocidadKmh    Float?
+  rumbo           Float?
+  timestamp       DateTime       @default(now())
+  createdAt       DateTime       @default(now())
+
+  @@index([jornadaId])
+  @@index([ordenServicioId])
+  @@index([timestamp])
+  @@map("registros_telemetria_gps")
+}
+
