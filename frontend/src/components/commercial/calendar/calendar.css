@@ -1,0 +1,443 @@
+/* ==========================================================================
+   SATEM DESIGN SYSTEM — CALENDARIO OPERATIVO (calendar.css)
+   Tokens Dark Mode Premium:
+   --bg-primary: #0f172a, --bg-surface: #1e293b, --accent-primary: #00a896
+   Bordes: #334155, Texto: #f8fafc
+   ========================================================================== */
+
+.satem-calendar-root {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  color: var(--text-primary);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* ==========================================================================
+   TOOLBAR DEL CALENDARIO
+   ========================================================================== */
+.calendar-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.calendar-toolbar-nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.calendar-title-display {
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
+  min-width: 180px;
+}
+
+.calendar-view-switcher {
+  display: flex;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 3px;
+  gap: 2px;
+}
+
+.calendar-view-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  padding: 8px 14px;
+  min-height: 38px;
+  min-width: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.calendar-view-btn.active {
+  background: var(--accent-primary);
+  color: #ffffff;
+  box-shadow: 0 1px 4px rgba(0, 168, 150, 0.4);
+}
+
+.calendar-toolbar-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ==========================================================================
+   VISTA MENSUAL (CalendarGridMonth)
+   ========================================================================== */
+.calendar-month-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--bg-primary);
+}
+
+.calendar-month-header-cell {
+  background: #141f32;
+  color: var(--text-secondary);
+  padding: 10px 8px;
+  text-align: center;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.calendar-month-day-cell {
+  min-height: 110px;
+  background: var(--bg-surface);
+  border-right: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-color);
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  transition: background var(--transition-fast);
+  position: relative;
+}
+
+.calendar-month-day-cell:nth-child(7n) {
+  border-right: none;
+}
+
+.calendar-month-day-cell.other-month {
+  background: rgba(15, 23, 42, 0.65);
+  opacity: 0.55;
+}
+
+.calendar-month-day-cell.today {
+  background: rgba(0, 168, 150, 0.05);
+}
+
+.calendar-day-number {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+.calendar-month-day-cell.today .calendar-day-number {
+  background: var(--accent-primary);
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.calendar-day-items {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  overflow: hidden;
+  flex: 1;
+}
+
+.calendar-more-badge {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--accent-primary);
+  background: rgba(0, 168, 150, 0.1);
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  text-align: center;
+  border: 1px dashed var(--accent-primary);
+}
+
+/* ==========================================================================
+   VISTA SEMANAL (CalendarGridWeek)
+   ========================================================================== */
+.calendar-week-container {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--bg-surface);
+}
+
+.calendar-week-header-row {
+  display: grid;
+  grid-template-columns: 60px repeat(7, 1fr);
+  background: #141f32;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.calendar-week-gutter-header {
+  padding: 10px 6px;
+  border-right: 1px solid var(--border-color);
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.calendar-week-col-header {
+  padding: 8px 4px;
+  text-align: center;
+  border-right: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.calendar-week-col-header:last-child {
+  border-right: none;
+}
+
+.calendar-week-col-header.today {
+  color: var(--accent-primary);
+}
+
+.calendar-week-body-scroll {
+  max-height: 600px;
+  overflow-y: auto;
+  position: relative;
+}
+
+.calendar-week-grid-body {
+  display: grid;
+  grid-template-columns: 60px repeat(7, 1fr);
+  position: relative;
+}
+
+.calendar-week-hour-slot {
+  height: 52px;
+  border-bottom: 1px solid rgba(51, 65, 85, 0.5);
+  border-right: 1px solid var(--border-color);
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 4px;
+  background: #141f32;
+}
+
+.calendar-week-col-slot {
+  height: 52px;
+  border-bottom: 1px solid rgba(51, 65, 85, 0.35);
+  border-right: 1px solid var(--border-color);
+  position: relative;
+  transition: background var(--transition-fast);
+}
+
+.calendar-week-col-slot:last-child {
+  border-right: none;
+}
+
+.calendar-week-col-slot:hover {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+/* ==========================================================================
+   VISTA DIARIA (CalendarGridDay)
+   ========================================================================== */
+.calendar-day-view-container {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  background: var(--bg-surface);
+  overflow: hidden;
+}
+
+.calendar-day-header {
+  background: #141f32;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.calendar-day-timeline {
+  display: flex;
+  flex-direction: column;
+  max-height: 640px;
+  overflow-y: auto;
+}
+
+.calendar-day-time-row {
+  display: grid;
+  grid-template-columns: 75px 1fr;
+  min-height: 64px;
+  border-bottom: 1px solid rgba(51, 65, 85, 0.4);
+}
+
+.calendar-day-time-label {
+  padding: 8px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  border-right: 1px solid var(--border-color);
+  background: #141f32;
+  text-align: center;
+}
+
+.calendar-day-time-content {
+  padding: 6px 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: flex-start;
+  position: relative;
+}
+
+/* ==========================================================================
+   BADGES Y TARJETAS DE ATENCIÓN (AttentionCard)
+   ========================================================================== */
+.attention-card {
+  border-radius: var(--radius-sm);
+  padding: 6px 10px;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+  border: 1px solid transparent;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  position: relative;
+  overflow: hidden;
+  user-select: none;
+}
+
+.attention-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+  z-index: 10;
+}
+
+.attention-card.estado-PENDIENTE_CONFIRMACION {
+  background: rgba(245, 158, 11, 0.15);
+  border-color: rgba(245, 158, 11, 0.4);
+  color: #fef3c7;
+}
+
+.attention-card.estado-PROGRAMADA {
+  background: rgba(59, 130, 246, 0.15);
+  border-color: rgba(59, 130, 246, 0.4);
+  color: #dbeafe;
+}
+
+.attention-card.estado-EN_CURSO {
+  background: rgba(16, 185, 129, 0.18);
+  border-color: rgba(16, 185, 129, 0.4);
+  color: #d1fae5;
+}
+
+.attention-card.estado-COMPLETADA {
+  background: rgba(100, 116, 139, 0.2);
+  border-color: rgba(100, 116, 139, 0.4);
+  color: #cbd5e1;
+}
+
+.attention-card.estado-CANCELADA {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.4);
+  color: #fee2e2;
+}
+
+.attention-card.estado-REPROGRAMADA {
+  background: rgba(139, 92, 246, 0.15);
+  border-color: rgba(139, 92, 246, 0.4);
+  color: #ede9fe;
+}
+
+.attention-badge-pill {
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: var(--radius-pill);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  width: fit-content;
+}
+
+/* ==========================================================================
+   RESPONSIVE DESIGN (Media queries)
+   ========================================================================== */
+@media (max-width: 900px) {
+  .calendar-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .calendar-toolbar-nav {
+    justify-content: space-between;
+  }
+
+  .calendar-title-display {
+    text-align: center;
+  }
+
+  .calendar-month-day-cell {
+    min-height: 80px;
+    padding: 3px;
+  }
+
+  .calendar-month-header-cell {
+    font-size: 0.65rem;
+    padding: 6px 2px;
+  }
+}
+
+@media (max-width: 640px) {
+  .calendar-week-container,
+  .calendar-month-grid {
+    overflow-x: auto;
+  }
+
+  .calendar-view-switcher {
+    width: 100%;
+    justify-content: stretch;
+  }
+
+  .calendar-view-btn {
+    flex: 1;
+    min-height: 38px;
+    padding: 8px 10px;
+  }
+  
+  .calendar-toolbar-filters {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .calendar-toolbar-filters select,
+  .calendar-toolbar-filters input {
+    width: 100%;
+  }
+}

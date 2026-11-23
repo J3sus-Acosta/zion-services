@@ -9,12 +9,25 @@ export interface TokenPayload {
   conductorId?: string | null;
 }
 
+export function validarSecretosJWT(env: NodeJS.ProcessEnv = process.env): void {
+  const isProduction = env.NODE_ENV === 'production';
+  if (isProduction && (!env.JWT_SECRET || !env.JWT_REFRESH_SECRET)) {
+    throw new Error('FATAL: JWT_SECRET y JWT_REFRESH_SECRET deben estar definidos obligatoriamente en entorno de producción.');
+  }
+}
+
+validarSecretosJWT(process.env);
+
 const JWT_SECRET = process.env.JWT_SECRET || 'zion_secret_key_change_in_prod';
 const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'zion_refresh_secret_key_change_in_prod';
 const ACCESS_TOKEN_EXPIRATION = '15m';
 const REFRESH_TOKEN_EXPIRATION = '7d';
 
 export class TokenService {
+  static validarConfiguracion(env: NodeJS.ProcessEnv = process.env): void {
+    validarSecretosJWT(env);
+  }
+
   static generateAccessToken(payload: TokenPayload): string {
     return jwt.sign(payload, JWT_SECRET, { expiresIn: ACCESS_TOKEN_EXPIRATION });
   }

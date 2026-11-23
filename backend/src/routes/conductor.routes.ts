@@ -1,5 +1,5 @@
 import { Router, Response, NextFunction } from 'express';
-import { RolUsuario } from '@prisma/client';
+import { RolUsuario, Prisma } from '@prisma/client';
 import { authenticate, AuthenticatedRequest } from '../middleware/auth.middleware.js';
 import { prisma } from '../utils/prisma.js';
 

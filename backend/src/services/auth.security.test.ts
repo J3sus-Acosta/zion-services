@@ -173,4 +173,27 @@ describe('Seguridad: Autenticación, RBAC y Tenant Isolation', () => {
       expect(next).not.toHaveBeenCalled();
     }
   });
+
+  it('debe lanzar error fatal si NODE_ENV es production y faltan secretos JWT (SEC-03)', () => {
+    expect(() => {
+      TokenService.validarConfiguracion({
+        NODE_ENV: 'production'
+      });
+    }).toThrow(/FATAL: JWT_SECRET y JWT_REFRESH_SECRET deben estar definidos/);
+
+    expect(() => {
+      TokenService.validarConfiguracion({
+        NODE_ENV: 'production',
+        JWT_SECRET: 'secreto-ok'
+      });
+    }).toThrow(/FATAL: JWT_SECRET y JWT_REFRESH_SECRET deben estar definidos/);
+
+    expect(() => {
+      TokenService.validarConfiguracion({
+        NODE_ENV: 'production',
+        JWT_SECRET: 'secreto-ok',
+        JWT_REFRESH_SECRET: 'refresh-ok'
+      });
+    }).not.toThrow();
+  });
 });

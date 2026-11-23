@@ -7,11 +7,14 @@ import {
   Search,
   Filter,
   CheckCircle2,
-  ClipboardList
+  ClipboardList,
+  Calendar
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
+import { ServiceCalendar } from './calendar/ServiceCalendar';
+import { useAuth } from '../../context/AuthContext';
 
 interface SolicitudItem {
   id: string;
@@ -55,7 +58,8 @@ interface OrdenItem {
 }
 
 export const CommercialManagementView: React.FC = () => {
-  const [tabActiva, setTabActiva] = useState<'solicitudes' | 'ordenes'>('solicitudes');
+  const { usuario } = useAuth();
+  const [tabActiva, setTabActiva] = useState<'solicitudes' | 'ordenes' | 'agenda'>('solicitudes');
   const [solicitudes, setSolicitudes] = useState<SolicitudItem[]>([]);
   const [ordenes, setOrdenes] = useState<OrdenItem[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
@@ -295,6 +299,17 @@ export const CommercialManagementView: React.FC = () => {
           <FileCheck2 className="h-4 w-4" />
           <span>Órdenes de Servicio Emitidas ({ordenes.length})</span>
         </Button>
+        {(!usuario || ['COMERCIAL', 'ADMIN', 'JEFE_OPERACIONES', 'SUPERADMIN'].includes(usuario.rol)) && (
+          <Button
+            variant={tabActiva === 'agenda' ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => setTabActiva('agenda')}
+            className="text-xs flex items-center gap-1.5"
+          >
+            <Calendar className="h-4 w-4" />
+            <span>Agenda Operativa</span>
+          </Button>
+        )}
       </div>
 
       {/* Vista de Solicitudes */}
@@ -464,6 +479,13 @@ export const CommercialManagementView: React.FC = () => {
             </div>
           </CardContent>
         </Card>
+      )}
+
+      {/* Vista de Agenda Operativa */}
+      {tabActiva === 'agenda' && (
+        <div className="space-y-4">
+          <ServiceCalendar />
+        </div>
       )}
 
       {/* Modal Nueva Solicitud */}

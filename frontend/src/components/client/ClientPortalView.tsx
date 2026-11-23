@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Truck, MapPin, Download, Eye, FileText, Camera, Clock, CheckCircle2, ShieldCheck } from 'lucide-react';
+import { Truck, MapPin, Download, Eye, FileText, Camera, Clock, CheckCircle2, ShieldCheck, CalendarPlus } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
+import { Modal } from '../ui/Modal';
+import { MultiServiceRequestWizard } from './MultiServiceRequestWizard';
+import { useAuth } from '../../context/AuthContext';
 
 interface TrackingData {
   ordenServicioId: string;
@@ -45,11 +48,14 @@ interface DossierData {
 }
 
 export const ClientPortalView: React.FC = () => {
+  const { usuario } = useAuth();
   const [ordenFolio] = useState<string>('OS-000561');
   const [tracking, setTracking] = useState<TrackingData | null>(null);
   const [dossier, setDossier] = useState<DossierData | null>(null);
   const [modalArchivo, setModalArchivo] = useState<DocumentoItem | null>(null);
   const [isDownloadingZip, setIsDownloadingZip] = useState(false);
+  const [isWizardOpen, setIsWizardOpen] = useState(false);
+  const [mensajeExito, setMensajeExito] = useState<string | null>(null);
 
   const fetchClienteData = async () => {
     try {
@@ -235,6 +241,14 @@ export const ClientPortalView: React.FC = () => {
         <div className="flex items-center gap-2">
           <Button
             size="sm"
+            onClick={() => setIsWizardOpen(true)}
+            className="bg-primary hover:bg-primary/90 text-white font-semibold"
+          >
+            <CalendarPlus className="h-4 w-4 mr-1.5" />
+            <span>Nueva Solicitud Recurrente / Multi-Atención</span>
+          </Button>
+          <Button
+            size="sm"
             onClick={descargarExpedienteZip}
             disabled={isDownloadingZip}
             className="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold"
@@ -244,6 +258,36 @@ export const ClientPortalView: React.FC = () => {
           </Button>
         </div>
       </div>
+
+      {/* Banner de Confirmación Exitosa */}
+      {mensajeExito && (
+        <div
+          style={{
+            background: 'var(--success-bg)',
+            border: '1px solid var(--success)',
+            borderRadius: 'var(--radius-md)',
+            padding: '12px 16px',
+            color: 'var(--success)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '12px'
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <CheckCircle2 size={20} />
+            <span style={{ fontSize: '0.875rem', fontWeight: 500 }}>{mensajeExito}</span>
+          </div>
+          <button
+            type="button"
+            className="btn btn-icon"
+            style={{ minHeight: '28px', minWidth: '28px', padding: '4px' }}
+            onClick={() => setMensajeExito(null)}
+          >
+            ✕
+          </button>
+        </div>
+      )}
 
       {/* Grid: Seguimiento GPS + Expediente Centralizado */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -446,6 +490,24 @@ export const ClientPortalView: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Modal Wizard Solicitud Multi-Atención */}
+      <Modal
+        isOpen={isWizardOpen}
+        onClose={() => setIsWizardOpen(false)}
+        title="Nueva Solicitud Recurrente / Multi-Atención"
+        maxWidth="840px"
+      >
+        <MultiServiceRequestWizard
+          empresaClienteId={usuario?.empresaClienteId || 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'}
+          onSuccess={(resultado) => {
+            setMensajeExito(
+              `Solicitud ${resultado.solicitudFolio} generada exitosamente con ${resultado.totalAtencionesCreadas} atenciones programadas en estado PENDIENTE.`
+            );
+          }}
+          onClose={() => setIsWizardOpen(false)}
+        />
+      </Modal>
     </div>
   );
 };

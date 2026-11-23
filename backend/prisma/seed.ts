@@ -1,5 +1,6 @@
 import { EstadoEquipo, PrismaClient, RolUsuario, TipoCliente, TipoEquipo } from '@prisma/client';
 import { CryptoUtil } from '../src/utils/crypto.js';
+import { seedPlanningData } from './seed-planning.js';
 
 const prisma = new PrismaClient();
 
@@ -176,6 +177,9 @@ export async function seedDemoData(client: PrismaClient = prisma) {
     }
   });
   console.log('✓ Vehículo veh-01 (RVFL-92) verificado/creado.');
+
+  // 6. Catálogos y Plantas de Planificación
+  await seedPlanningData(client);
 
   console.log('--- Seed completado exitosamente ---');
 }

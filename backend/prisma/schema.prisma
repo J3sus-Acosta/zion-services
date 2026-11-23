@@ -41,6 +41,7 @@ model Usuario {
   auditorias              AuditoriaEvento[]
   vehiculosEstadoCambiado Vehiculo[]             @relation("VehiculoEstadoPor")
   notificacionesConductor NotificacionConductor[]
+  atencionesAsignadas     AtencionProgramada[]   @relation("AtencionesConductor")
 
   @@map("usuarios")
 }
@@ -91,6 +92,7 @@ model SucursalFaena {
   updatedAt        DateTime       @updatedAt
 
   solicitudes      SolicitudServicio[]
+  atenciones       AtencionProgramada[]
 
   @@map("sucursales_faenas")
 }
@@ -163,6 +165,7 @@ model Vehiculo {
   jornadas              Jornada[]
   inspeccionesSalida    InspeccionSalida_F_GMT[]
   inspeccionesRetorno   InspeccionRetornoPlanta[]
+  atencionesProgramadas AtencionProgramada[]
 
   @@index([estado, tipoEquipo])
   @@map("vehiculos")
@@ -323,6 +326,7 @@ model Jornada {
   hojasDeRuta            HojaDeRuta[]
   autochecklistsRuta     AutochecklistRuta[]
   registrosTelemetria    RegistroTelemetriaGPS[]
+  atencionesProgramadas  AtencionProgramada[]
 
   @@map("jornadas")
 }
@@ -396,6 +400,7 @@ model SolicitudServicio {
   updatedAt        DateTime        @updatedAt
 
   ordenServicio    OrdenServicio?
+  atenciones       AtencionProgramada[]
 
   @@map("solicitudes_servicio")
 }
@@ -427,8 +432,121 @@ model OrdenServicio {
   visitaDestino       VisitaDestino?
   expediente          ExpedienteDocumental?
   registrosTelemetria RegistroTelemetriaGPS[]
+  atencionProgramada  AtencionProgramada?
 
   @@map("ordenes_servicio")
+}
+
+// -------------------------------------------------------------
+// 5.1 PLANIFICACIÓN DE SERVICIOS Y CALENDARIO OPERATIVO
+// -------------------------------------------------------------
+
+enum EstadoAtencionProgramada {
+  PENDIENTE_CONFIRMACION
+  PROGRAMADA
+  EN_CURSO
+  COMPLETADA
+  CANCELADA
+  REPROGRAMADA
+}
+
+/// Catálogo administrable de servicios estándar ofrecidos por Zion Services
+model ServicioCatalogo {
+  id                      String                 @id @default(uuid())
+  codigo                  String                 @unique // Ej: HIDROJET-ALTA, SUCCION-RILES
+  nombre                  String
+  descripcion             String?                @db.Text
+  duracionEstimadaMinutos Int                    @default(120)
+  activo                  Boolean                @default(true)
+  createdAt               DateTime               @default(now())
+  updatedAt               DateTime               @updatedAt
+
+  itemsAtencion           AtencionServicioItem[]
+
+  @@map("servicios_catalogo")
+}
+
+/// Plantas autorizadas de disposición y tratamiento final de RILes y lodos
+model PlantaDestino {
+  id                  String               @id @default(uuid())
+  nombre              String
+  direccion           String
+  comuna              String
+  region              String               @default("Metropolitana")
+  autorizadaRiles     Boolean              @default(true)
+  resolucionSanitaria String?
+  activa              Boolean              @default(true)
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+
+  atenciones          AtencionProgramada[]
+
+  @@map("plantas_destino")
+}
+
+/// Atención individual programada en el calendario dentro de una Solicitud de Servicio
+model AtencionProgramada {
+  id                      String                   @id @default(uuid())
+  folio                   String                   @unique // Ej: AP-2026-00001
+  solicitudServicioId     String
+  solicitudServicio       SolicitudServicio        @relation(fields: [solicitudServicioId], references: [id])
+  
+  sucursalFaenaId         String
+  sucursalFaena           SucursalFaena            @relation(fields: [sucursalFaenaId], references: [id])
+  
+  plantaDestinoId         String?
+  plantaDestino           PlantaDestino?           @relation(fields: [plantaDestinoId], references: [id])
+  
+  fechaHoraInicio         DateTime
+  fechaHoraFinEstimada    DateTime
+  duracionEstimadaMinutos Int                      @default(120)
+  
+  estado                  EstadoAtencionProgramada @default(PENDIENTE_CONFIRMACION)
+  
+  vehiculoId              String?
+  vehiculo                Vehiculo?                @relation(fields: [vehiculoId], references: [id])
+  
+  conductorId             String?
+  conductor               Usuario?                 @relation("AtencionesConductor", fields: [conductorId], references: [id])
+  
+  ordenServicioId         String?                  @unique
+  ordenServicio           OrdenServicio?           @relation(fields: [ordenServicioId], references: [id])
+  
+  jornadaId               String?
+  jornada                 Jornada?                 @relation(fields: [jornadaId], references: [id])
+  
+  justificacionForzado    String?                  @db.Text
+  observacionesInternas   String?                  @db.Text
+  
+  createdAt               DateTime                 @default(now())
+  updatedAt               DateTime                 @updatedAt
+
+  servicios               AtencionServicioItem[]
+
+  // Índices para acelerar búsquedas de colisiones horarias y filtros de calendario
+  @@index([fechaHoraInicio, fechaHoraFinEstimada])
+  @@index([vehiculoId, fechaHoraInicio])
+  @@index([conductorId, fechaHoraInicio])
+  @@index([estado])
+  @@index([solicitudServicioId])
+  @@map("atenciones_programadas")
+}
+
+/// Detalle N:M de servicios del catálogo vinculados a una atención programada
+model AtencionServicioItem {
+  id                   String             @id @default(uuid())
+  atencionProgramadaId String
+  atencionProgramada   AtencionProgramada @relation(fields: [atencionProgramadaId], references: [id], onDelete: Cascade)
+  
+  servicioCatalogoId   String
+  servicioCatalogo     ServicioCatalogo   @relation(fields: [servicioCatalogoId], references: [id])
+  
+  cantidad             Int                @default(1)
+  observaciones        String?            @db.Text
+  createdAt            DateTime           @default(now())
+
+  @@unique([atencionProgramadaId, servicioCatalogoId])
+  @@map("atencion_servicio_items")
 }
 
 // -------------------------------------------------------------
