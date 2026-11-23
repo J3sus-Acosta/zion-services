@@ -1,4 +1,4 @@
-import { PrismaClient, RolUsuario, TipoCliente } from '@prisma/client';
+import { EstadoEquipo, PrismaClient, RolUsuario, TipoCliente, TipoEquipo } from '@prisma/client';
 import { CryptoUtil } from '../src/utils/crypto.js';
 
 const prisma = new PrismaClient();
@@ -153,6 +153,9 @@ export async function seedDemoData(client: PrismaClient = prisma) {
       capacidadEstanqueM3: 15.0,
       equipoHidrojet: true,
       equipoVacio: true,
+      tipoEquipo: TipoEquipo.CAMION,
+      estado: EstadoEquipo.HABILITADO,
+      observaciones: 'Unidad principal de hidrojet/vacío para servicios de alta presión.',
       bloqueadoPorSeguridad: false,
       activo: true
     },
@@ -165,6 +168,9 @@ export async function seedDemoData(client: PrismaClient = prisma) {
       capacidadEstanqueM3: 15.0,
       equipoHidrojet: true,
       equipoVacio: true,
+      tipoEquipo: TipoEquipo.CAMION,
+      estado: EstadoEquipo.HABILITADO,
+      observaciones: 'Unidad principal de hidrojet/vacío para servicios de alta presión.',
       bloqueadoPorSeguridad: false,
       activo: true
     }

@@ -1,4 +1,4 @@
-export type RolUsuario = 'SUPERADMIN' | 'ADMIN' | 'JEFE_OPERACIONES' | 'COMERCIAL' | 'CONDUCTOR' | 'CLIENTE';
+export type RolUsuario = 'SUPERADMIN' | 'ADMIN' | 'JEFE_OPERACIONES' | 'OPERACIONES' | 'COMERCIAL' | 'CONDUCTOR' | 'CLIENTE';
 
 export interface Usuario {
   id: string;

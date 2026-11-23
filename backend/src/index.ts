@@ -11,6 +11,8 @@ import { cicloTransporteRouter } from './routes/ciclo-transporte.routes.js';
 import { solicitudesRouter } from './routes/solicitudes.routes.js';
 import { ordenesRouter } from './routes/ordenes.routes.js';
 import { expedienteRouter } from './routes/expediente.routes.js';
+import { flotaRouter } from './routes/flota.routes.js';
+import { conductorRouter } from './routes/conductor.routes.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -50,6 +52,8 @@ app.use('/api/ciclo-transporte', cicloTransporteRouter);
 app.use('/api/solicitudes', solicitudesRouter);
 app.use('/api/ordenes', ordenesRouter);
 app.use('/api/expedientes', expedienteRouter);
+app.use('/api/flota', flotaRouter);
+app.use('/api/conductores', conductorRouter);
 app.use('/api', trackingRouter);
 
 // Manejo centralizado de errores

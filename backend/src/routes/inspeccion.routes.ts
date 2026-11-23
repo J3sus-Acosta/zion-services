@@ -2,6 +2,7 @@ import { Router, Response } from 'express';
 import { authenticate, authorize, AuthenticatedRequest } from '../middleware/auth.middleware.js';
 import { RolUsuario, TipoFotoInspeccion } from '@prisma/client';
 import { InspectionService, InspeccionSalidaInput } from '../services/inspection.service.js';
+import { FleetService, FleetError } from '../services/fleet.service.js';
 
 export const inspeccionRouter = Router();
 
@@ -30,6 +31,9 @@ inspeccionRouter.post(
         return;
       }
 
+      // Tarea 3.3: assertDespachable antes de evaluar
+      await FleetService.assertDespachable(vehiculoId);
+
       const input: InspeccionSalidaInput = {
         vehiculoId,
         conductorId,
@@ -40,6 +44,14 @@ inspeccionRouter.post(
       };
 
       const resultado = InspectionService.evaluarInspeccionSalida(input);
+
+      // Si la inspección resulta bloqueada por falla crítica, persistir bloqueo en flota (D4, 3.3)
+      if (resultado.bloqueado) {
+        await InspectionService.aplicarBloqueoSeguridad(vehiculoId, resultado, {
+          userId: req.user?.userId,
+          ip: req.ip
+        });
+      }
 
       res.status(201).json({
         data: {
@@ -56,6 +68,16 @@ inspeccionRouter.post(
         }
       });
     } catch (error: any) {
+      if (error instanceof FleetError || error.statusCode) {
+        res.status(error.statusCode).json({
+          error: {
+            code: error.code || 'FLEET_ERROR',
+            message: error.message
+          }
+        });
+        return;
+      }
+
       res.status(400).json({
         error: {
           code: 'INSPECTION_VALIDATION_ERROR',

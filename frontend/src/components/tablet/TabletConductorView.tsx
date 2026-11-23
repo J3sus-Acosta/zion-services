@@ -7,7 +7,10 @@ import {
   MapPin,
   CheckCircle2,
   PenTool,
-  RotateCcw
+  RotateCcw,
+  Truck,
+  AlertTriangle,
+  Check
 } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
@@ -20,6 +23,8 @@ import { ChecklistSalidaModal } from '../checklist/ChecklistSalidaModal';
 import { ChecklistRetornoModal } from '../checklist/ChecklistRetornoModal';
 import { TouchSignaturePad, SignatureData } from '../signature/TouchSignaturePad';
 import { OfflineStorageService } from '../../services/offline-storage';
+import { fleetApi } from '../../services/fleetApi';
+import { NotificacionConductor } from '../../types/fleet';
 
 const NOMBRES_FOTOS_360 = ['Frontal', 'Lateral Izquierda', 'Trasera', 'Lateral Derecha'];
 
@@ -56,6 +61,40 @@ export const TabletConductorView: React.FC = () => {
   const [checklistRetornoListo, setChecklistRetornoListo] = useState<boolean>(false);
   const [fotosRetorno, setFotosRetorno] = useState<string[]>([]);
   const [isCameraRetornoOpen, setIsCameraRetornoOpen] = useState<boolean>(false);
+
+  // Notificaciones in-app de transferencia de flota para el conductor (Tarea 4.6 / D13)
+  const [notificacionesTransferencia, setNotificacionesTransferencia] = useState<NotificacionConductor[]>([]);
+  const [marcandoNotifId, setMarcandoNotifId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchNotificaciones = async () => {
+      try {
+        const notifs = await fleetApi.listarNotificacionesConductor(false);
+        const filtradas = notifs.filter(
+          (n) => n.tipo === 'TRANSFERENCIA_FLOTA' || n.metadata?.vehiculoDestinoPatente
+        );
+        setNotificacionesTransferencia(filtradas);
+      } catch {
+        // En modo offline o mock no bloqueamos
+      }
+    };
+
+    fetchNotificaciones();
+    const interval = setInterval(fetchNotificaciones, 15000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const handleMarcarNotificacionLeida = async (id: string) => {
+    setMarcandoNotifId(id);
+    try {
+      await fleetApi.marcarNotificacionLeida(id);
+      setNotificacionesTransferencia((prev) => prev.filter((n) => n.id !== id));
+    } catch (err) {
+      console.error('Error al marcar notificación como leída:', err);
+    } finally {
+      setMarcandoNotifId(null);
+    }
+  };
 
   // 1. Restaurar estado de jornada activa desde IndexedDB / localStorage (Resiliencia ante F5 / recarga)
   useEffect(() => {
@@ -268,6 +307,67 @@ export const TabletConductorView: React.FC = () => {
           <Badge variant="outline">Modalidad: Local Santiago</Badge>
         </div>
       </div>
+
+      {/* Alerta In-App de Transferencia de Flota (D13 / Tarea 4.6) */}
+      {notificacionesTransferencia.length > 0 && (
+        <div className="space-y-3">
+          {notificacionesTransferencia.map((notif) => (
+            <div
+              key={notif.id}
+              role="alert"
+              className="p-4 rounded-xl bg-amber-500/15 border-2 border-amber-500/40 text-amber-200 shadow-lg flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-in slide-in-from-top-2 duration-300"
+            >
+              <div className="flex items-start gap-3">
+                <div className="p-2.5 rounded-lg bg-amber-500/20 text-amber-400 shrink-0">
+                  <Truck className="h-6 w-6" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2 font-bold text-sm sm:text-base text-amber-300">
+                    <AlertTriangle className="h-4 w-4" />
+                    <span>{notif.titulo || 'Cambio de Equipo Asignado'}</span>
+                  </div>
+                  <p className="text-xs sm:text-sm text-foreground/90 mt-1 leading-relaxed">
+                    {notif.mensaje}
+                  </p>
+                  {notif.metadata?.vehiculoDestinoPatente && (
+                    <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
+                      <span className="font-semibold text-muted-foreground">Nueva Patente Asignada:</span>
+                      <span className="font-mono font-bold bg-amber-500/25 px-2.5 py-0.5 rounded text-amber-300 border border-amber-500/40 text-sm">
+                        {notif.metadata.vehiculoDestinoPatente}
+                      </span>
+                      {notif.metadata.vehiculoOrigenPatente && (
+                        <span className="text-muted-foreground">
+                          (Origen: {notif.metadata.vehiculoOrigenPatente})
+                        </span>
+                      )}
+                      {notif.metadata.motivo && (
+                        <span className="text-amber-200/80 italic">
+                          — Motivo: {notif.metadata.motivo}
+                        </span>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+              <Button
+                size="sm"
+                onClick={() => handleMarcarNotificacionLeida(notif.id)}
+                disabled={marcandoNotifId === notif.id}
+                className="shrink-0 bg-amber-500 text-black hover:bg-amber-400 font-semibold text-xs h-9 px-4 flex items-center gap-1.5"
+              >
+                {marcandoNotifId === notif.id ? (
+                  <span>Confirmando...</span>
+                ) : (
+                  <>
+                    <Check className="h-4 w-4" />
+                    <span>Entendido / Confirmar</span>
+                  </>
+                )}
+              </Button>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Asistente Secuencial de Terreno (4 Pasos) */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">

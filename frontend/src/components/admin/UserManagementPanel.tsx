@@ -321,6 +321,7 @@ export const UserManagementPanel: React.FC = () => {
                 <option value="SUPERADMIN">Superadmin</option>
                 <option value="ADMIN">Admin</option>
                 <option value="JEFE_OPERACIONES">Jefe de Operaciones</option>
+                <option value="OPERACIONES">Operaciones</option>
                 <option value="COMERCIAL">Comercial</option>
                 <option value="CONDUCTOR">Conductor</option>
                 <option value="CLIENTE">Cliente</option>
@@ -559,6 +560,7 @@ export const UserManagementPanel: React.FC = () => {
                       <option value="CLIENTE">CLIENTE (Portal)</option>
                       <option value="CONDUCTOR">CONDUCTOR (Tablet)</option>
                       <option value="COMERCIAL">COMERCIAL</option>
+                      <option value="OPERACIONES">OPERACIONES (Operador)</option>
                       <option value="JEFE_OPERACIONES">JEFE DE OPERACIONES</option>
                       <option value="ADMIN">ADMINISTRADOR</option>
                       <option value="SUPERADMIN">SUPERADMIN</option>
@@ -718,6 +720,7 @@ export const UserManagementPanel: React.FC = () => {
                     <option value="SUPERADMIN">SUPERADMIN (Acceso Total)</option>
                     <option value="ADMIN">ADMINISTRADOR</option>
                     <option value="JEFE_OPERACIONES">JEFE DE OPERACIONES</option>
+                    <option value="OPERACIONES">OPERACIONES (Operador Planta)</option>
                     <option value="COMERCIAL">COMERCIAL</option>
                     <option value="CONDUCTOR">CONDUCTOR (Tablet Terreno)</option>
                     <option value="CLIENTE">CLIENTE (Portal Institucional)</option>

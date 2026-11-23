@@ -1,4 +1,5 @@
 import { TipoFotoInspeccion, EstadoInspeccion } from '@prisma/client';
+import { FleetService } from './fleet.service.js';
 
 export interface ItemChecklistInput {
   categoria: 'MECANICA' | 'CABINA' | 'ESTANQUE' | 'DOCUMENTOS';
@@ -88,5 +89,18 @@ export class InspectionService {
       alertaEmitida: fallas.length > 0,
       motivoAlerta: fallas.length > 0 ? `Novedades menores reportadas en ruta: ${fallas.map((f) => f.nombre).join(', ')}` : undefined
     };
+  }
+
+  /**
+   * Persiste el bloqueo de seguridad por checklist en el módulo de flota (D4, 3.3)
+   */
+  static async aplicarBloqueoSeguridad(
+    vehiculoId: string,
+    resultado: { bloqueado: boolean; motivoBloqueo?: string },
+    actor: { userId?: string; ip?: string }
+  ): Promise<void> {
+    if (resultado.bloqueado && resultado.motivoBloqueo) {
+      await FleetService.bloquearPorChecklist(vehiculoId, resultado.motivoBloqueo, actor);
+    }
   }
 }

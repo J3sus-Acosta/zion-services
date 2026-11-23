@@ -30,6 +30,7 @@ import { OperationsFleetMap } from './components/operations/OperationsFleetMap';
 import { ClientPortalView } from './components/client/ClientPortalView';
 import { TabletConductorView } from './components/tablet/TabletConductorView';
 import { CommercialManagementView } from './components/commercial/CommercialManagementView';
+import { FleetManagementPanel } from './components/fleet/FleetManagementPanel';
 import { GpsStatusPill } from './components/gps/GpsStatusPill';
 import { useGpsTracker } from './services/gps-tracker';
 import { OfflineStorageService } from './services/offline-storage';
@@ -62,6 +63,7 @@ const ProtectedRoute: React.FC<{
     if (usuario.rol === 'CONDUCTOR') return <Navigate to="/tablet" replace />;
     if (usuario.rol === 'JEFE_OPERACIONES') return <Navigate to="/operaciones" replace />;
     if (usuario.rol === 'COMERCIAL') return <Navigate to="/comercial" replace />;
+    if (usuario.rol === 'OPERACIONES') return <Navigate to="/login" replace />;
     return <Navigate to="/admin/usuarios" replace />;
   }
 
@@ -123,6 +125,7 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
   const puedeVerTablet = ['SUPERADMIN', 'ADMIN', 'JEFE_OPERACIONES', 'CONDUCTOR'].includes(usuario.rol);
   const puedeVerOperaciones = ['SUPERADMIN', 'ADMIN', 'JEFE_OPERACIONES'].includes(usuario.rol);
+  const puedeVerFlota = ['SUPERADMIN', 'ADMIN', 'JEFE_OPERACIONES'].includes(usuario.rol);
   const puedeVerUsuarios = ['SUPERADMIN', 'ADMIN'].includes(usuario.rol);
   const puedeVerCliente = ['SUPERADMIN', 'ADMIN', 'CLIENTE'].includes(usuario.rol);
   const puedeVerComercial = ['SUPERADMIN', 'ADMIN', 'COMERCIAL'].includes(usuario.rol);
@@ -176,6 +179,17 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
               >
                 <ClipboardList className="h-3.5 w-3.5" />
                 <span>Jefe Operaciones</span>
+              </Button>
+            )}
+            {puedeVerFlota && (
+              <Button
+                variant={location.pathname === '/flota' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => navigate('/flota')}
+                className="h-8 text-xs flex items-center gap-1.5"
+              >
+                <Truck className="h-3.5 w-3.5" />
+                <span>Flota</span>
               </Button>
             )}
             {puedeVerComercial && (
@@ -237,6 +251,18 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
               >
                 <ClipboardList className="h-3.5 w-3.5" />
                 <span>Operaciones</span>
+              </Button>
+            )}
+            {puedeVerFlota && (
+              <Button
+                variant={location.pathname === '/flota' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => navigate('/flota')}
+                className="h-8 px-2 text-xs flex items-center gap-1 shrink-0"
+                title="Gestión de Flota"
+              >
+                <Truck className="h-3.5 w-3.5" />
+                <span>Flota</span>
               </Button>
             )}
             {puedeVerComercial && (
@@ -371,6 +397,19 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                   <span>Jefe Operaciones</span>
                 </Button>
               )}
+              {puedeVerFlota && (
+                <Button
+                  variant={location.pathname === '/flota' ? 'default' : 'ghost'}
+                  onClick={() => {
+                    navigate('/flota');
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className="w-full justify-start h-10 px-3 text-sm flex items-center gap-2.5 font-medium"
+                >
+                  <Truck className="h-4 w-4 shrink-0" />
+                  <span>Gestión Flota</span>
+                </Button>
+              )}
               {puedeVerComercial && (
                 <Button
                   variant={location.pathname === '/comercial' ? 'default' : 'ghost'}
@@ -438,6 +477,7 @@ function AppRoutes() {
     if (usuario.rol === 'CONDUCTOR') return '/tablet';
     if (usuario.rol === 'JEFE_OPERACIONES') return '/operaciones';
     if (usuario.rol === 'COMERCIAL') return '/comercial';
+    if (usuario.rol === 'OPERACIONES') return '/login';
     return '/admin/usuarios';
   };
 
@@ -465,6 +505,17 @@ function AppRoutes() {
           <ProtectedRoute allowedRoles={['SUPERADMIN', 'ADMIN', 'JEFE_OPERACIONES']}>
             <AppLayout>
               <OperationsFleetMap />
+            </AppLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/flota"
+        element={
+          <ProtectedRoute allowedRoles={['SUPERADMIN', 'ADMIN', 'JEFE_OPERACIONES']}>
+            <AppLayout>
+              <FleetManagementPanel />
             </AppLayout>
           </ProtectedRoute>
         }

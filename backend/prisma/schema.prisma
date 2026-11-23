@@ -37,8 +37,10 @@ model Usuario {
   createdAt        DateTime        @default(now())
   updatedAt        DateTime        @updatedAt
 
-  historialEstados HistorialEstado[]
-  auditorias       AuditoriaEvento[]
+  historialEstados        HistorialEstado[]
+  auditorias              AuditoriaEvento[]
+  vehiculosEstadoCambiado Vehiculo[]             @relation("VehiculoEstadoPor")
+  notificacionesConductor NotificacionConductor[]
 
   @@map("usuarios")
 }
@@ -115,25 +117,54 @@ model ContratoCliente {
 // 3. FLOTA, CONDUCTORES E INSPECCIONES
 // -------------------------------------------------------------
 
+enum TipoEquipo {
+  CAMION
+  CAMIONETA
+  MAQUINARIA
+  OTRO
+}
+
+enum EstadoEquipo {
+  HABILITADO
+  DESHABILITADO
+}
+
+enum OrigenBloqueo {
+  MANUAL
+  CHECKLIST_SEGURIDAD
+}
+
 model Vehiculo {
-  id                   String        @id @default(uuid())
-  patente              String        @unique
-  marca                String
-  modelo               String
-  anio                 Int
-  capacidadEstanqueM3  Decimal       @db.Decimal(10, 2)
-  equipoHidrojet       Boolean       @default(false)
-  equipoVacio          Boolean       @default(false)
-  bloqueadoPorSeguridad Boolean      @default(false)
-  motivoBloqueo        String?       @db.Text
-  activo               Boolean       @default(true)
-  createdAt            DateTime      @default(now())
-  updatedAt            DateTime      @updatedAt
+  id                    String        @id @default(uuid())
+  patente               String        @unique
+  marca                 String
+  modelo                String
+  anio                  Int
+  capacidadEstanqueM3   Decimal       @db.Decimal(10, 2)
+  equipoHidrojet        Boolean       @default(false)
+  equipoVacio           Boolean       @default(false)
+  tipoEquipo            TipoEquipo    @default(CAMION)
+  observaciones         String?       @db.Text
+  estado                EstadoEquipo  @default(HABILITADO)
+  motivoEstado          String?       @db.Text
+  origenBloqueo         OrigenBloqueo?
+  estadoCambiadoAt      DateTime?
+  estadoCambiadoPorId   String?
+  estadoCambiadoPor     Usuario?      @relation("VehiculoEstadoPor", fields: [estadoCambiadoPorId], references: [id])
 
-  jornadas             Jornada[]
-  inspeccionesSalida   InspeccionSalida_F_GMT[]
-  inspeccionesRetorno  InspeccionRetornoPlanta[]
+  // @deprecated Columnas legadas conservadas en fase expand (D1, D2, D15). No eliminar sin autorización explícita.
+  bloqueadoPorSeguridad Boolean       @default(false)
+  motivoBloqueo         String?       @db.Text
+  activo                Boolean       @default(true)
 
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @updatedAt
+
+  jornadas              Jornada[]
+  inspeccionesSalida    InspeccionSalida_F_GMT[]
+  inspeccionesRetorno   InspeccionRetornoPlanta[]
+
+  @@index([estado, tipoEquipo])
   @@map("vehiculos")
 }
 
@@ -239,6 +270,21 @@ model InspeccionRetornoPlanta {
   jornada          Jornada?
 
   @@map("inspecciones_retorno_planta")
+}
+
+model NotificacionConductor {
+  id          String   @id @default(uuid())
+  conductorId String
+  conductor   Usuario  @relation(fields: [conductorId], references: [id])
+  tipo        String   @default("TRANSFERENCIA_FLOTA")
+  titulo      String
+  mensaje     String   @db.Text
+  leida       Boolean  @default(false)
+  metadata    Json?
+  createdAt   DateTime @default(now())
+
+  @@index([conductorId, leida])
+  @@map("notificaciones_conductor")
 }
 
 // -------------------------------------------------------------
