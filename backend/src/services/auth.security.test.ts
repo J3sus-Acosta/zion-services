@@ -132,7 +132,26 @@ describe('Seguridad: Autenticación, RBAC y Tenant Isolation', () => {
     expect(next).toHaveBeenCalled();
   });
 
-  it('debe autenticar mediante la cookie HTTP-only satem_auth_token', () => {
+  it('debe autenticar mediante la cookie HTTP-only zion_auth_token', () => {
+    const token = TokenService.generateAccessToken(mockPayload);
+    const req = {
+      cookies: {
+        zion_auth_token: token
+      },
+      headers: {}
+    } as unknown as AuthenticatedRequest;
+
+    const res = { status: vi.fn().mockReturnThis(), json: vi.fn() } as unknown as Response;
+    const next = vi.fn();
+
+    authenticate(req, res, next);
+
+    expect(next).toHaveBeenCalled();
+    expect(req.user?.userId).toBe('user-123');
+    expect(req.user?.rol).toBe(RolUsuario.CLIENTE);
+  });
+
+  it('debe mantener compatibilidad dual autenticando mediante la cookie legacy satem_auth_token', () => {
     const token = TokenService.generateAccessToken(mockPayload);
     const req = {
       cookies: {

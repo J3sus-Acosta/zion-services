@@ -32,9 +32,51 @@ solicitudesRouter.post(
         return;
       }
 
+      // Validar que la empresa cliente exista
+      const empresa = await prisma.empresaCliente.findUnique({
+        where: { id: empresaClienteId }
+      });
+      if (!empresa) {
+        res.status(404).json({
+          error: { code: 'EMPRESA_NOT_FOUND', message: `La empresa cliente con ID "${empresaClienteId}" no existe.` }
+        });
+        return;
+      }
+
+      // Validar sucursal faena real desde la base de datos
+      let sucursalId = sucursalFaenaId;
+      if (!sucursalId) {
+        const sucursalDefault = await prisma.sucursalFaena.findFirst({
+          where: { empresaClienteId, activo: true }
+        });
+        if (!sucursalDefault) {
+          res.status(404).json({
+            error: { code: 'SUCURSAL_NOT_FOUND', message: 'No se encontró una sucursal activa para la empresa cliente especificada.' }
+          });
+          return;
+        }
+        sucursalId = sucursalDefault.id;
+      } else {
+        const sucursal = await prisma.sucursalFaena.findUnique({
+          where: { id: sucursalId }
+        });
+        if (!sucursal) {
+          res.status(404).json({
+            error: { code: 'SUCURSAL_NOT_FOUND', message: `La sucursal faena con ID "${sucursalId}" no existe.` }
+          });
+          return;
+        }
+        if (sucursal.empresaClienteId !== empresaClienteId) {
+          res.status(400).json({
+            error: { code: 'INVALID_SUCURSAL', message: 'La sucursal faena no pertenece a la empresa cliente especificada.' }
+          });
+          return;
+        }
+      }
+
       const input: CrearSolicitudInput = {
         empresaClienteId,
-        sucursalFaenaId: sucursalFaenaId || 'suc-principal',
+        sucursalFaenaId: sucursalId,
         tipoResiduo,
         descripcion,
         cantidadEstimada: cantidadEstimada ? Number(cantidadEstimada) : undefined,
@@ -43,22 +85,6 @@ solicitudesRouter.post(
       };
 
       const validado = CommercialService.crearSolicitud(input);
-
-      // Asegurar sucursal en BD para evitar fallo de FK
-      const sucursalId = input.sucursalFaenaId;
-      await prisma.sucursalFaena.upsert({
-        where: { id: sucursalId },
-        update: {},
-        create: {
-          id: sucursalId,
-          empresaClienteId,
-          nombre: 'Planta Principal',
-          direccion: 'Av. Industrial 1234',
-          comuna: 'San Bernardo',
-          ciudad: 'Santiago',
-          region: 'Metropolitana'
-        }
-      });
 
       const solicitud = await prisma.solicitudServicio.create({
         data: {

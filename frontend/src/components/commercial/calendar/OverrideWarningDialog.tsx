@@ -64,7 +64,7 @@ export const OverrideWarningDialog: React.FC<OverrideWarningDialogProps> = ({
           <AlertTriangle size={24} style={{ color: 'var(--warning)', flexShrink: 0, marginTop: '2px' }} />
           <div>
             <h4 style={{ margin: '0 0 4px', fontSize: '0.9rem', fontWeight: 600, color: 'var(--warning)' }}>
-              Margen de Tiempo Inferior al Estándar SATEM (4 Horas)
+              Margen de Tiempo Inferior al Estándar Operacional (4 Horas)
             </h4>
             <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
               {warningPayload.message}

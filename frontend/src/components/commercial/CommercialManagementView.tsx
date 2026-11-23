@@ -15,6 +15,7 @@ import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
 import { ServiceCalendar } from './calendar/ServiceCalendar';
 import { useAuth } from '../../context/AuthContext';
+import { apiUrl } from '../../config/api';
 
 interface SolicitudItem {
   id: string;
@@ -79,8 +80,8 @@ export const CommercialManagementView: React.FC = () => {
     setLoading(true);
     try {
       const [resSol, resOrd] = await Promise.all([
-        fetch('http://localhost:3000/api/solicitudes', { credentials: 'include' }),
-        fetch('http://localhost:3000/api/ordenes', { credentials: 'include' })
+        fetch(apiUrl('/api/solicitudes'), { credentials: 'include' }),
+        fetch(apiUrl('/api/ordenes'), { credentials: 'include' })
       ]);
 
       if (resSol.ok) {
@@ -158,7 +159,7 @@ export const CommercialManagementView: React.FC = () => {
 
   const handleAprobarSolicitud = async (solicitudId: string) => {
     try {
-      const res = await fetch(`http://localhost:3000/api/solicitudes/${solicitudId}/aprobar`, {
+      const res = await fetch(apiUrl(`/api/solicitudes/${solicitudId}/aprobar`), {
         method: 'PATCH',
         credentials: 'include'
       });
@@ -200,7 +201,7 @@ export const CommercialManagementView: React.FC = () => {
     };
 
     try {
-      const res = await fetch('http://localhost:3000/api/solicitudes', {
+      const res = await fetch(apiUrl('/api/solicitudes'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -256,7 +257,7 @@ export const CommercialManagementView: React.FC = () => {
         <div>
           <div className="flex items-center gap-2">
             <Badge variant="outline" className="border-primary/40 text-primary">
-              Módulo Comercial SATEM
+              Módulo Comercial Zion Services
             </Badge>
             <h1 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
               <Briefcase className="h-6 w-6 text-primary" />

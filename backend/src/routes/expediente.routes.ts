@@ -1,6 +1,7 @@
 import { Router, Response } from 'express';
 import archiver from 'archiver';
 import fs from 'fs';
+import path from 'path';
 import { authenticate, AuthenticatedRequest } from '../middleware/auth.middleware.js';
 import { RolUsuario, CategoriaDocumento } from '@prisma/client';
 import { prisma } from '../utils/prisma.js';
@@ -198,14 +199,13 @@ expedienteRouter.get('/:ordenId/descargar-zip', async (req: AuthenticatedRequest
     };
     archive.append(JSON.stringify(manifiesto, null, 2), { name: `MANIFIESTO_${orden.folio}.json` });
 
-    // Agregar archivos físicos o generar comprobantes de evidencia
+    // Agregar exclusivamente archivos físicos reales existentes en disco (sin mocks ni archivos simulados)
     for (const doc of docs) {
-      if (fs.existsSync(doc.rutaAlmacenamiento)) {
-        archive.file(doc.rutaAlmacenamiento, { name: `${doc.categoria}/${doc.nombreArchivo}` });
-      } else {
-        // Respaldo virtual indexado si está simulado en uploads
-        const mockContent = `--- SATEM EVIDENCIA DIGITAL ---\nFolio: ${orden.folio}\nCategoria: ${doc.categoria}\nArchivo: ${doc.nombreArchivo}\nFecha: ${doc.fechaCarga.toISOString()}`;
-        archive.append(mockContent, { name: `${doc.categoria}/${doc.nombreArchivo}.txt` });
+      const filePath = path.isAbsolute(doc.rutaAlmacenamiento)
+        ? doc.rutaAlmacenamiento
+        : path.resolve(process.cwd(), doc.rutaAlmacenamiento);
+      if (fs.existsSync(filePath)) {
+        archive.file(filePath, { name: `${doc.categoria}/${doc.nombreArchivo}` });
       }
     }
 
@@ -216,6 +216,91 @@ expedienteRouter.get('/:ordenId/descargar-zip', async (req: AuthenticatedRequest
         error: { code: 'STREAMING_ZIP_ERROR', message: error.message }
       });
     }
+  }
+});
+
+/**
+ * GET /api/expedientes/:ordenId/documentos/:documentoId/descargar
+ * Descarga individual de un documento o evidencia oficial del expediente
+ * Con validación estricta de Tenant Isolation y verificación de existencia física en disco (sin mocks)
+ */
+expedienteRouter.get('/:ordenId/documentos/:documentoId/descargar', async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { ordenId, documentoId } = req.params;
+
+    const orden = await prisma.ordenServicio.findFirst({
+      where: {
+        OR: [
+          { id: ordenId },
+          { folio: ordenId }
+        ]
+      },
+      include: {
+        solicitudServicio: { include: { empresaCliente: true } },
+        expediente: true
+      }
+    });
+
+    if (!orden) {
+      res.status(404).json({
+        error: { code: 'ORDER_NOT_FOUND', message: 'Orden de servicio no encontrada.' }
+      });
+      return;
+    }
+
+    // Tenant Isolation
+    if (req.user?.rol === RolUsuario.CLIENTE && orden.solicitudServicio.empresaClienteId !== req.user.empresaClienteId) {
+      res.status(403).json({
+        error: { code: 'TENANT_ISOLATION_VIOLATION', message: 'Acceso denegado a este expediente.' }
+      });
+      return;
+    }
+
+    if (!orden.expediente) {
+      res.status(404).json({
+        error: { code: 'DOSSIER_NOT_FOUND', message: 'La orden no tiene un expediente documental asociado.' }
+      });
+      return;
+    }
+
+    const documento = await prisma.documentoExpediente.findFirst({
+      where: {
+        id: documentoId,
+        expedienteDocumentalId: orden.expediente.id
+      }
+    });
+
+    if (!documento) {
+      res.status(404).json({
+        error: { code: 'DOCUMENT_NOT_FOUND', message: 'El documento no existe en el expediente especificado.' }
+      });
+      return;
+    }
+
+    if (req.user?.rol === RolUsuario.CLIENTE && !documento.visibleParaCliente) {
+      res.status(403).json({
+        error: { code: 'DOCUMENT_RESTRICTED', message: 'Este documento es de uso interno operacional.' }
+      });
+      return;
+    }
+
+    const filePath = path.isAbsolute(documento.rutaAlmacenamiento)
+      ? documento.rutaAlmacenamiento
+      : path.resolve(process.cwd(), documento.rutaAlmacenamiento);
+
+    // Validación física estricta en disco: NUNCA generar un archivo simulado o mock
+    if (!fs.existsSync(filePath)) {
+      res.status(404).json({
+        error: { code: 'FILE_NOT_FOUND', message: 'El archivo físico del documento no existe en el servidor.' }
+      });
+      return;
+    }
+
+    res.download(filePath, documento.nombreArchivo);
+  } catch (error: any) {
+    res.status(500).json({
+      error: { code: 'DOWNLOAD_ERROR', message: error.message }
+    });
   }
 });
 

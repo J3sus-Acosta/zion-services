@@ -3,6 +3,7 @@ import { Modal } from '../ui/Modal';
 import { Equipo, TipoEquipo, CrearEquipoInput, EditarEquipoInput } from '../../types/fleet';
 import { fleetApi, FleetApiError } from '../../services/fleetApi';
 import { Truck, AlertCircle, Save, Loader2 } from 'lucide-react';
+import { Button } from '../ui/button';
 
 interface FleetFormModalProps {
   isOpen: boolean;
@@ -139,7 +140,7 @@ export const FleetFormModal: React.FC<FleetFormModalProps> = ({
         if (err.code === 'FLEET_PLATE_DUPLICATE') {
           setFormError(`La patente ${cleanPatente} ya se encuentra registrada en otro equipo.`);
         } else if (err.details && err.details.length > 0) {
-          setFormError(err.details.map((d) => d.mensaje).join('. '));
+          setFormError(err.details.map((d: any) => d.mensaje).join('. '));
         } else {
           setFormError(err.message);
         }
@@ -156,44 +157,34 @@ export const FleetFormModal: React.FC<FleetFormModalProps> = ({
       isOpen={isOpen}
       onClose={onClose}
       title={
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <Truck style={{ width: '20px', height: '20px', color: 'var(--accent-primary)' }} />
+        <div className="flex items-center gap-2">
+          <Truck className="h-5 w-5 text-primary" />
           <span>{isEditing ? `Editar Equipo ${equipo?.patente}` : 'Registrar Nuevo Equipo'}</span>
         </div>
       }
       maxWidth="620px"
     >
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      <form onSubmit={handleSubmit} className="space-y-4">
         {formError && (
           <div
             role="alert"
-            style={{
-              padding: '12px',
-              borderRadius: 'var(--radius-md)',
-              background: 'var(--danger-bg)',
-              color: 'var(--danger)',
-              border: '1px solid rgba(239, 68, 68, 0.3)',
-              fontSize: '0.875rem',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px'
-            }}
+            className="p-3 rounded-lg bg-destructive/15 border border-destructive/30 text-destructive text-sm flex items-center gap-2"
           >
-            <AlertCircle size={18} style={{ flexShrink: 0 }} />
+            <AlertCircle className="h-4 w-4 shrink-0 text-destructive" />
             <span>{formError}</span>
           </div>
         )}
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '14px' }}>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {/* Patente */}
-          <div className="form-group">
-            <label className="form-label" htmlFor="fleet-patente">
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium text-muted-foreground" htmlFor="fleet-patente">
               Patente / Matrícula *
             </label>
             <input
               id="fleet-patente"
               type="text"
-              className="form-input"
+              className="w-full h-10 px-3 rounded-lg border border-border bg-background text-sm font-mono uppercase focus:outline-none focus:ring-2 focus:ring-primary/40"
               value={patente}
               onChange={(e) => setPatente(e.target.value.toUpperCase())}
               placeholder="Ej: AB1234 ó AA-BB-11"
@@ -205,13 +196,13 @@ export const FleetFormModal: React.FC<FleetFormModalProps> = ({
           </div>
 
           {/* Tipo de Equipo */}
-          <div className="form-group">
-            <label className="form-label" htmlFor="fleet-tipo">
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium text-muted-foreground" htmlFor="fleet-tipo">
               Tipo de Equipo *
             </label>
             <select
               id="fleet-tipo"
-              className="form-select"
+              className="w-full h-10 px-3 rounded-lg border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
               value={tipoEquipo}
               onChange={(e) => setTipoEquipo(e.target.value as TipoEquipo)}
               disabled={isSubmitting}
@@ -224,16 +215,16 @@ export const FleetFormModal: React.FC<FleetFormModalProps> = ({
           </div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '14px' }}>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {/* Marca */}
-          <div className="form-group">
-            <label className="form-label" htmlFor="fleet-marca">
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium text-muted-foreground" htmlFor="fleet-marca">
               Marca *
             </label>
             <input
               id="fleet-marca"
               type="text"
-              className="form-input"
+              className="w-full h-10 px-3 rounded-lg border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
               value={marca}
               onChange={(e) => setMarca(e.target.value)}
               placeholder="Ej: Mercedes-Benz, Scania, Ford"
@@ -244,14 +235,14 @@ export const FleetFormModal: React.FC<FleetFormModalProps> = ({
           </div>
 
           {/* Modelo */}
-          <div className="form-group">
-            <label className="form-label" htmlFor="fleet-modelo">
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium text-muted-foreground" htmlFor="fleet-modelo">
               Modelo *
             </label>
             <input
               id="fleet-modelo"
               type="text"
-              className="form-input"
+              className="w-full h-10 px-3 rounded-lg border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
               value={modelo}
               onChange={(e) => setModelo(e.target.value)}
               placeholder="Ej: Actros 2645, Ranger XLT"
@@ -262,16 +253,16 @@ export const FleetFormModal: React.FC<FleetFormModalProps> = ({
           </div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '14px' }}>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {/* Año */}
-          <div className="form-group">
-            <label className="form-label" htmlFor="fleet-anio">
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium text-muted-foreground" htmlFor="fleet-anio">
               Año de Fabricación *
             </label>
             <input
               id="fleet-anio"
               type="number"
-              className="form-input"
+              className="w-full h-10 px-3 rounded-lg border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
               value={anio}
               onChange={(e) => setAnio(parseInt(e.target.value, 10))}
               min={1980}
@@ -282,8 +273,8 @@ export const FleetFormModal: React.FC<FleetFormModalProps> = ({
           </div>
 
           {/* Capacidad Estanque (m³) */}
-          <div className="form-group">
-            <label className="form-label" htmlFor="fleet-capacidad">
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium text-muted-foreground" htmlFor="fleet-capacidad">
               Capacidad Estanque (m³) *
             </label>
             <input
@@ -291,7 +282,7 @@ export const FleetFormModal: React.FC<FleetFormModalProps> = ({
               type="number"
               step="0.01"
               min="0"
-              className="form-input"
+              className="w-full h-10 px-3 rounded-lg border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
               value={capacidadEstanqueM3}
               onChange={(e) => setCapacidadEstanqueM3(parseFloat(e.target.value) || 0)}
               placeholder="0.00"
@@ -302,38 +293,38 @@ export const FleetFormModal: React.FC<FleetFormModalProps> = ({
         </div>
 
         {/* Equipamiento Especial (Hidrojet / Vacío) */}
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '20px', padding: '10px 14px', background: 'var(--bg-primary)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)' }}>
-          <label style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.875rem' }}>
+        <div className="flex flex-wrap gap-4 p-3 rounded-lg bg-muted/50 border border-border">
+          <label className="inline-flex items-center gap-2 cursor-pointer text-sm text-foreground">
             <input
               type="checkbox"
               checked={equipoHidrojet}
               onChange={(e) => setEquipoHidrojet(e.target.checked)}
               disabled={isSubmitting}
-              style={{ width: '18px', height: '18px', accentColor: 'var(--accent-primary)', cursor: 'pointer' }}
+              className="w-4 h-4 rounded text-primary focus:ring-primary/40"
             />
             <span>Equipamiento Hidrojet (Alta Presión)</span>
           </label>
 
-          <label style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.875rem' }}>
+          <label className="inline-flex items-center gap-2 cursor-pointer text-sm text-foreground">
             <input
               type="checkbox"
               checked={equipoVacio}
               onChange={(e) => setEquipoVacio(e.target.checked)}
               disabled={isSubmitting}
-              style={{ width: '18px', height: '18px', accentColor: 'var(--accent-primary)', cursor: 'pointer' }}
+              className="w-4 h-4 rounded text-primary focus:ring-primary/40"
             />
             <span>Equipamiento de Vacío (Succión)</span>
           </label>
         </div>
 
         {/* Observaciones */}
-        <div className="form-group">
-          <label className="form-label" htmlFor="fleet-observaciones">
+        <div className="space-y-1.5">
+          <label className="text-xs font-medium text-muted-foreground" htmlFor="fleet-observaciones">
             Observaciones Adicionales
           </label>
           <textarea
             id="fleet-observaciones"
-            className="form-textarea"
+            className="w-full p-3 rounded-lg border border-border bg-background text-sm resize-y min-h-[80px] focus:outline-none focus:ring-2 focus:ring-primary/40"
             value={observaciones}
             onChange={(e) => setObservaciones(e.target.value)}
             placeholder="Información adicional relevante del equipo (máx 1000 caracteres)..."
@@ -344,32 +335,33 @@ export const FleetFormModal: React.FC<FleetFormModalProps> = ({
         </div>
 
         {/* Botones de acción */}
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', paddingTop: '10px', borderTop: '1px solid var(--border-color)' }}>
-          <button
+        <div className="flex items-center justify-end gap-3 pt-3 border-t border-border">
+          <Button
             type="button"
-            className="btn btn-secondary"
+            variant="outline"
+            size="sm"
             onClick={onClose}
             disabled={isSubmitting}
           >
             Cancelar
-          </button>
-          <button
+          </Button>
+          <Button
             type="submit"
-            className="btn btn-primary"
+            size="sm"
             disabled={isSubmitting}
           >
             {isSubmitting ? (
               <>
-                <Loader2 size={16} className="animate-spin" />
+                <Loader2 className="h-4 w-4 animate-spin mr-1.5" />
                 <span>Guardando...</span>
               </>
             ) : (
               <>
-                <Save size={16} />
+                <Save className="h-4 w-4 mr-1.5" />
                 <span>{isEditing ? 'Guardar Cambios' : 'Registrar Equipo'}</span>
               </>
             )}
-          </button>
+          </Button>
         </div>
       </form>
     </Modal>

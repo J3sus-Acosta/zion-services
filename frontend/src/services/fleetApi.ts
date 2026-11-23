@@ -9,8 +9,9 @@ import {
   ListarFlotaQuery,
   NotificacionConductor
 } from '../types/fleet';
+import { API_BASE_URL } from '../config/api';
 
-const API_BASE = (import.meta as any).env?.VITE_API_URL || 'http://localhost:3000';
+const API_BASE = API_BASE_URL;
 
 export interface ApiErrorDetail {
   campo?: string;
@@ -65,7 +66,7 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
       throw err;
     }
     throw new FleetApiError(
-      err?.message || 'Error de conexión con el servidor SATEM',
+      err?.message || 'Error de conexión con el servidor de Zion Services',
       'NETWORK_ERROR',
       0
     );

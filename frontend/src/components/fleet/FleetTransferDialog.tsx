@@ -14,6 +14,8 @@ import {
   CheckCircle2,
   AlertTriangle
 } from 'lucide-react';
+import { Button } from '../ui/button';
+import { Badge } from '../ui/badge';
 
 interface FleetTransferDialogProps {
   isOpen: boolean;
@@ -132,147 +134,95 @@ export const FleetTransferDialog: React.FC<FleetTransferDialogProps> = ({
       isOpen={isOpen}
       onClose={onClose}
       title={
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--accent-primary)' }}>
-          <ArrowRightLeft size={20} />
+        <div className="flex items-center gap-2 text-primary">
+          <ArrowRightLeft className="h-5 w-5" />
           <span>Reasignar Operaciones: {equipo.patente}</span>
         </div>
       }
       maxWidth="680px"
     >
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      <form onSubmit={handleSubmit} className="space-y-4">
         {errorMessage && (
           <div
             role="alert"
-            style={{
-              padding: '12px',
-              borderRadius: 'var(--radius-md)',
-              background: 'var(--danger-bg)',
-              color: 'var(--danger)',
-              border: '1px solid rgba(239, 68, 68, 0.3)',
-              fontSize: '0.875rem',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px'
-            }}
+            className="p-3 rounded-lg bg-destructive/15 border border-destructive/30 text-destructive text-sm flex items-center gap-2"
           >
-            <AlertCircle size={18} style={{ flexShrink: 0 }} />
+            <AlertCircle className="h-4 w-4 shrink-0 text-destructive" />
             <span>{errorMessage}</span>
           </div>
         )}
 
-        <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
-          Transfiera las jornadas activas del equipo <strong>{equipo.patente}</strong> hacia otra unidad operativa habilitada sin modificar el estado actual del equipo origen.
+        <div className="text-sm text-muted-foreground leading-relaxed">
+          Transfiera las jornadas activas del equipo <strong className="font-mono text-foreground">{equipo.patente}</strong> hacia otra unidad operativa habilitada sin modificar el estado actual del equipo origen.
         </div>
 
         {loading ? (
           <div
-            style={{
-              padding: '30px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '10px',
-              color: 'var(--text-secondary)'
-            }}
+            className="p-8 flex items-center justify-center gap-2.5 text-muted-foreground bg-muted/40 rounded-lg border border-border text-sm"
             aria-busy="true"
           >
-            <Loader2 size={22} className="animate-spin text-primary" />
+            <Loader2 className="h-5 w-5 animate-spin text-primary" />
             <span>Cargando jornadas activas y unidades habilitadas...</span>
           </div>
         ) : jornadas.length === 0 ? (
-          <div
-            style={{
-              padding: '24px',
-              textAlign: 'center',
-              background: 'var(--bg-primary)',
-              borderRadius: 'var(--radius-md)',
-              border: '1px solid var(--border-color)',
-              color: 'var(--text-secondary)',
-              fontSize: '0.875rem'
-            }}
-          >
-            <CheckCircle2 size={32} style={{ color: 'var(--success)', margin: '0 auto 8px' }} />
+          <div className="p-6 text-center bg-muted/40 rounded-lg border border-border text-muted-foreground text-sm space-y-2">
+            <CheckCircle2 className="h-8 w-8 text-emerald-400 mx-auto" />
             <div>No hay jornadas activas ni pendientes en este equipo para reasignar.</div>
           </div>
         ) : (
           <>
             {/* Lista de Jornadas con selección */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase' }}>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                   Jornadas Activas Disponibles ({jornadas.length})
                 </span>
                 <button
                   type="button"
                   onClick={handleSelectAll}
-                  style={{
-                    background: 'none',
-                    border: 'none',
-                    color: 'var(--accent-primary)',
-                    fontSize: '0.75rem',
-                    cursor: 'pointer',
-                    padding: '2px 6px'
-                  }}
+                  className="text-xs text-primary hover:underline font-medium cursor-pointer"
                 >
                   {jornadasSeleccionadas.length === jornadas.length ? 'Deseleccionar todas' : 'Seleccionar todas'}
                 </button>
               </div>
 
-              <div
-                style={{
-                  maxHeight: '180px',
-                  overflowY: 'auto',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '8px',
-                  padding: '8px',
-                  background: 'var(--bg-primary)',
-                  borderRadius: 'var(--radius-md)',
-                  border: '1px solid var(--border-color)'
-                }}
-              >
+              <div className="max-h-48 overflow-y-auto space-y-2 p-2 bg-muted/40 rounded-lg border border-border">
                 {jornadas.map((j) => {
                   const isChecked = jornadasSeleccionadas.includes(j.id);
                   return (
                     <label
                       key={j.id}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        padding: '8px 12px',
-                        borderRadius: 'var(--radius-sm)',
-                        background: isChecked ? 'rgba(0, 168, 150, 0.1)' : 'var(--bg-surface)',
-                        border: `1px solid ${isChecked ? 'var(--accent-primary)' : 'var(--border-color)'}`,
-                        cursor: 'pointer',
-                        transition: 'background var(--transition-fast)'
-                      }}
+                      className={`flex items-center justify-between p-2.5 rounded-lg border cursor-pointer transition-colors ${
+                        isChecked
+                          ? 'bg-primary/10 border-primary/40'
+                          : 'bg-background border-border hover:bg-muted/50'
+                      }`}
                     >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <div className="flex items-center gap-3">
                         <input
                           type="checkbox"
                           checked={isChecked}
                           onChange={() => toggleJornada(j.id)}
-                          style={{ width: '16px', height: '16px', accentColor: 'var(--accent-primary)' }}
+                          className="w-4 h-4 rounded text-primary focus:ring-primary/40"
                         />
                         <div>
-                          <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                            <Calendar size={13} style={{ color: 'var(--accent-primary)' }} />
+                          <div className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                            <Calendar className="h-3.5 w-3.5 text-primary" />
                             <span>Jornada: {j.estado}</span>
-                            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                            <span className="text-muted-foreground font-normal">
                               ({new Date(j.fechaInicio).toLocaleDateString()})
                             </span>
                           </div>
-                          <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                          <div className="text-xs text-muted-foreground mt-0.5">
                             Conductor: {j.conductor.nombre} ({j.conductor.rut})
                           </div>
                         </div>
                       </div>
 
                       {j.ordenes && j.ordenes.length > 0 && (
-                        <span className="badge badge-neutral" style={{ fontSize: '0.7rem' }}>
+                        <Badge variant="outline" className="text-[10px] text-muted-foreground">
                           {j.ordenes.length} OS vinculada(s)
-                        </span>
+                        </Badge>
                       )}
                     </label>
                   );
@@ -281,18 +231,18 @@ export const FleetTransferDialog: React.FC<FleetTransferDialogProps> = ({
             </div>
 
             {/* Selector de Unidad Destino */}
-            <div className="form-group">
-              <label className="form-label" htmlFor="transfer-destino">
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground" htmlFor="transfer-destino">
                 Unidad de Reemplazo Habilitada *
               </label>
               {candidatos.length === 0 ? (
-                <div style={{ padding: '10px', borderRadius: 'var(--radius-sm)', background: 'rgba(239,68,68,0.15)', color: 'var(--danger)', fontSize: '0.8125rem' }}>
+                <div className="p-2.5 rounded-lg bg-destructive/15 text-destructive text-xs">
                   No existen otros equipos habilitados en el sistema para recibir operaciones.
                 </div>
               ) : (
                 <select
                   id="transfer-destino"
-                  className="form-select"
+                  className="w-full h-10 px-3 rounded-lg border border-border bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40"
                   value={vehiculoDestinoId}
                   onChange={(e) => setVehiculoDestinoId(e.target.value)}
                   required
@@ -314,40 +264,41 @@ export const FleetTransferDialog: React.FC<FleetTransferDialogProps> = ({
             </div>
 
             {candidatosSinConflicto.length === 0 && candidatos.length > 0 && (
-              <div style={{ padding: '10px 14px', borderRadius: 'var(--radius-md)', background: 'var(--warning-bg)', border: '1px solid rgba(245, 158, 11, 0.3)', color: 'var(--warning)', fontSize: '0.8125rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <AlertTriangle size={18} style={{ flexShrink: 0 }} />
+              <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs flex items-center gap-2">
+                <AlertTriangle className="h-4 w-4 shrink-0" />
                 <span>Todos los equipos habilitados presentan conflicto de horario con las jornadas seleccionadas.</span>
               </div>
             )}
           </>
         )}
 
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', paddingTop: '10px', borderTop: '1px solid var(--border-color)' }}>
-          <button
+        <div className="flex items-center justify-end gap-3 pt-3 border-t border-border">
+          <Button
             type="button"
-            className="btn btn-secondary"
+            variant="outline"
+            size="sm"
             onClick={onClose}
             disabled={submitting}
           >
             Cancelar
-          </button>
-          <button
+          </Button>
+          <Button
             type="submit"
-            className="btn btn-primary"
+            size="sm"
             disabled={isSubmitDisabled}
           >
             {submitting ? (
               <>
-                <Loader2 size={16} className="animate-spin" />
+                <Loader2 className="h-4 w-4 animate-spin mr-1.5" />
                 <span>Reasignando...</span>
               </>
             ) : (
               <>
-                <ArrowRightLeft size={16} />
+                <ArrowRightLeft className="h-4 w-4 mr-1.5" />
                 <span>Transferir ({jornadasSeleccionadas.length}) Jornada(s)</span>
               </>
             )}
-          </button>
+          </Button>
         </div>
       </form>
     </Modal>

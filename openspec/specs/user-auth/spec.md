@@ -6,7 +6,7 @@ Provee autenticación unificada, control de acceso basado en roles jerárquicos 
 ## Requirements
 
 ### Requirement: Autenticación Unificada y Control de Acceso RBAC
-El sistema SHALL autenticar usuarios mediante credenciales seguras, emitir tokens JWT en cookies HTTP-only, proveer una cabecera de navegación responsive universal resiliente al desbordamiento en cualquier resolución (asegurando la visibilidad y operatividad incondicional del botón 'Cerrar Sesión', branding y conmutador de tema) y aplicar control de acceso RBAC con roles SUPERADMIN, ADMIN, COMERCIAL, JEFE_OPERACIONES, CONDUCTOR y CLIENTE, direccionando a cada usuario según su perfil y restringiendo accesos no autorizados.
+El sistema SHALL autenticar usuarios mediante credenciales seguras, emitir tokens JWT en cookies HTTP-only denominadas `zion_auth_token`, proveer una cabecera de navegación responsive universal resiliente al desbordamiento en cualquier resolución (asegurando la visibilidad y operatividad incondicional del botón 'Cerrar Sesión', branding y conmutador de tema) y aplicar control de acceso RBAC con roles SUPERADMIN, ADMIN, COMERCIAL, JEFE_OPERACIONES, CONDUCTOR y CLIENTE, direccionando a cada usuario según su perfil y restringiendo accesos no autorizados con mensajes exclusivos de Zion Services.
 
 #### Scenario: Inicio de sesión exitoso con redirección contextual por rol
 - **GIVEN** un usuario registrado y activo en el sistema con credenciales válidas

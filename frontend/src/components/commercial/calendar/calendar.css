@@ -1,10 +1,12 @@
 /* ==========================================================================
-   SATEM DESIGN SYSTEM — CALENDARIO OPERATIVO (calendar.css)
+   ZION DESIGN SYSTEM — CALENDARIO OPERATIVO (calendar.css)
    Tokens Dark Mode Premium:
    --bg-primary: #0f172a, --bg-surface: #1e293b, --accent-primary: #00a896
    Bordes: #334155, Texto: #f8fafc
    ========================================================================== */
 
+.calendar-root,
+.zion-calendar-root,
 .satem-calendar-root {
   display: flex;
   flex-direction: column;

@@ -25,8 +25,58 @@ import { TouchSignaturePad, SignatureData } from '../signature/TouchSignaturePad
 import { OfflineStorageService } from '../../services/offline-storage';
 import { fleetApi } from '../../services/fleetApi';
 import { NotificacionConductor } from '../../types/fleet';
+import { apiUrl } from '../../config/api';
 
 const NOMBRES_FOTOS_360 = ['Frontal', 'Lateral Izquierda', 'Trasera', 'Lateral Derecha'];
+
+// Tipos y configuración para Reporte Rápido de Incidencias Operacionales (Anti-WhatsApp)
+type TipoIncidencia = 'TRAFICO' | 'ACCESO_DENEGADO' | 'FALLA_EQUIPO' | 'VOLUMEN_DISCREPANTE' | 'OBSERVACION_GENERAL';
+
+interface BotonIncidenciaConfig {
+  tipo: TipoIncidencia;
+  etiqueta: string;
+  emoji: string;
+  descripcionSugerida: string;
+  claseColor: string;
+}
+
+const INCIDENCIAS_CONFIG: BotonIncidenciaConfig[] = [
+  {
+    tipo: 'TRAFICO',
+    etiqueta: 'Tráfico Pesado',
+    emoji: '🚦',
+    descripcionSugerida: 'Retraso en ruta debido a congestión vehicular severa o corte de vía.',
+    claseColor: 'bg-amber-500/15 border-amber-500/40 text-amber-300 hover:bg-amber-500/25'
+  },
+  {
+    tipo: 'ACCESO_DENEGADO',
+    etiqueta: 'Acceso Denegado',
+    emoji: '⛔',
+    descripcionSugerida: 'No se permite el ingreso a planta/faena por motivos de seguridad o inducción.',
+    claseColor: 'bg-rose-500/15 border-rose-500/40 text-rose-300 hover:bg-rose-500/25'
+  },
+  {
+    tipo: 'FALLA_EQUIPO',
+    etiqueta: 'Falla Bomba / Equipo',
+    emoji: '⚠️',
+    descripcionSugerida: 'Falla operacional en toma de fuerza, bomba de vacío o mangueras de succión.',
+    claseColor: 'bg-orange-500/15 border-orange-500/40 text-orange-300 hover:bg-orange-500/25'
+  },
+  {
+    tipo: 'VOLUMEN_DISCREPANTE',
+    etiqueta: 'Discrepancia Volumen',
+    emoji: '⚖️',
+    descripcionSugerida: 'El volumen medido en terreno difiere significativamente del programado en la OS.',
+    claseColor: 'bg-purple-500/15 border-purple-500/40 text-purple-300 hover:bg-purple-500/25'
+  },
+  {
+    tipo: 'OBSERVACION_GENERAL',
+    etiqueta: 'Otra Novedad',
+    emoji: '📝',
+    descripcionSugerida: 'Novedad operacional registrada en terreno para conocimiento de Operaciones.',
+    claseColor: 'bg-blue-500/15 border-blue-500/40 text-blue-300 hover:bg-blue-500/25'
+  }
+];
 
 export const TabletConductorView: React.FC = () => {
   const { usuario } = useAuth();
@@ -35,6 +85,13 @@ export const TabletConductorView: React.FC = () => {
   const [pasoTablet, setPasoTablet] = useState<number>(1);
   const [ordenServicioId] = useState<string>('OS-000561');
   const [cargandoEstado, setCargandoEstado] = useState<boolean>(true);
+
+  // Estados de Reporte Rápido de Incidencias
+  const [incidenciaSeleccionada, setIncidenciaSeleccionada] = useState<BotonIncidenciaConfig | null>(null);
+  const [descripcionIncidencia, setDescripcionIncidencia] = useState<string>('');
+  const [enviandoIncidencia, setEnviandoIncidencia] = useState<boolean>(false);
+  const [gpsIncidencia, setGpsIncidencia] = useState<{ lat: number; lng: number } | null>(null);
+  const [toastIncidencia, setToastIncidencia] = useState<{ mensaje: string; tipo: 'exito' | 'offline' | 'error' } | null>(null);
 
   // Paso 1: Salida
   const [checklistSalidaListo, setChecklistSalidaListo] = useState<boolean>(false);
@@ -176,7 +233,7 @@ export const TabletConductorView: React.FC = () => {
     };
 
     try {
-      const res = await fetch(`http://localhost:3000/api/expedientes/${ordenServicioId}/documentos`, {
+      const res = await fetch(apiUrl(`/api/expedientes/${ordenServicioId}/documentos`), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -218,7 +275,7 @@ export const TabletConductorView: React.FC = () => {
     };
 
     try {
-      const res = await fetch(`http://localhost:3000/api/expedientes/${ordenServicioId}/documentos`, {
+      const res = await fetch(apiUrl(`/api/expedientes/${ordenServicioId}/documentos`), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -240,7 +297,7 @@ export const TabletConductorView: React.FC = () => {
     setLlegadaMarcada(true);
 
     try {
-      await fetch('http://localhost:3000/api/ciclo-transporte/llegada', {
+      await fetch(apiUrl('/api/ciclo-transporte/llegada'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -272,7 +329,7 @@ export const TabletConductorView: React.FC = () => {
     };
 
     try {
-      const res = await fetch('http://localhost:3000/api/ciclo-transporte/autorizar-faena', {
+      const res = await fetch(apiUrl('/api/ciclo-transporte/autorizar-faena'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -289,6 +346,119 @@ export const TabletConductorView: React.FC = () => {
       setIsSubmittingOT(false);
       setIsSignatureOTOpen(false);
       setOtFirmada(true);
+    }
+  };
+
+  // Auto-sincronización de bitácora e incidencias al recuperar señal
+  useEffect(() => {
+    const handleOnline = async () => {
+      setToastIncidencia({
+        mensaje: 'Conexión restaurada: sincronizando bitácora acumulada...',
+        tipo: 'exito'
+      });
+      try {
+        await OfflineStorageService.procesarColaSync();
+        setTimeout(() => {
+          setToastIncidencia({
+            mensaje: 'Incidencias offline sincronizadas exitosamente con Operaciones.',
+            tipo: 'exito'
+          });
+          setTimeout(() => setToastIncidencia(null), 3500);
+        }, 1200);
+      } catch {}
+    };
+
+    window.addEventListener('online', handleOnline);
+    return () => window.removeEventListener('online', handleOnline);
+  }, []);
+
+  // Abrir formulario express de incidencia
+  const handleAbrirExpressIncidencia = (config: BotonIncidenciaConfig) => {
+    setIncidenciaSeleccionada(config);
+    setDescripcionIncidencia(config.descripcionSugerida);
+
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          setGpsIncidencia({
+            lat: pos.coords.latitude,
+            lng: pos.coords.longitude
+          });
+        },
+        () => {
+          if (location) {
+            setGpsIncidencia({
+              lat: location.latitud,
+              lng: location.longitud
+            });
+          }
+        },
+        { timeout: 4000, enableHighAccuracy: true }
+      );
+    } else if (location) {
+      setGpsIncidencia({
+        lat: location.latitud,
+        lng: location.longitud
+      });
+    }
+  };
+
+  // Enviar reporte express de incidencia
+  const handleEnviarIncidencia = async () => {
+    if (!incidenciaSeleccionada || !descripcionIncidencia.trim()) return;
+
+    setEnviandoIncidencia(true);
+
+    const payload = {
+      ordenServicioId,
+      tipoEvento: incidenciaSeleccionada.tipo,
+      descripcion: descripcionIncidencia.trim(),
+      latitud: gpsIncidencia?.lat ?? location?.latitud ?? null,
+      longitud: gpsIncidencia?.lng ?? location?.longitud ?? null
+    };
+
+    const isOnline = navigator.onLine;
+
+    if (isOnline) {
+      try {
+        const res = await fetch(apiUrl('/api/bitacora'), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify(payload)
+        });
+
+        if (res.ok) {
+          setToastIncidencia({
+            mensaje: `✓ Incidencia "${incidenciaSeleccionada.etiqueta}" reportada a Operaciones.`,
+            tipo: 'exito'
+          });
+          setIncidenciaSeleccionada(null);
+          setEnviandoIncidencia(false);
+          setTimeout(() => setToastIncidencia(null), 4000);
+          return;
+        }
+      } catch {
+        // En caso de fallo de red en vuelo, proceder a guardar offline
+      }
+    }
+
+    // Almacenamiento offline en IndexedDB
+    try {
+      await OfflineStorageService.encolarIncidenciaBitacora(payload);
+      setToastIncidencia({
+        mensaje: `📡 Sin conexión directa: Incidencia "${incidenciaSeleccionada.etiqueta}" guardada offline. Se sincronizará automáticamente.`,
+        tipo: 'offline'
+      });
+    } catch {
+      setToastIncidencia({
+        mensaje: `Incidencia registrada en memoria local.`,
+        tipo: 'offline'
+      });
+    } finally {
+      setIncidenciaSeleccionada(null);
+      setEnviandoIncidencia(false);
+      setTimeout(() => setToastIncidencia(null), 5000);
     }
   };
 
@@ -368,6 +538,66 @@ export const TabletConductorView: React.FC = () => {
           ))}
         </div>
       )}
+
+      {/* Banner / Toast de Notificación de Incidencia */}
+      {toastIncidencia && (
+        <div
+          role="alert"
+          className={`p-3.5 rounded-xl border flex items-center justify-between gap-3 text-xs sm:text-sm font-medium animate-in slide-in-from-top-2 duration-200 shadow-md ${
+            toastIncidencia.tipo === 'exito'
+              ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-300'
+              : toastIncidencia.tipo === 'offline'
+              ? 'bg-amber-500/15 border-amber-500/40 text-amber-300'
+              : 'bg-rose-500/15 border-rose-500/40 text-rose-300'
+          }`}
+        >
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="h-5 w-5 shrink-0" />
+            <span>{toastIncidencia.mensaje}</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setToastIncidencia(null)}
+            className="text-xs opacity-75 hover:opacity-100"
+          >
+            ✕
+          </button>
+        </div>
+      )}
+
+      {/* Botones de Acción Rápida de Incidencias Operacionales (Anti-WhatsApp) */}
+      <Card className="border-border bg-card/90 backdrop-blur shadow-sm">
+        <CardHeader className="pb-2.5">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+            <div className="flex items-center gap-2">
+              <span className="text-sm sm:text-base font-bold text-foreground">
+                Reporte Rápido de Incidencias
+              </span>
+              <Badge variant="outline" className="text-[10px] uppercase font-mono tracking-wider border-amber-500/40 text-amber-400">
+                Anti-WhatsApp Directo
+              </Badge>
+            </div>
+            <span className="text-xs text-muted-foreground">
+              Notifica en 1 tap a Central de Operaciones con geolocalización instantánea
+            </span>
+          </div>
+        </CardHeader>
+        <CardContent className="pt-0">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5">
+            {INCIDENCIAS_CONFIG.map((inc) => (
+              <button
+                key={inc.tipo}
+                type="button"
+                onClick={() => handleAbrirExpressIncidencia(inc)}
+                className={`p-3 rounded-xl border flex flex-col items-center justify-center text-center gap-1.5 transition-all active:scale-95 shadow-xs select-none cursor-pointer ${inc.claseColor}`}
+              >
+                <span className="text-2xl leading-none">{inc.emoji}</span>
+                <span className="font-bold text-xs leading-tight">{inc.etiqueta}</span>
+              </button>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Asistente Secuencial de Terreno (4 Pasos) */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -683,6 +913,103 @@ export const TabletConductorView: React.FC = () => {
         onClose={() => setIsCameraRetornoOpen(false)}
         onCapture={handleCapturarFotoRetorno}
       />
+
+      {/* Modal Express de Reporte de Incidencia (1-Tap Anti-WhatsApp) */}
+      {incidenciaSeleccionada && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs">
+          <div className="bg-card border border-border rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden animate-in zoom-in-95 duration-150">
+            <div className="p-4 border-b border-border flex items-center justify-between bg-muted/30">
+              <div className="flex items-center gap-2.5">
+                <span className="text-2xl">{incidenciaSeleccionada.emoji}</span>
+                <div>
+                  <h3 className="font-bold text-base text-foreground">
+                    Reportar: {incidenciaSeleccionada.etiqueta}
+                  </h3>
+                  <p className="text-[11px] text-muted-foreground font-mono">
+                    OS: {ordenServicioId} • Bitácora de Terreno
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIncidenciaSeleccionada(null)}
+                className="h-8 w-8 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted text-sm"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="p-4 space-y-4">
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-foreground flex items-center justify-between">
+                  <span>Detalle de la Incidencia (Edite si es necesario):</span>
+                  <span className="text-[10px] text-muted-foreground">Mínimo 5 caracteres</span>
+                </label>
+                <textarea
+                  value={descripcionIncidencia}
+                  onChange={(e) => setDescripcionIncidencia(e.target.value)}
+                  rows={3}
+                  className="w-full p-3 rounded-lg border border-border bg-background text-sm leading-relaxed focus:outline-none focus:ring-2 focus:ring-primary text-foreground"
+                  placeholder="Detalle la situación ocurrida en terreno..."
+                />
+              </div>
+
+              <div className="p-2.5 rounded-lg bg-muted/40 border border-border flex items-center justify-between text-xs font-mono">
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <MapPin className="h-4 w-4 text-emerald-400" />
+                  <span>GPS Terreno:</span>
+                </div>
+                <div className="text-foreground">
+                  {gpsIncidencia
+                    ? `${gpsIncidencia.lat.toFixed(5)}, ${gpsIncidencia.lng.toFixed(5)}`
+                    : location
+                    ? `${location.latitud.toFixed(5)}, ${location.longitud.toFixed(5)}`
+                    : 'Obteniendo coordenadas...'}
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 text-xs">
+                {navigator.onLine ? (
+                  <Badge variant="outline" className="border-emerald-500/40 text-emerald-400">
+                    ● Conexión Activa (Transmisión Inmediata)
+                  </Badge>
+                ) : (
+                  <Badge variant="outline" className="border-amber-500/40 text-amber-400">
+                    ▲ Sin Conexión (Almacenamiento Offline en IndexedDB)
+                  </Badge>
+                )}
+              </div>
+
+              <div className="flex gap-2 pt-2 border-t border-border">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setIncidenciaSeleccionada(null)}
+                  disabled={enviandoIncidencia}
+                  className="flex-1 h-11 text-sm"
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  type="button"
+                  onClick={handleEnviarIncidencia}
+                  disabled={enviandoIncidencia || descripcionIncidencia.trim().length < 5}
+                  className="flex-1 h-11 text-sm font-bold bg-primary text-primary-foreground hover:bg-primary/90 flex items-center justify-center gap-2"
+                >
+                  {enviandoIncidencia ? (
+                    'Enviando...'
+                  ) : (
+                    <>
+                      <span>Transmitir a Operaciones</span>
+                      <Check className="h-4 w-4" />
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

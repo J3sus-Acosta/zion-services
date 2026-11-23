@@ -113,19 +113,17 @@ export class UserManagementService {
       throw error;
     }
 
-    // Asegurar que la empresa exista si se asigna un empresaClienteId
+    // Validar existencia de la empresa cliente si se asigna un empresaClienteId
     if (validated.empresaClienteId) {
-      await prisma.empresaCliente.upsert({
-        where: { id: validated.empresaClienteId },
-        update: {},
-        create: {
-          id: validated.empresaClienteId,
-          rut: `RUT-${Date.now().toString().slice(-6)}`,
-          razonSocial: `Empresa ${validated.empresaClienteId}`,
-          tipo: 'SPOT',
-          activo: true
-        }
+      const empresa = await prisma.empresaCliente.findUnique({
+        where: { id: validated.empresaClienteId }
       });
+      if (!empresa) {
+        const error: any = new Error(`La empresa cliente con ID "${validated.empresaClienteId}" no existe.`);
+        error.code = 'EMPRESA_NOT_FOUND';
+        error.statusCode = 404;
+        throw error;
+      }
     }
 
     const created = await prisma.usuario.create({
@@ -188,17 +186,15 @@ export class UserManagementService {
     }
 
     if (validated.empresaClienteId) {
-      await prisma.empresaCliente.upsert({
-        where: { id: validated.empresaClienteId },
-        update: {},
-        create: {
-          id: validated.empresaClienteId,
-          rut: `RUT-${Date.now().toString().slice(-6)}`,
-          razonSocial: `Empresa ${validated.empresaClienteId}`,
-          tipo: 'SPOT',
-          activo: true
-        }
+      const empresa = await prisma.empresaCliente.findUnique({
+        where: { id: validated.empresaClienteId }
       });
+      if (!empresa) {
+        const error: any = new Error(`La empresa cliente con ID "${validated.empresaClienteId}" no existe.`);
+        error.code = 'EMPRESA_NOT_FOUND';
+        error.statusCode = 404;
+        throw error;
+      }
     }
 
     const data: any = {};
@@ -296,17 +292,15 @@ export class UserManagementService {
     }
 
     if (validated.rol === RolUsuario.CLIENTE && targetEmpresaId) {
-      await prisma.empresaCliente.upsert({
-        where: { id: targetEmpresaId },
-        update: {},
-        create: {
-          id: targetEmpresaId,
-          rut: `RUT-${Date.now().toString().slice(-6)}`,
-          razonSocial: `Empresa ${targetEmpresaId}`,
-          tipo: 'SPOT',
-          activo: true
-        }
+      const empresa = await prisma.empresaCliente.findUnique({
+        where: { id: targetEmpresaId }
       });
+      if (!empresa) {
+        const error: any = new Error(`La empresa cliente con ID "${targetEmpresaId}" no existe.`);
+        error.code = 'EMPRESA_NOT_FOUND';
+        error.statusCode = 404;
+        throw error;
+      }
     }
 
     const updated = await prisma.usuario.update({

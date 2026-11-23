@@ -10,7 +10,7 @@ authRouter.post('/login', async (req: Request, res: Response, next: NextFunction
     const result = await AuthService.login(req.body);
 
     // Configurar cookies HTTP-only
-    res.cookie('satem_auth_token', result.accessToken, {
+    res.cookie('zion_auth_token', result.accessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
@@ -53,6 +53,11 @@ authRouter.post('/login', async (req: Request, res: Response, next: NextFunction
 
 // POST /api/auth/logout
 authRouter.post('/logout', (_req: Request, res: Response) => {
+  res.clearCookie('zion_auth_token', {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax'
+  });
   res.clearCookie('satem_auth_token', {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
@@ -95,7 +100,7 @@ authRouter.post('/refresh', async (req: Request, res: Response, next: NextFuncti
     const token = req.cookies?.refreshToken || req.body?.refreshToken;
     const result = await AuthService.refresh(token);
 
-    res.cookie('satem_auth_token', result.accessToken, {
+    res.cookie('zion_auth_token', result.accessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',

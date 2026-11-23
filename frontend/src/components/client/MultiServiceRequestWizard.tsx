@@ -22,34 +22,9 @@ import {
   ItemAtencionSolicitudInput
 } from '../../types/planning';
 import { PlanningApi } from '../../services/planningApi';
-
-interface SucursalOption {
-  id: string;
-  nombre: string;
-  direccion: string;
-  comuna: string;
-}
-
-const SUCURSALES_DEFAULT: SucursalOption[] = [
-  {
-    id: 'b11c2233-4455-6677-8899-aabbccddeeff',
-    nombre: 'Planta Principal Quilicura',
-    direccion: 'Av. Eduardo Frei Montalva 4500',
-    comuna: 'Quilicura'
-  },
-  {
-    id: 'c22d3344-5566-7788-99aa-bbccddeeff00',
-    nombre: 'Centro Logístico San Bernardo',
-    direccion: 'Camino Nos 1250',
-    comuna: 'San Bernardo'
-  },
-  {
-    id: 'd33e4455-6677-8899-aabb-ccddeeff0011',
-    nombre: 'Base Pudahuel Poniente',
-    direccion: 'Parque Industrial Enea 800',
-    comuna: 'Pudahuel'
-  }
-];
+import { EmpresaSelect } from '../common/EmpresaSelect';
+import { SucursalSelect } from '../common/SucursalSelect';
+import { EmpresaCliente, SucursalFaena } from '../../types/cliente';
 
 const TIPOS_RESIDUO = [
   { value: 'RIL_GRASAS', label: 'RILes y Grasas de Cámara Desgrasadora' },
@@ -91,8 +66,11 @@ export const MultiServiceRequestWizard: React.FC<MultiServiceRequestWizardProps>
   const [catalogoServicios, setCatalogoServicios] = useState<ServicioCatalogoItem[]>([]);
   const [plantasDestino, setPlantasDestino] = useState<PlantaDestinoItem[]>([]);
 
-  // Paso 1: Datos Base y Sucursal
-  const [sucursalFaenaId, setSucursalFaenaId] = useState<string>(SUCURSALES_DEFAULT[0].id);
+  // Paso 1: Empresa, Sucursal y Datos Base
+  const [empresaIdSeleccionada, setEmpresaIdSeleccionada] = useState<string>(empresaClienteId || '');
+  const [, setEmpresaObjeto] = useState<EmpresaCliente | null>(null);
+  const [sucursalFaenaId, setSucursalFaenaId] = useState<string>('');
+  const [sucursalObjeto, setSucursalObjeto] = useState<SucursalFaena | null>(null);
   const [tipoResiduo, setTipoResiduo] = useState<string>('RIL_GRASAS');
   const [descripcionGeneral, setDescripcionGeneral] = useState<string>('');
   const [cantidadEstimada, setCantidadEstimada] = useState<number>(15);
@@ -245,7 +223,7 @@ export const MultiServiceRequestWizard: React.FC<MultiServiceRequestWizardProps>
 
   // Validaciones por paso
   const validarPaso1 = (): boolean => {
-    return Boolean(sucursalFaenaId && tipoResiduo && cantidadEstimada > 0);
+    return Boolean(empresaIdSeleccionada && sucursalFaenaId && tipoResiduo && cantidadEstimada > 0);
   };
 
   const validarPaso2 = (): boolean => {
@@ -282,7 +260,7 @@ export const MultiServiceRequestWizard: React.FC<MultiServiceRequestWizardProps>
     });
 
     return {
-      empresaClienteId,
+      empresaClienteId: empresaIdSeleccionada || empresaClienteId,
       sucursalFaenaId,
       tipoResiduo,
       descripcion: descripcionGeneral.trim() || undefined,
@@ -491,20 +469,34 @@ export const MultiServiceRequestWizard: React.FC<MultiServiceRequestWizardProps>
         {pasoActual === 1 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <div className="form-group">
-              <label className="form-label">
-                <Building2 size={16} /> Sucursal / Faena Destino
+              <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
+                <Building2 size={16} /> Empresa Cliente Solicitante
               </label>
-              <select
-                className="form-select"
+              <EmpresaSelect
+                value={empresaIdSeleccionada}
+                onChange={(id, emp) => {
+                  setEmpresaIdSeleccionada(id);
+                  setEmpresaObjeto(emp || null);
+                  setSucursalFaenaId('');
+                  setSucursalObjeto(null);
+                }}
+                placeholder="Seleccione la Empresa Cliente..."
+              />
+            </div>
+
+            <div className="form-group">
+              <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
+                <MapPin size={16} /> Sucursal / Faena Destino
+              </label>
+              <SucursalSelect
+                empresaClienteId={empresaIdSeleccionada}
                 value={sucursalFaenaId}
-                onChange={(e) => setSucursalFaenaId(e.target.value)}
-              >
-                {SUCURSALES_DEFAULT.map((suc) => (
-                  <option key={suc.id} value={suc.id}>
-                    {suc.nombre} ({suc.comuna} - {suc.direccion})
-                  </option>
-                ))}
-              </select>
+                onChange={(id, suc) => {
+                  setSucursalFaenaId(id);
+                  setSucursalObjeto(suc || null);
+                }}
+                placeholder="Seleccione la faena de atención..."
+              />
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
@@ -865,7 +857,7 @@ export const MultiServiceRequestWizard: React.FC<MultiServiceRequestWizardProps>
                 <div>
                   <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Sucursal Destino:</span>
                   <div style={{ fontSize: '0.875rem', fontWeight: 500 }}>
-                    {SUCURSALES_DEFAULT.find((s) => s.id === sucursalFaenaId)?.nombre || 'Sucursal Principal'}
+                    {sucursalObjeto ? `${sucursalObjeto.nombre} (${sucursalObjeto.comuna})` : 'Sucursal Seleccionada'}
                   </div>
                 </div>
                 <div>
@@ -896,7 +888,7 @@ export const MultiServiceRequestWizard: React.FC<MultiServiceRequestWizardProps>
               )}
 
               <div className="table-container" style={{ marginTop: '12px' }}>
-                <table className="satem-table">
+                <table className="table zion-table">
                   <thead>
                     <tr>
                       <th>#</th>

@@ -35,7 +35,7 @@ export class EmailService {
         sucursal: data.sucursalNombre
       });
 
-      // Simulación de envío con template corporativo SATEM
+      // Simulación de envío con template corporativo Zion Services
       // En producción aquí se integra transporte SMTP o servicio Transaccional (SendGrid, SES, Resend)
       return true;
     } catch (error) {

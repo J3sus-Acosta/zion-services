@@ -65,9 +65,10 @@ describe('Pruebas de Integración REST: Inspección, Ciclo de Transporte y Exped
       }
     });
 
+    const uniqueSuffix = `${Date.now()}-${Math.floor(Math.random() * 100000)}`;
     const solicitud = await prisma.solicitudServicio.create({
       data: {
-        folio: `SOL-TEST-${Date.now().toString().slice(-4)}`,
+        folio: `SOL-API-INT-${uniqueSuffix}`,
         empresaClienteId: 'empresa-horse',
         sucursalFaenaId: 'suc-test-horse',
         tipoResiduo: 'Aguas hidrocarburadas',
@@ -75,7 +76,7 @@ describe('Pruebas de Integración REST: Inspección, Ciclo de Transporte y Exped
       }
     });
 
-    ordenFolio = `OS-TEST-${Date.now().toString().slice(-4)}`;
+    ordenFolio = `OS-API-INT-${uniqueSuffix}`;
     const orden = await prisma.ordenServicio.create({
       data: {
         folio: ordenFolio,
@@ -392,7 +393,7 @@ describe('Pruebas de Integración REST: Inspección, Ciclo de Transporte y Exped
   });
 
   describe('Endpoints de Administración de Usuarios y Logout (REST)', () => {
-    it('POST /api/auth/logout: limpia cookies satem_auth_token y responde 200', async () => {
+    it('POST /api/auth/logout: limpia cookies de autenticación (zion_auth_token / satem_auth_token) y responde 200', async () => {
       const res = await fetch(`${baseUrl}/api/auth/logout`, {
         method: 'POST'
       });

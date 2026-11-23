@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { apiUrl } from '../config/api';
 
 export interface GpsLocation {
   latitud: number;
@@ -74,7 +75,7 @@ export function useGpsTracker(autoStart: boolean = true) {
     if (!location) return;
 
     try {
-      await fetch('http://localhost:3000/api/jornadas/jornada-01/geolocalizacion', {
+      await fetch(apiUrl('/api/jornadas/jornada-01/geolocalizacion'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',

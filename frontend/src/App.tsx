@@ -26,6 +26,7 @@ import { Badge } from './components/ui/badge';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { LoginScreen } from './components/auth/LoginScreen';
 import { UserManagementPanel } from './components/admin/UserManagementPanel';
+import { ClientManagementView } from './components/admin/ClientManagementView';
 import { OperationsFleetMap } from './components/operations/OperationsFleetMap';
 import { ClientPortalView } from './components/client/ClientPortalView';
 import { TabletConductorView } from './components/tablet/TabletConductorView';
@@ -48,7 +49,7 @@ const ProtectedRoute: React.FC<{
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background text-muted-foreground text-sm">
-        Cargando sesión SATEM...
+        Cargando sesión Zion Services...
       </div>
     );
   }
@@ -127,6 +128,7 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const puedeVerOperaciones = ['SUPERADMIN', 'ADMIN', 'JEFE_OPERACIONES'].includes(usuario.rol);
   const puedeVerFlota = ['SUPERADMIN', 'ADMIN', 'JEFE_OPERACIONES'].includes(usuario.rol);
   const puedeVerUsuarios = ['SUPERADMIN', 'ADMIN'].includes(usuario.rol);
+  const puedeVerClientes = ['SUPERADMIN', 'ADMIN'].includes(usuario.rol);
   const puedeVerCliente = ['SUPERADMIN', 'ADMIN', 'CLIENTE'].includes(usuario.rol);
   const puedeVerComercial = ['SUPERADMIN', 'ADMIN', 'COMERCIAL'].includes(usuario.rol);
 
@@ -214,6 +216,17 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                 <span>Gestión Usuarios</span>
               </Button>
             )}
+            {puedeVerClientes && (
+              <Button
+                variant={location.pathname === '/admin/clientes' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => navigate('/admin/clientes')}
+                className="h-8 text-xs flex items-center gap-1.5"
+              >
+                <Building2 className="h-3.5 w-3.5" />
+                <span>Empresas & Faenas</span>
+              </Button>
+            )}
             {puedeVerCliente && (
               <Button
                 variant={location.pathname === '/portal-cliente' ? 'default' : 'ghost'}
@@ -289,6 +302,18 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                 <span>Usuarios</span>
               </Button>
             )}
+            {puedeVerClientes && (
+              <Button
+                variant={location.pathname === '/admin/clientes' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => navigate('/admin/clientes')}
+                className="h-8 px-2 text-xs flex items-center gap-1 shrink-0"
+                title="Gestión Clientes y Faenas"
+              >
+                <Building2 className="h-3.5 w-3.5" />
+                <span>Clientes</span>
+              </Button>
+            )}
             {puedeVerCliente && (
               <Button
                 variant={location.pathname === '/portal-cliente' ? 'default' : 'ghost'}
@@ -337,13 +362,13 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
               {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
             </Button>
 
-            {/* Cerrar Sesión Oficial Visible SATEM */}
+            {/* Cerrar Sesión Oficial Visible Zion Services */}
             <Button
               variant="ghost"
               size="sm"
               onClick={handleLogout}
               className="h-8 px-2 sm:px-2.5 text-xs font-medium text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors flex items-center gap-1.5 shrink-0"
-              title="Cerrar sesión segura de SATEM"
+              title="Cerrar sesión segura de Zion Services"
               aria-label="Cerrar sesión"
             >
               <LogOut className="h-4 w-4 shrink-0" />
@@ -434,6 +459,19 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                 >
                   <Users className="h-4 w-4 shrink-0" />
                   <span>Gestión Usuarios</span>
+                </Button>
+              )}
+              {puedeVerClientes && (
+                <Button
+                  variant={location.pathname === '/admin/clientes' ? 'default' : 'ghost'}
+                  onClick={() => {
+                    navigate('/admin/clientes');
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className="w-full justify-start h-10 px-3 text-sm flex items-center gap-2.5 font-medium"
+                >
+                  <Building2 className="h-4 w-4 shrink-0" />
+                  <span>Empresas & Faenas</span>
                 </Button>
               )}
               {puedeVerCliente && (
@@ -538,6 +576,17 @@ function AppRoutes() {
           <ProtectedRoute allowedRoles={['SUPERADMIN', 'ADMIN']}>
             <AppLayout>
               <UserManagementPanel />
+            </AppLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/admin/clientes"
+        element={
+          <ProtectedRoute allowedRoles={['SUPERADMIN', 'ADMIN']}>
+            <AppLayout>
+              <ClientManagementView />
             </AppLayout>
           </ProtectedRoute>
         }

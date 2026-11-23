@@ -36,7 +36,7 @@ export const ServiceCalendar: React.FC = () => {
   } = useServiceCalendar();
 
   return (
-    <div className="satem-calendar-root">
+    <div className="calendar-root">
       {/* Barra de herramientas */}
       <CalendarToolbar
         currentDate={currentDate}

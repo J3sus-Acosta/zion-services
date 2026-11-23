@@ -1,7 +1,7 @@
 # client-portal Specification
 
 ## Purpose
-TBD - created by archiving change zion-services-core-mvp. Update Purpose after archive.
+Portal web de autoservicio para clientes de Zion Services, que permite solicitar servicios de retiro y tratamiento de RILes, realizar seguimiento en tiempo real de operaciones en ruta, consultar expedientes digitales y descargar documentación oficial con firmas y verificación QR.
 
 ## Requirements
 
@@ -93,3 +93,19 @@ El sistema SHALL asignar automáticamente el estado PENDIENTE_CONFIRMACION a cad
 - **GIVEN** una solicitud multi-atención enviada por el cliente
 - **WHEN** el cliente consulta el historial de solicitudes en su portal
 - **THEN** visualiza cada atención en estado `PENDIENTE_CONFIRMACION` con la indicación de que Gestión Comercial revisará la factibilidad y asignación horaria.
+
+### Requirement: Consulta y Descarga Directa de Documentos Oficiales en PDF
+El Portal de Clientes SHALL permitir la visualización y descarga directa de cada documento PDF oficial generado (Orden de Servicio, Guía de Despacho y Acta de Recepción Conforme con firma y QR) de forma individual.
+
+#### Scenario: Descarga individual de acta firmada por el cliente
+- **GIVEN** un cliente autenticado en el portal con una atención cerrada
+- **WHEN** hace clic en el botón de descarga del Acta de Recepción Conforme
+- **THEN** el sistema entrega inmediatamente el archivo PDF oficial con la firma del receptor estampada.
+
+### Requirement: Feed en Tiempo Real de Novedades y Avance de Faena
+El Portal de Clientes SHALL desplegar el feed en tiempo real de los hitos y novedades reportados por la cuadrilla en terreno durante la atención de su sucursal.
+
+#### Scenario: Visualización de incidencia operacional en el portal
+- **GIVEN** una cuadrilla que reporta congestión vehicular o retraso justificado
+- **WHEN** el cliente revisa el estado de su servicio en curso
+- **THEN** observa la alerta con la hora estimada actualizada sin necesidad de contactar al chofer por WhatsApp.

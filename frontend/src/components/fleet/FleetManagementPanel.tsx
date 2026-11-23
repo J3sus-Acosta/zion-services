@@ -28,6 +28,9 @@ import {
   Car,
   Wrench
 } from 'lucide-react';
+import { Button } from '../ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
+import { Badge } from '../ui/badge';
 
 export const FleetManagementPanel: React.FC = () => {
   const { usuario } = useAuth();
@@ -156,338 +159,231 @@ export const FleetManagementPanel: React.FC = () => {
   const renderTipoIcon = (tipo: TipoEquipo) => {
     switch (tipo) {
       case 'CAMION':
-        return <Truck size={15} style={{ color: 'var(--accent-primary)' }} />;
+        return <Truck className="h-4 w-4 text-primary shrink-0" />;
       case 'CAMIONETA':
-        return <Car size={15} style={{ color: 'var(--info)' }} />;
+        return <Car className="h-4 w-4 text-blue-400 shrink-0" />;
       case 'MAQUINARIA':
-        return <Wrench size={15} style={{ color: 'var(--warning)' }} />;
+        return <Wrench className="h-4 w-4 text-amber-400 shrink-0" />;
       default:
-        return <Truck size={15} style={{ color: 'var(--text-secondary)' }} />;
+        return <Truck className="h-4 w-4 text-muted-foreground shrink-0" />;
     }
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+    <div className="space-y-6">
       {/* 1. Cabecera del Panel */}
-      <div
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '12px',
-          borderBottom: '1px solid var(--border-color)',
-          paddingBottom: '16px'
-        }}
-      >
-        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '16px' }}>
-          <div>
-            <h1
-              style={{
-                fontSize: '1.5rem',
-                fontWeight: 700,
-                color: 'var(--text-primary)',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '10px'
-              }}
-            >
-              <Truck size={26} style={{ color: 'var(--accent-primary)' }} />
-              <span>Gestión de Flota y Unidades</span>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border pb-4">
+        <div>
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
+              <Truck className="h-6 w-6 text-primary" />
+              <span>Gestión de Flota Operacional</span>
             </h1>
-            <p style={{ margin: '4px 0 0', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
-              Catálogo de camiones, camionetas y maquinaria, control de operatividad y transferencias atómicas de jornada.
-            </p>
+            <Badge variant="outline" className="text-xs font-mono border-primary/40 text-primary">
+              Flota Zion Services
+            </Badge>
           </div>
-
-          <div className="btn-group">
-            <button
-              type="button"
-              className="btn btn-secondary"
-              onClick={cargarFlota}
-              disabled={loading}
-              title="Recargar catálogo de equipos"
-            >
-              <RefreshCw size={15} className={loading ? 'animate-spin' : ''} />
-              <span>Actualizar</span>
-            </button>
-            <button
-              type="button"
-              className="btn btn-primary"
-              onClick={handleNuevoEquipo}
-            >
-              <Plus size={16} />
-              <span>Nuevo Equipo</span>
-            </button>
-          </div>
+          <p className="text-sm text-muted-foreground mt-1">
+            Catálogo de camiones, camionetas y maquinaria, control de operatividad y transferencias atómicas de jornada.
+          </p>
         </div>
 
-        {/* Banner de Éxito Temporal */}
-        {bannerExito && (
-          <div
-            role="status"
-            aria-live="polite"
-            style={{
-              padding: '12px 16px',
-              borderRadius: 'var(--radius-md)',
-              background: 'var(--success-bg)',
-              color: 'var(--success)',
-              border: '1px solid rgba(16, 185, 129, 0.3)',
-              fontSize: '0.875rem',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '10px'
-            }}
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={cargarFlota}
+            disabled={loading}
+            title="Recargar catálogo de equipos"
           >
-            <CheckCircle2 size={18} style={{ flexShrink: 0 }} />
-            <span>{bannerExito}</span>
-          </div>
-        )}
+            <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+            <span>Actualizar</span>
+          </Button>
+          <Button size="sm" onClick={handleNuevoEquipo}>
+            <Plus className="h-4 w-4" />
+            <span>Nuevo Equipo</span>
+          </Button>
+        </div>
       </div>
 
+      {/* Banner de Éxito Temporal */}
+      {bannerExito && (
+        <div
+          role="status"
+          aria-live="polite"
+          className="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-sm flex items-center gap-2.5 animate-in fade-in-50 duration-200"
+        >
+          <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-400" />
+          <span>{bannerExito}</span>
+        </div>
+      )}
+
       {/* 2. Resumen KPI Cards */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-          gap: '14px'
-        }}
-      >
-        <div
-          style={{
-            background: 'var(--bg-surface)',
-            border: '1px solid var(--border-color)',
-            borderRadius: 'var(--radius-md)',
-            padding: '14px 18px',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '4px'
-          }}
-        >
-          <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', textTransform: 'uppercase', fontWeight: 600 }}>
-            Total Catálogo
-          </span>
-          <span style={{ fontSize: '1.75rem', fontWeight: 700, color: 'var(--text-primary)' }}>
-            {conteoTotal}
-          </span>
-        </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card className="border-border bg-card shadow-sm">
+          <CardHeader className="pb-2">
+            <CardDescription className="text-xs uppercase font-medium text-muted-foreground">
+              Total Catálogo
+            </CardDescription>
+            <CardTitle className="text-2xl font-bold text-foreground">
+              {conteoTotal}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-0 text-xs text-muted-foreground">
+            Unidades registradas en flota
+          </CardContent>
+        </Card>
 
-        <div
-          style={{
-            background: 'var(--bg-surface)',
-            border: '1px solid var(--border-color)',
-            borderRadius: 'var(--radius-md)',
-            padding: '14px 18px',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '4px'
-          }}
-        >
-          <span style={{ fontSize: '0.75rem', color: 'var(--success)', textTransform: 'uppercase', fontWeight: 600 }}>
-            Habilitados / Despachables
-          </span>
-          <span style={{ fontSize: '1.75rem', fontWeight: 700, color: 'var(--success)' }}>
-            {conteoHabilitados}
-          </span>
-        </div>
+        <Card className="border-border bg-card shadow-sm">
+          <CardHeader className="pb-2">
+            <div className="flex items-center justify-between">
+              <CardDescription className="text-xs uppercase font-medium text-emerald-400">
+                Habilitados / Despachables
+              </CardDescription>
+              <Badge variant="outline" className="border-emerald-500/30 text-emerald-400 text-[10px]">
+                Activo
+              </Badge>
+            </div>
+            <CardTitle className="text-2xl font-bold text-emerald-400">
+              {conteoHabilitados}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-0 text-xs text-muted-foreground">
+            Listos para asignación y ruta
+          </CardContent>
+        </Card>
 
-        <div
-          style={{
-            background: 'var(--bg-surface)',
-            border: '1px solid var(--border-color)',
-            borderRadius: 'var(--radius-md)',
-            padding: '14px 18px',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '4px'
-          }}
-        >
-          <span style={{ fontSize: '0.75rem', color: 'var(--danger)', textTransform: 'uppercase', fontWeight: 600 }}>
-            Deshabilitados
-          </span>
-          <span style={{ fontSize: '1.75rem', fontWeight: 700, color: 'var(--danger)' }}>
-            {conteoDeshabilitados}
-          </span>
-        </div>
+        <Card className="border-border bg-card shadow-sm">
+          <CardHeader className="pb-2">
+            <div className="flex items-center justify-between">
+              <CardDescription className="text-xs uppercase font-medium text-destructive">
+                Deshabilitados
+              </CardDescription>
+              <Badge variant="destructive" className="text-[10px]">
+                Fuera de servicio
+              </Badge>
+            </div>
+            <CardTitle className="text-2xl font-bold text-destructive">
+              {conteoDeshabilitados}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-0 text-xs text-muted-foreground">
+            En mantención o detenidos
+          </CardContent>
+        </Card>
 
-        <div
-          style={{
-            background: 'var(--bg-surface)',
-            border: '1px solid var(--border-color)',
-            borderRadius: 'var(--radius-md)',
-            padding: '14px 18px',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '4px'
-          }}
-        >
-          <span style={{ fontSize: '0.75rem', color: 'var(--warning)', textTransform: 'uppercase', fontWeight: 600 }}>
-            Bloqueos Seguridad F-GMT
-          </span>
-          <span style={{ fontSize: '1.75rem', fontWeight: 700, color: 'var(--warning)' }}>
-            {conteoSeguridad}
-          </span>
-        </div>
+        <Card className="border-border bg-card shadow-sm">
+          <CardHeader className="pb-2">
+            <div className="flex items-center justify-between">
+              <CardDescription className="text-xs uppercase font-medium text-amber-400">
+                Bloqueos Seguridad F-GMT
+              </CardDescription>
+              <Badge variant="outline" className="border-amber-500/30 text-amber-400 text-[10px]">
+                Checklist
+              </Badge>
+            </div>
+            <CardTitle className="text-2xl font-bold text-amber-400">
+              {conteoSeguridad}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-0 text-xs text-muted-foreground">
+            Requiere autorización admin (R1)
+          </CardContent>
+        </Card>
       </div>
 
       {/* 3. Barra de Búsqueda y Filtros */}
-      <div
-        style={{
-          background: 'var(--bg-surface)',
-          border: '1px solid var(--border-color)',
-          borderRadius: 'var(--radius-md)',
-          padding: '14px 18px',
-          display: 'flex',
-          flexWrap: 'wrap',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: '12px'
-        }}
-      >
-        <div style={{ position: 'relative', minWidth: '240px', flex: '1 1 260px' }}>
-          <Search
-            size={16}
-            style={{
-              position: 'absolute',
-              left: '12px',
-              top: '50%',
-              transform: 'translateY(-50%)',
-              color: 'var(--text-muted)'
-            }}
-          />
-          <input
-            type="text"
-            className="form-input"
-            value={busqueda}
-            onChange={(e) => setBusqueda(e.target.value)}
-            placeholder="Buscar por patente, marca o modelo..."
-            style={{ paddingLeft: '36px' }}
-          />
-        </div>
-
-        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '12px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <Filter size={15} style={{ color: 'var(--text-secondary)' }} />
-            <span style={{ fontSize: '0.8125rem', color: 'var(--text-secondary)' }}>Tipo:</span>
-            <select
-              className="form-select"
-              value={filtroTipo}
-              onChange={(e) => setFiltroTipo(e.target.value)}
-              style={{ width: 'auto', minWidth: '130px' }}
-            >
-              <option value="TODOS">Todos los tipos</option>
-              <option value="CAMION">Camión</option>
-              <option value="CAMIONETA">Camioneta</option>
-              <option value="MAQUINARIA">Maquinaria</option>
-              <option value="OTRO">Otro</option>
-            </select>
+      <Card className="border-border bg-card">
+        <CardContent className="p-4 flex flex-col md:flex-row gap-4 items-center justify-between">
+          <div className="relative w-full md:w-80">
+            <Search className="h-4 w-4 absolute left-3 top-3 text-muted-foreground" />
+            <input
+              type="text"
+              className="w-full h-10 pl-9 pr-3 rounded-lg border border-border bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40"
+              value={busqueda}
+              onChange={(e) => setBusqueda(e.target.value)}
+              placeholder="Buscar por patente, marca o modelo..."
+            />
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ fontSize: '0.8125rem', color: 'var(--text-secondary)' }}>Estado:</span>
-            <select
-              className="form-select"
-              value={filtroEstado}
-              onChange={(e) => setFiltroEstado(e.target.value)}
-              style={{ width: 'auto', minWidth: '150px' }}
-            >
-              <option value="TODOS">Todos los estados</option>
-              <option value="HABILITADO">Solo Habilitados</option>
-              <option value="DESHABILITADO">Solo Deshabilitados</option>
-            </select>
+          <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
+            <div className="flex items-center gap-2">
+              <Filter className="h-4 w-4 text-muted-foreground" />
+              <span className="text-xs text-muted-foreground">Tipo:</span>
+              <select
+                className="h-9 px-2 rounded-lg border border-border bg-background text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40"
+                value={filtroTipo}
+                onChange={(e) => setFiltroTipo(e.target.value)}
+              >
+                <option value="TODOS">Todos los tipos</option>
+                <option value="CAMION">Camión</option>
+                <option value="CAMIONETA">Camioneta</option>
+                <option value="MAQUINARIA">Maquinaria</option>
+                <option value="OTRO">Otro</option>
+              </select>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-muted-foreground">Estado:</span>
+              <select
+                className="h-9 px-2 rounded-lg border border-border bg-background text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40"
+                value={filtroEstado}
+                onChange={(e) => setFiltroEstado(e.target.value)}
+              >
+                <option value="TODOS">Todos los estados</option>
+                <option value="HABILITADO">Solo Habilitados</option>
+                <option value="DESHABILITADO">Solo Deshabilitados</option>
+              </select>
+            </div>
           </div>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
 
       {/* 4. Estados: LOADING, ERROR, EMPTY, DATA */}
       {loading ? (
         <div
           role="status"
           aria-busy="true"
-          style={{
-            padding: '60px 20px',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '12px',
-            background: 'var(--bg-surface)',
-            borderRadius: 'var(--radius-md)',
-            border: '1px solid var(--border-color)',
-            color: 'var(--text-secondary)'
-          }}
+          className="p-16 flex flex-col items-center justify-center gap-3 bg-card rounded-xl border border-border text-muted-foreground"
         >
-          <RefreshCw size={32} className="animate-spin text-primary" style={{ color: 'var(--accent-primary)' }} />
-          <span style={{ fontSize: '0.925rem' }}>Cargando catálogo de flota SATEM...</span>
+          <RefreshCw className="h-8 w-8 animate-spin text-primary" />
+          <span className="text-sm font-medium">Cargando catálogo de flota Zion Services...</span>
         </div>
       ) : error ? (
         <div
           role="alert"
-          style={{
-            padding: '40px 20px',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '12px',
-            background: 'var(--bg-surface)',
-            borderRadius: 'var(--radius-md)',
-            border: '1px solid var(--danger)',
-            color: 'var(--danger)',
-            textAlign: 'center'
-          }}
+          className="p-10 flex flex-col items-center justify-center gap-3 bg-card rounded-xl border border-destructive/50 text-destructive text-center"
         >
-          <AlertCircle size={36} />
-          <div style={{ fontWeight: 600, fontSize: '1rem' }}>No se pudo cargar la flota</div>
-          <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', maxWidth: '460px' }}>
-            {error}
-          </div>
-          <button
-            type="button"
-            className="btn btn-secondary"
-            onClick={cargarFlota}
-            style={{ marginTop: '8px' }}
-          >
-            <RefreshCw size={15} />
+          <AlertCircle className="h-10 w-10 text-destructive" />
+          <div className="font-semibold text-base text-foreground">No se pudo cargar la flota</div>
+          <div className="text-sm text-muted-foreground max-w-md">{error}</div>
+          <Button variant="outline" size="sm" onClick={cargarFlota} className="mt-2">
+            <RefreshCw className="h-4 w-4" />
             <span>Reintentar</span>
-          </button>
+          </Button>
         </div>
       ) : equiposFiltrados.length === 0 ? (
-        <div
-          style={{
-            padding: '50px 20px',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '12px',
-            background: 'var(--bg-surface)',
-            borderRadius: 'var(--radius-md)',
-            border: '1px solid var(--border-color)',
-            color: 'var(--text-secondary)',
-            textAlign: 'center'
-          }}
-        >
-          <Truck size={42} style={{ color: 'var(--text-muted)' }} />
-          <div style={{ fontWeight: 600, fontSize: '1.05rem', color: 'var(--text-primary)' }}>
-            No se encontraron equipos
-          </div>
-          <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', maxWidth: '420px' }}>
+        <div className="p-12 flex flex-col items-center justify-center gap-3 bg-card rounded-xl border border-border text-muted-foreground text-center">
+          <Truck className="h-12 w-12 text-muted-foreground/50" />
+          <div className="font-semibold text-base text-foreground">No se encontraron equipos</div>
+          <div className="text-sm text-muted-foreground max-w-md">
             {equipos.length === 0
               ? 'No hay unidades registradas en la flota institucional. Registre el primer equipo con el botón "Nuevo Equipo".'
               : 'No hay unidades que coincidan con los criterios de búsqueda y filtros seleccionados.'}
           </div>
           {equipos.length > 0 && (
-            <button
-              type="button"
-              className="btn btn-secondary"
+            <Button
+              variant="outline"
+              size="sm"
               onClick={() => {
                 setFiltroTipo('TODOS');
                 setFiltroEstado('TODOS');
                 setBusqueda('');
               }}
-              style={{ marginTop: '6px' }}
+              className="mt-2"
             >
               <span>Restablecer Filtros</span>
-            </button>
+            </Button>
           )}
         </div>
       ) : (
@@ -495,224 +391,211 @@ export const FleetManagementPanel: React.FC = () => {
         <>
           {/* Desktop Table View (>= 768px) */}
           <div className="hidden md:block">
-            <div className="table-container">
-              <table className="satem-table">
-                <thead>
-                  <tr>
-                    <th>Patente</th>
-                    <th>Tipo</th>
-                    <th>Marca / Modelo</th>
-                    <th>Año</th>
-                    <th>Capacidad</th>
-                    <th>Equipamiento</th>
-                    <th>Estado</th>
-                    <th>Motivo / Origen</th>
-                    <th style={{ textAlign: 'right' }}>Acciones</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {equiposFiltrados.map((eq) => {
-                    const esHabilitado = eq.estado === 'HABILITADO';
-                    const esChecklist = eq.origenBloqueo === 'CHECKLIST_SEGURIDAD';
+            <Card className="border-border bg-card shadow-sm overflow-hidden">
+              <div className="table-container border-0 rounded-none">
+                <table className="table zion-table">
+                  <thead>
+                    <tr>
+                      <th>Patente</th>
+                      <th>Tipo</th>
+                      <th>Marca / Modelo</th>
+                      <th>Año</th>
+                      <th>Capacidad</th>
+                      <th>Equipamiento</th>
+                      <th>Estado</th>
+                      <th>Motivo / Origen</th>
+                      <th className="text-right">Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {equiposFiltrados.map((eq) => {
+                      const esHabilitado = eq.estado === 'HABILITADO';
+                      const esChecklist = eq.origenBloqueo === 'CHECKLIST_SEGURIDAD';
 
-                    return (
-                      <tr key={eq.id}>
-                        {/* Patente */}
-                        <td>
-                          <span
-                            style={{
-                              fontFamily: 'monospace',
-                              fontWeight: 700,
-                              fontSize: '0.9rem',
-                              letterSpacing: '0.05em',
-                              padding: '3px 8px',
-                              borderRadius: 'var(--radius-sm)',
-                              background: 'var(--bg-primary)',
-                              border: '1px solid var(--border-color)',
-                              color: 'var(--text-primary)'
-                            }}
-                          >
-                            {eq.patente}
-                          </span>
-                        </td>
-
-                        {/* Tipo */}
-                        <td>
-                          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.8125rem' }}>
-                            {renderTipoIcon(eq.tipoEquipo)}
-                            <span>{eq.tipoEquipo}</span>
-                          </div>
-                        </td>
-
-                        {/* Marca / Modelo */}
-                        <td>
-                          <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{eq.marca}</div>
-                          <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{eq.modelo}</div>
-                        </td>
-
-                        {/* Año */}
-                        <td>
-                          <span style={{ fontSize: '0.8125rem', color: 'var(--text-secondary)' }}>
-                            {eq.anio}
-                          </span>
-                        </td>
-
-                        {/* Capacidad */}
-                        <td>
-                          <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-                            {Number(eq.capacidadEstanqueM3).toFixed(2)} m³
-                          </span>
-                        </td>
-
-                        {/* Equipamiento Especial */}
-                        <td>
-                          <div style={{ display: 'flex', gap: '6px' }}>
-                            {eq.equipoHidrojet && (
-                              <span
-                                className="badge badge-info"
-                                title="Equipado con Hidrojet de alta presión"
-                                style={{ fontSize: '0.7rem', padding: '2px 7px' }}
-                              >
-                                <Droplets size={12} />
-                                <span>Hidrojet</span>
-                              </span>
-                            )}
-                            {eq.equipoVacio && (
-                              <span
-                                className="badge badge-neutral"
-                                title="Equipado con Sistema de Vacío"
-                                style={{ fontSize: '0.7rem', padding: '2px 7px' }}
-                              >
-                                <Wind size={12} />
-                                <span>Vacío</span>
-                              </span>
-                            )}
-                            {!eq.equipoHidrojet && !eq.equipoVacio && (
-                              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Estándar</span>
-                            )}
-                          </div>
-                        </td>
-
-                        {/* Estado */}
-                        <td>
-                          {esHabilitado ? (
-                            <span className="badge badge-success">
-                              <CheckCircle2 size={13} />
-                              <span>HABILITADO</span>
+                      return (
+                        <tr key={eq.id}>
+                          {/* Patente */}
+                          <td>
+                            <span className="font-mono font-bold text-xs px-2 py-1 rounded bg-muted border border-border text-foreground tracking-wider">
+                              {eq.patente}
                             </span>
-                          ) : (
-                            <span className="badge badge-danger">
-                              <XCircle size={13} />
-                              <span>DESHABILITADO</span>
-                            </span>
-                          )}
-                        </td>
+                          </td>
 
-                        {/* Motivo / Origen */}
-                        <td style={{ maxWidth: '200px' }}>
-                          {!esHabilitado ? (
-                            <div>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '3px' }}>
-                                {esChecklist ? (
-                                  <span className="badge badge-warning" style={{ fontSize: '0.68rem', padding: '1px 6px' }}>
-                                    <ShieldAlert size={11} />
-                                    <span>Seguridad F-GMT</span>
-                                  </span>
-                                ) : (
-                                  <span className="badge badge-neutral" style={{ fontSize: '0.68rem', padding: '1px 6px' }}>
-                                    <span>Manual</span>
-                                  </span>
-                                )}
-                              </div>
-                              <div
-                                style={{
-                                  fontSize: '0.75rem',
-                                  color: 'var(--text-secondary)',
-                                  whiteSpace: 'nowrap',
-                                  overflow: 'hidden',
-                                  textOverflow: 'ellipsis'
-                                }}
-                                title={eq.motivoEstado || ''}
-                              >
-                                {eq.motivoEstado || 'Sin motivo registrado'}
-                              </div>
+                          {/* Tipo */}
+                          <td>
+                            <div className="inline-flex items-center gap-1.5 text-xs">
+                              {renderTipoIcon(eq.tipoEquipo)}
+                              <span>{eq.tipoEquipo}</span>
                             </div>
-                          ) : (
-                            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Operativo</span>
-                          )}
-                        </td>
+                          </td>
 
-                        {/* Acciones */}
-                        <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
-                          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-                            {/* Editar */}
-                            <button
-                              type="button"
-                              className="btn btn-icon"
-                              onClick={() => handleEditarEquipo(eq)}
-                              title="Editar características técnicas"
-                              aria-label={`Editar equipo ${eq.patente}`}
-                              style={{ width: '32px', height: '32px', minWidth: '32px', minHeight: '32px', padding: '6px' }}
-                            >
-                              <Edit2 size={14} />
-                            </button>
+                          {/* Marca / Modelo */}
+                          <td>
+                            <div className="font-semibold text-foreground text-sm">{eq.marca}</div>
+                            <div className="text-xs text-muted-foreground">{eq.modelo}</div>
+                          </td>
 
-                            {/* Reasignar Operaciones (si está deshabilitado) */}
-                            {!esHabilitado && (
-                              <button
-                                type="button"
-                                className="btn btn-secondary"
-                                onClick={() => handleAbrirTransferDialog(eq)}
-                                title="Reasignar operaciones y jornadas activas a otra unidad"
-                                aria-label={`Reasignar operaciones del equipo ${eq.patente}`}
-                                style={{ height: '32px', minHeight: '32px', padding: '4px 10px', fontSize: '0.75rem' }}
-                              >
-                                <ArrowRightLeft size={13} />
-                                <span>Reasignar</span>
-                              </button>
-                            )}
+                          {/* Año */}
+                          <td>
+                            <span className="text-xs text-muted-foreground">
+                              {eq.anio}
+                            </span>
+                          </td>
 
-                            {/* Cambiar Estado (Habilitar / Deshabilitar) */}
+                          {/* Capacidad */}
+                          <td>
+                            <span className="text-xs font-semibold text-foreground">
+                              {Number(eq.capacidadEstanqueM3).toFixed(2)} m³
+                            </span>
+                          </td>
+
+                          {/* Equipamiento Especial */}
+                          <td>
+                            <div className="flex items-center gap-1.5">
+                              {eq.equipoHidrojet && (
+                                <Badge
+                                  variant="outline"
+                                  className="border-sky-500/30 text-sky-400 bg-sky-500/10 text-[10px] px-1.5 py-0.5 gap-1"
+                                  title="Equipado con Hidrojet de alta presión"
+                                >
+                                  <Droplets className="h-3 w-3" />
+                                  <span>Hidrojet</span>
+                                </Badge>
+                              )}
+                              {eq.equipoVacio && (
+                                <Badge
+                                  variant="outline"
+                                  className="border-border text-muted-foreground bg-muted text-[10px] px-1.5 py-0.5 gap-1"
+                                  title="Equipado con Sistema de Vacío"
+                                >
+                                  <Wind className="h-3 w-3" />
+                                  <span>Vacío</span>
+                                </Badge>
+                              )}
+                              {!eq.equipoHidrojet && !eq.equipoVacio && (
+                                <span className="text-xs text-muted-foreground">Estándar</span>
+                              )}
+                            </div>
+                          </td>
+
+                          {/* Estado */}
+                          <td>
                             {esHabilitado ? (
-                              <button
-                                type="button"
-                                className="btn btn-outline-danger"
-                                onClick={() => handleAbrirStatusDialog(eq, 'DESHABILITAR')}
-                                title="Deshabilitar equipo"
-                                aria-label={`Deshabilitar equipo ${eq.patente}`}
-                                style={{ height: '32px', minHeight: '32px', padding: '4px 10px', fontSize: '0.75rem' }}
+                              <Badge
+                                variant="outline"
+                                className="border-emerald-500/40 text-emerald-400 bg-emerald-500/10 font-semibold text-[11px] gap-1 px-2 py-0.5"
                               >
-                                <AlertTriangle size={13} />
-                                <span>Deshabilitar</span>
-                              </button>
+                                <CheckCircle2 className="h-3 w-3" />
+                                <span>HABILITADO</span>
+                              </Badge>
                             ) : (
-                              <button
-                                type="button"
-                                className="btn btn-secondary"
-                                onClick={() => handleAbrirStatusDialog(eq, 'HABILITAR')}
-                                title="Habilitar equipo"
-                                aria-label={`Habilitar equipo ${eq.patente}`}
-                                style={{
-                                  height: '32px',
-                                  minHeight: '32px',
-                                  padding: '4px 10px',
-                                  fontSize: '0.75rem',
-                                  color: 'var(--success)',
-                                  borderColor: 'rgba(16, 185, 129, 0.4)'
-                                }}
+                              <Badge
+                                variant="destructive"
+                                className="font-semibold text-[11px] gap-1 px-2 py-0.5"
                               >
-                                <CheckCircle size={13} />
-                                <span>Habilitar</span>
-                              </button>
+                                <XCircle className="h-3 w-3" />
+                                <span>DESHABILITADO</span>
+                              </Badge>
                             )}
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
+                          </td>
+
+                          {/* Motivo / Origen */}
+                          <td className="max-w-[200px]">
+                            {!esHabilitado ? (
+                              <div className="space-y-1">
+                                {esChecklist ? (
+                                  <Badge
+                                    variant="outline"
+                                    className="border-amber-500/40 text-amber-400 bg-amber-500/10 text-[10px] px-1.5 py-0 gap-1 font-normal"
+                                  >
+                                    <ShieldAlert className="h-3 w-3" />
+                                    <span>Seguridad F-GMT</span>
+                                  </Badge>
+                                ) : (
+                                  <Badge
+                                    variant="outline"
+                                    className="border-border text-muted-foreground bg-muted text-[10px] px-1.5 py-0 font-normal"
+                                  >
+                                    <span>Manual</span>
+                                  </Badge>
+                                )}
+                                <div
+                                  className="text-xs text-muted-foreground truncate"
+                                  title={eq.motivoEstado || ''}
+                                >
+                                  {eq.motivoEstado || 'Sin motivo registrado'}
+                                </div>
+                              </div>
+                            ) : (
+                              <span className="text-xs text-muted-foreground">Operativo</span>
+                            )}
+                          </td>
+
+                          {/* Acciones */}
+                          <td className="text-right whitespace-nowrap">
+                            <div className="inline-flex items-center gap-1.5 justify-end">
+                              {/* Editar */}
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => handleEditarEquipo(eq)}
+                                title="Editar características técnicas"
+                                aria-label={`Editar equipo ${eq.patente}`}
+                                className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                              >
+                                <Edit2 className="h-3.5 w-3.5" />
+                              </Button>
+
+                              {/* Reasignar Operaciones (si está deshabilitado) */}
+                              {!esHabilitado && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleAbrirTransferDialog(eq)}
+                                  title="Reasignar operaciones y jornadas activas a otra unidad"
+                                  aria-label={`Reasignar operaciones del equipo ${eq.patente}`}
+                                  className="h-8 text-xs gap-1.5"
+                                >
+                                  <ArrowRightLeft className="h-3 w-3" />
+                                  <span>Reasignar</span>
+                                </Button>
+                              )}
+
+                              {/* Cambiar Estado (Habilitar / Deshabilitar) */}
+                              {esHabilitado ? (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleAbrirStatusDialog(eq, 'DESHABILITAR')}
+                                  title="Deshabilitar equipo"
+                                  aria-label={`Deshabilitar equipo ${eq.patente}`}
+                                  className="h-8 text-xs gap-1.5 border-destructive/40 text-destructive hover:bg-destructive/10"
+                                >
+                                  <AlertTriangle className="h-3 w-3" />
+                                  <span>Deshabilitar</span>
+                                </Button>
+                              ) : (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleAbrirStatusDialog(eq, 'HABILITAR')}
+                                  title="Habilitar equipo"
+                                  aria-label={`Habilitar equipo ${eq.patente}`}
+                                  className="h-8 text-xs gap-1.5 border-emerald-500/40 text-emerald-400 hover:bg-emerald-500/10"
+                                >
+                                  <CheckCircle className="h-3 w-3" />
+                                  <span>Habilitar</span>
+                                </Button>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </Card>
           </div>
 
           {/* Mobile Card View (< 768px) */}
@@ -722,153 +605,123 @@ export const FleetManagementPanel: React.FC = () => {
               const esChecklist = eq.origenBloqueo === 'CHECKLIST_SEGURIDAD';
 
               return (
-                <div
+                <Card
                   key={eq.id}
-                  style={{
-                    background: 'var(--bg-surface)',
-                    border: '1px solid var(--border-color)',
-                    borderRadius: 'var(--radius-md)',
-                    padding: '14px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '10px'
-                  }}
+                  className="border-border bg-card p-4 flex flex-col gap-3"
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span
-                        style={{
-                          fontFamily: 'monospace',
-                          fontWeight: 700,
-                          fontSize: '0.925rem',
-                          padding: '2px 8px',
-                          borderRadius: 'var(--radius-sm)',
-                          background: 'var(--bg-primary)',
-                          border: '1px solid var(--border-color)'
-                        }}
-                      >
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono font-bold text-xs px-2 py-0.5 rounded bg-muted border border-border text-foreground">
                         {eq.patente}
                       </span>
-                      <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                      <div className="inline-flex items-center gap-1 text-xs text-muted-foreground">
                         {renderTipoIcon(eq.tipoEquipo)}
                         <span>{eq.tipoEquipo}</span>
                       </div>
                     </div>
 
                     {esHabilitado ? (
-                      <span className="badge badge-success" style={{ fontSize: '0.7rem' }}>
+                      <Badge
+                        variant="outline"
+                        className="border-emerald-500/40 text-emerald-400 bg-emerald-500/10 text-[10px] px-1.5 py-0"
+                      >
                         HABILITADO
-                      </span>
+                      </Badge>
                     ) : (
-                      <span className="badge badge-danger" style={{ fontSize: '0.7rem' }}>
+                      <Badge variant="destructive" className="text-[10px] px-1.5 py-0">
                         DESHABILITADO
-                      </span>
+                      </Badge>
                     )}
                   </div>
 
-                  <div style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+                  <div className="text-sm font-semibold text-foreground">
                     {eq.marca} {eq.modelo}{' '}
-                    <span style={{ fontWeight: 400, color: 'var(--text-muted)', fontSize: '0.8rem' }}>({eq.anio})</span>
+                    <span className="font-normal text-muted-foreground text-xs">({eq.anio})</span>
                   </div>
 
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                  <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
                     <div>
-                      Capacidad: <strong>{Number(eq.capacidadEstanqueM3).toFixed(2)} m³</strong>
+                      Capacidad: <strong className="text-foreground">{Number(eq.capacidadEstanqueM3).toFixed(2)} m³</strong>
                     </div>
                     {eq.equipoHidrojet && (
-                      <span className="badge badge-info" style={{ fontSize: '0.65rem' }}>
+                      <Badge variant="outline" className="border-sky-500/30 text-sky-400 bg-sky-500/10 text-[10px] px-1.5 py-0">
                         Hidrojet
-                      </span>
+                      </Badge>
                     )}
                     {eq.equipoVacio && (
-                      <span className="badge badge-neutral" style={{ fontSize: '0.65rem' }}>
+                      <Badge variant="outline" className="border-border text-muted-foreground bg-muted text-[10px] px-1.5 py-0">
                         Vacío
-                      </span>
+                      </Badge>
                     )}
                   </div>
 
                   {!esHabilitado && (
-                    <div
-                      style={{
-                        padding: '8px 10px',
-                        borderRadius: 'var(--radius-sm)',
-                        background: 'var(--bg-primary)',
-                        border: '1px solid var(--border-color)',
-                        fontSize: '0.775rem'
-                      }}
-                    >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '2px' }}>
+                    <div className="p-2.5 rounded-lg bg-muted/60 border border-border text-xs space-y-1">
+                      <div className="flex items-center gap-1.5">
                         {esChecklist ? (
-                          <span className="badge badge-warning" style={{ fontSize: '0.65rem' }}>
-                            <ShieldAlert size={10} />
+                          <Badge variant="outline" className="border-amber-500/40 text-amber-400 bg-amber-500/10 text-[10px] px-1 py-0">
+                            <ShieldAlert className="h-2.5 w-2.5 mr-1 inline" />
                             Seguridad F-GMT
-                          </span>
+                          </Badge>
                         ) : (
-                          <span className="badge badge-neutral" style={{ fontSize: '0.65rem' }}>
+                          <Badge variant="outline" className="border-border text-muted-foreground bg-muted text-[10px] px-1 py-0">
                             Manual
-                          </span>
+                          </Badge>
                         )}
                       </div>
-                      <div style={{ color: 'var(--text-secondary)' }}>
+                      <div className="text-muted-foreground">
                         {eq.motivoEstado || 'Sin motivo registrado'}
                       </div>
                     </div>
                   )}
 
                   {/* Acciones Mobile */}
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', paddingTop: '8px', borderTop: '1px solid var(--border-color)' }}>
-                    <button
-                      type="button"
-                      className="btn btn-secondary"
+                  <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-border">
+                    <Button
+                      variant="outline"
+                      size="sm"
                       onClick={() => handleEditarEquipo(eq)}
-                      style={{ flex: '1 1 auto', height: '36px', minHeight: '36px', fontSize: '0.8rem' }}
+                      className="flex-1 h-9 text-xs gap-1.5"
                     >
-                      <Edit2 size={14} />
+                      <Edit2 className="h-3.5 w-3.5" />
                       <span>Editar</span>
-                    </button>
+                    </Button>
 
                     {!esHabilitado && (
-                      <button
-                        type="button"
-                        className="btn btn-secondary"
+                      <Button
+                        variant="outline"
+                        size="sm"
                         onClick={() => handleAbrirTransferDialog(eq)}
-                        style={{ flex: '1 1 auto', height: '36px', minHeight: '36px', fontSize: '0.8rem' }}
+                        className="flex-1 h-9 text-xs gap-1.5"
                       >
-                        <ArrowRightLeft size={14} />
+                        <ArrowRightLeft className="h-3.5 w-3.5" />
                         <span>Reasignar</span>
-                      </button>
+                      </Button>
                     )}
 
                     {esHabilitado ? (
-                      <button
-                        type="button"
-                        className="btn btn-outline-danger"
+                      <Button
+                        variant="outline"
+                        size="sm"
                         onClick={() => handleAbrirStatusDialog(eq, 'DESHABILITAR')}
-                        style={{ flex: '1 1 auto', height: '36px', minHeight: '36px', fontSize: '0.8rem' }}
+                        className="flex-1 h-9 text-xs gap-1.5 border-destructive/40 text-destructive hover:bg-destructive/10"
                       >
-                        <AlertTriangle size={14} />
+                        <AlertTriangle className="h-3.5 w-3.5" />
                         <span>Deshabilitar</span>
-                      </button>
+                      </Button>
                     ) : (
-                      <button
-                        type="button"
-                        className="btn btn-secondary"
+                      <Button
+                        variant="outline"
+                        size="sm"
                         onClick={() => handleAbrirStatusDialog(eq, 'HABILITAR')}
-                        style={{
-                          flex: '1 1 auto',
-                          height: '36px',
-                          minHeight: '36px',
-                          fontSize: '0.8rem',
-                          color: 'var(--success)',
-                          borderColor: 'rgba(16, 185, 129, 0.4)'
-                        }}
+                        className="flex-1 h-9 text-xs gap-1.5 border-emerald-500/40 text-emerald-400 hover:bg-emerald-500/10"
                       >
-                        <CheckCircle size={14} />
+                        <CheckCircle className="h-3.5 w-3.5" />
                         <span>Habilitar</span>
-                      </button>
+                      </Button>
                     )}
                   </div>
-                </div>
+                </Card>
               );
             })}
           </div>

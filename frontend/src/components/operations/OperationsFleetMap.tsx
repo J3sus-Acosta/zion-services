@@ -3,6 +3,7 @@ import { Truck, Navigation, RefreshCw, Radio, MapPin } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
+import { apiUrl } from '../../config/api';
 
 interface UnidadOperativa {
   vehiculoId: string;
@@ -26,7 +27,7 @@ export const OperationsFleetMap: React.FC = () => {
   const fetchFlota = async () => {
     setLoading(true);
     try {
-      const res = await fetch('http://localhost:3000/api/operaciones/flota-en-vivo', { credentials: 'include' });
+      const res = await fetch(apiUrl('/api/operaciones/flota-en-vivo'), { credentials: 'include' });
       if (res.ok) {
         const json = await res.json();
         setUnidades(json.data.unidades);
@@ -36,7 +37,7 @@ export const OperationsFleetMap: React.FC = () => {
         setLoading(false);
         return;
       }
-    } catch {}
+    } catch { }
 
     // Mock representativo si backend offline
     const mock: UnidadOperativa[] = [
@@ -120,11 +121,10 @@ export const OperationsFleetMap: React.FC = () => {
               <Card
                 key={unidad.vehiculoId}
                 onClick={() => setSeleccionada(unidad)}
-                className={`cursor-pointer transition-all border ${
-                  esActiva
+                className={`cursor-pointer transition-all border ${esActiva
                     ? 'border-primary ring-1 ring-primary shadow-sm bg-primary/5'
                     : 'border-border hover:bg-muted/40'
-                }`}
+                  }`}
               >
                 <CardContent className="p-3.5 space-y-2">
                   <div className="flex items-center justify-between">

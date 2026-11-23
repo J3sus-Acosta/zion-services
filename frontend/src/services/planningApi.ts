@@ -8,8 +8,9 @@ import {
   CalendarFilters,
   ConflictWarningPayload
 } from '../types/planning';
+import { API_BASE_URL } from '../config/api';
 
-const API_BASE = (import.meta as any).env?.VITE_API_URL || 'http://localhost:3000';
+const API_BASE = API_BASE_URL;
 
 export class PlanningConflictError extends Error {
   code: string;

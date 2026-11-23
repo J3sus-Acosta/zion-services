@@ -160,7 +160,7 @@ El sistema SHALL NOT permitir eliminar equipos; la baja SHALL ser lógica median
 - **THEN** el sistema no ofrece ni ejecuta la eliminación y el equipo conserva su historial
 
 ### Requirement: Módulo Flota en la interfaz
-El frontend SHALL ofrecer un módulo «Flota» con ruta propia e ítem de navegación visible solo a los roles autorizados, que liste equipos y permita crear, editar y habilitar/deshabilitar, con estados `loading`, `error`, `empty` y datos, siguiendo el SATEM Design System.
+El frontend SHALL ofrecer un módulo «Flota» con ruta propia e ítem de navegación visible solo a los roles autorizados, que liste equipos y permita crear, editar y habilitar/deshabilitar, con estados `loading`, `error`, `empty` y datos, siguiendo el diseño minimalista de la plataforma Zion Services y eliminando cualquier referencia a marcas ajenas.
 
 #### Scenario: Acceso por rol
 - **GIVEN** un usuario `JEFE_OPERACIONES`, `ADMIN` o `SUPERADMIN`

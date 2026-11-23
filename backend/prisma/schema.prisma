@@ -42,6 +42,7 @@ model Usuario {
   vehiculosEstadoCambiado Vehiculo[]             @relation("VehiculoEstadoPor")
   notificacionesConductor NotificacionConductor[]
   atencionesAsignadas     AtencionProgramada[]   @relation("AtencionesConductor")
+  bitacorasRegistradas    BitacoraServicio[]
 
   @@map("usuarios")
 }
@@ -433,6 +434,7 @@ model OrdenServicio {
   expediente          ExpedienteDocumental?
   registrosTelemetria RegistroTelemetriaGPS[]
   atencionProgramada  AtencionProgramada?
+  bitacoras           BitacoraServicio[]
 
   @@map("ordenes_servicio")
 }
@@ -625,6 +627,35 @@ model ActaRecepcion {
   @@map("actas_recepcion")
 }
 
+enum TipoEventoBitacora {
+  TRAFICO
+  ACCESO_DENEGADO
+  FALLA_EQUIPO
+  VOLUMEN_DISCREPANTE
+  OBSERVACION_GENERAL
+}
+
+model BitacoraServicio {
+  id              String             @id @default(uuid())
+  ordenServicioId String
+  ordenServicio   OrdenServicio      @relation(fields: [ordenServicioId], references: [id])
+  tipoEvento      TipoEventoBitacora
+  descripcion     String             @db.Text
+  latitud         Float?
+  longitud        Float?
+  fotoUrl         String?            @db.VarChar(512)
+  registradoPorId String?
+  registradoPor   Usuario?           @relation(fields: [registradoPorId], references: [id])
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+
+  @@index([ordenServicioId])
+  @@index([tipoEvento])
+  @@index([createdAt])
+  @@index([registradoPorId])
+  @@map("bitacoras_servicios")
+}
+
 // -------------------------------------------------------------
 // 7. DESTINO, SIDREP Y COMPROBANTES DE ROMANA
 // -------------------------------------------------------------
@@ -696,7 +727,11 @@ model DocumentoExpediente {
   cargadoPorUsuarioId    String?
   visibleParaCliente     Boolean              @default(true)
   fechaCarga             DateTime             @default(now())
+  hashSha256             String?              @db.VarChar(64)
+  qrUrl                  String?              @db.VarChar(512)
 
+  @@index([expedienteDocumentalId])
+  @@index([hashSha256])
   @@map("documentos_expediente")
 }
 

@@ -14,6 +14,7 @@ import {
   Calendar,
   AlertCircle
 } from 'lucide-react';
+import { Button } from '../ui/button';
 
 interface FleetStatusDialogProps {
   isOpen: boolean;
@@ -157,68 +158,48 @@ export const FleetStatusDialog: React.FC<FleetStatusDialogProps> = ({
       onClose={onClose}
       title={
         modo === 'DESHABILITAR' ? (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--danger)' }}>
-            <AlertTriangle size={20} />
+          <div className="flex items-center gap-2 text-destructive">
+            <AlertTriangle className="h-5 w-5" />
             <span>Deshabilitar Equipo: {equipo.patente}</span>
           </div>
         ) : (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--success)' }}>
-            <CheckCircle size={20} />
+          <div className="flex items-center gap-2 text-emerald-400">
+            <CheckCircle className="h-5 w-5" />
             <span>Habilitar Equipo: {equipo.patente}</span>
           </div>
         )
       }
       maxWidth="620px"
     >
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      <form onSubmit={handleSubmit} className="space-y-4">
         {errorMessage && (
           <div
             role="alert"
-            style={{
-              padding: '12px',
-              borderRadius: 'var(--radius-md)',
-              background: 'var(--danger-bg)',
-              color: 'var(--danger)',
-              border: '1px solid rgba(239, 68, 68, 0.3)',
-              fontSize: '0.875rem',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px'
-            }}
+            className="p-3 rounded-lg bg-destructive/15 border border-destructive/30 text-destructive text-sm flex items-center gap-2"
           >
-            <AlertCircle size={18} style={{ flexShrink: 0 }} />
+            <AlertCircle className="h-4 w-4 shrink-0 text-destructive" />
             <span>{errorMessage}</span>
           </div>
         )}
 
         {modo === 'HABILITAR' ? (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-            <p style={{ margin: 0, fontSize: '0.925rem', color: 'var(--text-primary)' }}>
-              ¿Está seguro de que desea habilitar el equipo <strong>{equipo.patente}</strong> ({equipo.marca} {equipo.modelo})?
+          <div className="space-y-4">
+            <p className="text-sm text-foreground">
+              ¿Está seguro de que desea habilitar el equipo <strong className="font-mono">{equipo.patente}</strong> ({equipo.marca} {equipo.modelo})?
             </p>
 
             {esBloqueoSeguridad && (
-              <div
-                style={{
-                  padding: '14px',
-                  borderRadius: 'var(--radius-md)',
-                  background: 'var(--warning-bg)',
-                  border: '1px solid rgba(245, 158, 11, 0.3)',
-                  display: 'flex',
-                  alignItems: 'flex-start',
-                  gap: '12px'
-                }}
-              >
-                <ShieldAlert size={22} style={{ color: 'var(--warning)', flexShrink: 0, marginTop: '2px' }} />
-                <div>
-                  <div style={{ fontWeight: 600, color: 'var(--warning)', fontSize: '0.875rem' }}>
+              <div className="p-3.5 rounded-lg bg-amber-500/10 border border-amber-500/30 flex items-start gap-3">
+                <ShieldAlert className="h-5 w-5 text-amber-400 shrink-0 mt-0.5" />
+                <div className="space-y-1">
+                  <div className="font-semibold text-amber-400 text-sm">
                     Bloqueo originado por Checklist de Seguridad F-GMT
                   </div>
-                  <div style={{ fontSize: '0.8125rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                  <div className="text-xs text-muted-foreground">
                     Motivo registrado: {equipo.motivoEstado || 'Falla crítica detectada durante inspección.'}
                   </div>
                   {!puedeLevantarBloqueo && (
-                    <div style={{ fontSize: '0.8125rem', color: 'var(--danger)', fontWeight: 600, marginTop: '8px' }}>
+                    <div className="text-xs text-destructive font-medium mt-2">
                       ⚠️ Su rol actual ({userRole}) no tiene facultades para levantar este bloqueo. Se requiere autorización de ADMIN o SUPERADMIN (Regla R1).
                     </div>
                   )}
@@ -227,55 +208,57 @@ export const FleetStatusDialog: React.FC<FleetStatusDialogProps> = ({
             )}
 
             {!esBloqueoSeguridad && equipo.motivoEstado && (
-              <div style={{ padding: '10px 14px', background: 'var(--bg-primary)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', fontSize: '0.8125rem', color: 'var(--text-secondary)' }}>
-                <strong>Motivo anterior:</strong> {equipo.motivoEstado}
+              <div className="p-3 rounded-lg bg-muted/60 border border-border text-xs text-muted-foreground">
+                <strong className="text-foreground">Motivo anterior:</strong> {equipo.motivoEstado}
               </div>
             )}
 
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', paddingTop: '10px', borderTop: '1px solid var(--border-color)' }}>
-              <button
+            <div className="flex items-center justify-end gap-3 pt-3 border-t border-border">
+              <Button
                 type="button"
-                className="btn btn-secondary"
+                variant="outline"
+                size="sm"
                 onClick={onClose}
                 disabled={submitting}
               >
                 Cancelar
-              </button>
-              <button
+              </Button>
+              <Button
                 type="submit"
-                className="btn btn-primary"
+                size="sm"
                 disabled={submitting || !puedeLevantarBloqueo}
                 title={!puedeLevantarBloqueo ? 'Solo ADMIN o SUPERADMIN pueden levantar este bloqueo' : 'Habilitar equipo'}
+                className="bg-emerald-600 hover:bg-emerald-700 text-white"
               >
                 {submitting ? (
                   <>
-                    <Loader2 size={16} className="animate-spin" />
+                    <Loader2 className="h-4 w-4 animate-spin mr-1.5" />
                     <span>Habilitando...</span>
                   </>
                 ) : (
                   <>
-                    <CheckCircle size={16} />
+                    <CheckCircle className="h-4 w-4 mr-1.5" />
                     <span>Confirmar Habilitación</span>
                   </>
                 )}
-              </button>
+              </Button>
             </div>
           </div>
         ) : (
           /* MODO DESHABILITAR */
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
-              Al deshabilitar el equipo <strong>{equipo.patente}</strong> ({equipo.marca} {equipo.modelo}), quedará inhabilitado para nuevos despachos y operaciones.
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Al deshabilitar el equipo <strong className="font-mono text-foreground">{equipo.patente}</strong> ({equipo.marca} {equipo.modelo}), quedará inhabilitado para nuevos despachos y operaciones.
             </p>
 
             {/* Motivo de deshabilitación */}
-            <div className="form-group">
-              <label className="form-label" htmlFor="status-motivo">
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground" htmlFor="status-motivo">
                 Motivo de Deshabilitación * (mínimo 5 caracteres)
               </label>
               <textarea
                 id="status-motivo"
-                className="form-textarea"
+                className="w-full p-3 rounded-lg border border-border bg-background text-sm resize-y min-h-[80px] focus:outline-none focus:ring-2 focus:ring-primary/40"
                 value={motivo}
                 onChange={(e) => setMotivo(e.target.value)}
                 placeholder="Indique la justificación técnica u operativa (ej: Mantención preventiva 50.000 km, falla en toma de fuerza)..."
@@ -286,102 +269,72 @@ export const FleetStatusDialog: React.FC<FleetStatusDialogProps> = ({
                 rows={3}
                 autoFocus
               />
-              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textAlign: 'right' }}>
+              <div className="text-[11px] text-muted-foreground text-right">
                 {motivo.length}/500 caracteres
-              </span>
+              </div>
             </div>
 
             {/* Estado de carga de operaciones */}
             {loadingOps ? (
               <div
-                style={{
-                  padding: '24px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '10px',
-                  color: 'var(--text-secondary)',
-                  background: 'var(--bg-primary)',
-                  borderRadius: 'var(--radius-md)'
-                }}
+                className="p-6 flex items-center justify-center gap-2.5 text-muted-foreground bg-muted/40 rounded-lg border border-border text-sm"
                 aria-busy="true"
               >
-                <Loader2 size={20} className="animate-spin text-primary" />
+                <Loader2 className="h-5 w-5 animate-spin text-primary" />
                 <span>Analizando operaciones y jornadas activas...</span>
               </div>
             ) : tieneJornadasActivas ? (
               /* ALERTA DE TRANSFERENCIA OBLIGATORIA */
-              <div
-                style={{
-                  padding: '16px',
-                  borderRadius: 'var(--radius-md)',
-                  background: 'var(--danger-bg)',
-                  border: '1px solid rgba(239, 68, 68, 0.4)',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '12px'
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--danger)', fontWeight: 600, fontSize: '0.925rem' }}>
-                  <AlertTriangle size={20} />
+              <div className="p-4 rounded-lg bg-destructive/10 border border-destructive/30 space-y-3">
+                <div className="flex items-center gap-2 text-destructive font-semibold text-sm">
+                  <AlertTriangle className="h-5 w-5" />
                   <span>Transferencia Obligatoria Requerida</span>
                 </div>
 
-                <div style={{ fontSize: '0.8125rem', color: 'var(--text-primary)', lineHeight: 1.5 }}>
+                <div className="text-xs text-foreground leading-relaxed">
                   Este equipo tiene <strong>{jornadasActivas.length} jornada(s) activa(s)</strong> (PROGRAMADA / EN CURSO). De acuerdo con la normativa operativa (R7), para deshabilitarlo debe seleccionar obligatoriamente un equipo habilitado de reemplazo:
                 </div>
 
                 {/* Lista de jornadas activas */}
-                <div style={{ maxHeight: '140px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <div className="max-h-36 overflow-y-auto space-y-1.5 pr-1">
                   {jornadasActivas.map((j) => (
                     <div
                       key={j.id}
-                      style={{
-                        padding: '8px 12px',
-                        borderRadius: 'var(--radius-sm)',
-                        background: 'rgba(15, 23, 42, 0.6)',
-                        border: '1px solid rgba(239, 68, 68, 0.2)',
-                        fontSize: '0.8rem',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        gap: '8px'
-                      }}
+                      className="p-2.5 rounded bg-background/80 border border-destructive/20 text-xs flex items-center justify-between gap-2"
                     >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <Calendar size={14} style={{ color: 'var(--accent-primary)' }} />
-                        <span>Jornada: {j.estado}</span>
-                        <span style={{ color: 'var(--text-muted)' }}>({new Date(j.fechaInicio).toLocaleDateString()})</span>
+                      <div className="flex items-center gap-2">
+                        <Calendar className="h-3.5 w-3.5 text-primary" />
+                        <span className="font-medium text-foreground">Jornada: {j.estado}</span>
+                        <span className="text-muted-foreground">({new Date(j.fechaInicio).toLocaleDateString()})</span>
                       </div>
-                      <div style={{ color: 'var(--text-secondary)' }}>
-                        Conductor: <strong>{j.conductor.nombre}</strong>
+                      <div className="text-muted-foreground text-[11px]">
+                        Conductor: <strong className="text-foreground">{j.conductor.nombre}</strong>
                       </div>
                     </div>
                   ))}
                 </div>
 
                 {/* Selector Obligatorio de Reemplazo */}
-                <div className="form-group" style={{ marginTop: '4px' }}>
-                  <label className="form-label" htmlFor="status-destino" style={{ color: 'var(--text-primary)', fontWeight: 600 }}>
+                <div className="space-y-1.5 pt-1">
+                  <label className="text-xs font-semibold text-foreground" htmlFor="status-destino">
                     Seleccione Equipo Habilitado de Reemplazo *
                   </label>
                   {candidatos.length === 0 ? (
-                    <div style={{ padding: '10px', borderRadius: 'var(--radius-sm)', background: 'rgba(239,68,68,0.15)', color: 'var(--danger)', fontSize: '0.8125rem' }}>
+                    <div className="p-2.5 rounded bg-destructive/15 text-destructive text-xs">
                       No existen otros equipos habilitados en el sistema. Debe registrar o habilitar un equipo antes de deshabilitar este.
                     </div>
                   ) : candidatosSinConflicto.length === 0 ? (
-                    <div style={{ padding: '10px', borderRadius: 'var(--radius-sm)', background: 'rgba(239,68,68,0.15)', color: 'var(--danger)', fontSize: '0.8125rem' }}>
+                    <div className="p-2.5 rounded bg-destructive/15 text-destructive text-xs">
                       Todos los equipos habilitados presentan conflicto de horario con las jornadas activas.
                     </div>
                   ) : (
                     <select
                       id="status-destino"
-                      className="form-select"
+                      className="w-full h-10 px-3 rounded-lg border border-border bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40"
                       value={vehiculoDestinoId}
                       onChange={(e) => setVehiculoDestinoId(e.target.value)}
                       required
                       disabled={submitting}
-                      style={{ background: 'var(--bg-surface)' }}
                     >
                       <option value="">-- Seleccionar equipo de reemplazo --</option>
                       {candidatos.map((c) => (
@@ -400,50 +353,40 @@ export const FleetStatusDialog: React.FC<FleetStatusDialogProps> = ({
               </div>
             ) : (
               /* Sin operaciones activas */
-              <div
-                style={{
-                  padding: '12px 14px',
-                  borderRadius: 'var(--radius-md)',
-                  background: 'var(--bg-primary)',
-                  border: '1px solid var(--border-color)',
-                  fontSize: '0.8125rem',
-                  color: 'var(--text-secondary)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px'
-                }}
-              >
-                <CheckCircle size={16} style={{ color: 'var(--success)' }} />
+              <div className="p-3 rounded-lg bg-muted/50 border border-border text-xs text-muted-foreground flex items-center gap-2">
+                <CheckCircle className="h-4 w-4 text-emerald-400 shrink-0" />
                 <span>No hay jornadas activas asociadas. El equipo se deshabilitará de inmediato.</span>
               </div>
             )}
 
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', paddingTop: '10px', borderTop: '1px solid var(--border-color)' }}>
-              <button
+            <div className="flex items-center justify-end gap-3 pt-3 border-t border-border">
+              <Button
                 type="button"
-                className="btn btn-secondary"
+                variant="outline"
+                size="sm"
                 onClick={onClose}
                 disabled={submitting}
               >
                 Cancelar
-              </button>
-              <button
+              </Button>
+              <Button
                 type="submit"
-                className="btn btn-danger"
+                variant="destructive"
+                size="sm"
                 disabled={isDisableButtonDisabled}
               >
                 {submitting ? (
                   <>
-                    <Loader2 size={16} className="animate-spin" />
+                    <Loader2 className="h-4 w-4 animate-spin mr-1.5" />
                     <span>Procesando...</span>
                   </>
                 ) : (
                   <>
-                    <AlertTriangle size={16} />
+                    <AlertTriangle className="h-4 w-4 mr-1.5" />
                     <span>Confirmar Deshabilitación</span>
                   </>
                 )}
-              </button>
+              </Button>
             </div>
           </div>
         )}

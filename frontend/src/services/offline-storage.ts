@@ -3,6 +3,8 @@
  * y motor de sincronización offline automática (syncWorker) para faenas sin cobertura.
  */
 
+import { apiUrl } from '../config/api';
+
 const DB_NAME = 'ZionFleetOfflineDB';
 const DB_VERSION = 2;
 const STORE_CHECKLISTS = 'checklists';
@@ -11,7 +13,7 @@ const STORE_SYNC_QUEUE = 'syncQueue';
 
 export interface QueueItem {
   id?: number;
-  tipo: 'CHECKLIST_SALIDA' | 'CHECKLIST_RETORNO' | 'FOTO_360' | 'AUTORIZAR_FAENA' | 'FOTO_FAENA' | 'RECEPCION_CONFORME';
+  tipo: 'CHECKLIST_SALIDA' | 'CHECKLIST_RETORNO' | 'FOTO_360' | 'AUTORIZAR_FAENA' | 'FOTO_FAENA' | 'RECEPCION_CONFORME' | 'BITACORA_INCIDENCIA';
   endpoint: string;
   payload: any;
   timestamp: number;
@@ -203,7 +205,7 @@ export class OfflineStorageService {
         try {
           const url = item.endpoint.startsWith('http')
             ? item.endpoint
-            : `http://localhost:3000${item.endpoint}`;
+            : apiUrl(item.endpoint);
 
           const res = await fetch(url, {
             method: 'POST',
@@ -244,7 +246,7 @@ export class OfflineStorageService {
     if (typeof window === 'undefined') return () => { };
 
     const handleOnline = async () => {
-      console.log('[SATEM OfflineWorker] Conexión a internet restablecida. Iniciando sincronización...');
+      console.log('[Zion OfflineWorker] Conexión a internet restablecida. Iniciando sincronización...');
       const resultado = await OfflineStorageService.procesarColaSync();
       if (onSyncComplete) onSyncComplete(resultado);
     };
@@ -330,5 +332,22 @@ export class OfflineStorageService {
     }
 
     return null;
+  }
+
+  /**
+   * Encola un evento o incidencia de bitácora para sincronización resiliente offline.
+   */
+  static async encolarIncidenciaBitacora(incidencia: {
+    ordenServicioId: string;
+    tipoEvento: string;
+    descripcion: string;
+    latitud?: number | null;
+    longitud?: number | null;
+  }): Promise<void> {
+    await this.encolarPeticion(
+      'BITACORA_INCIDENCIA',
+      '/api/bitacora',
+      incidencia
+    );
   }
 }

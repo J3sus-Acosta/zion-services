@@ -1,7 +1,7 @@
 @import "./globals.css";
 
 /* ==========================================================================
-   SATEM DESIGN SYSTEM — TOKENS & CANONICAL CLASSES
+   ZION DESIGN SYSTEM — TOKENS & CANONICAL CLASSES
    Fuente de verdad visual oficial: Zion Services
    ========================================================================== */
 
@@ -14,7 +14,7 @@
   --bg-input:         #0f172a;
   --bg-overlay:       rgba(15, 23, 42, 0.85);
 
-  /* ========== BRAND SATEM ========== */
+  /* ========== BRAND ZION SERVICES ========== */
   --accent-primary:       #00a896;
   --accent-primary-hover: #008f80;
   --accent-glow:          rgba(0, 168, 150, 0.25);
@@ -63,7 +63,7 @@
   --z-toast:    500;
 }
 
-/* ========== BOTONES CANÓNICOS SATEM ========== */
+/* ========== BOTONES CANÓNICOS ZION SERVICES ========== */
 .btn {
   display: inline-flex;
   align-items: center;
@@ -145,7 +145,7 @@
   align-items: center;
 }
 
-/* ========== BADGES CANÓNICOS SATEM ========== */
+/* ========== BADGES CANÓNICOS ZION SERVICES ========== */
 .badge {
   display: inline-flex;
   align-items: center;
@@ -188,7 +188,7 @@
   border-color: rgba(148, 163, 184, 0.25);
 }
 
-/* ========== TABLAS CANÓNICAS SATEM ========== */
+/* ========== TABLAS CANÓNICAS ZION SERVICES ========== */
 .table-container {
   width: 100%;
   overflow-x: auto;
@@ -197,17 +197,23 @@
   background: var(--bg-surface);
 }
 
+.table,
+.zion-table,
 .satem-table {
   width: 100%;
   border-collapse: collapse;
   min-width: 650px;
 }
 
+.table thead tr,
+.zion-table thead tr,
 .satem-table thead tr {
   background: var(--bg-primary);
   border-bottom: 1px solid var(--border-color);
 }
 
+.table th,
+.zion-table th,
 .satem-table th {
   padding: 12px 16px;
   text-align: left;
@@ -219,6 +225,8 @@
   white-space: nowrap;
 }
 
+.table td,
+.zion-table td,
 .satem-table td {
   padding: 13px 16px;
   font-size: 0.875rem;
@@ -227,11 +235,13 @@
   vertical-align: middle;
 }
 
+.table tbody tr:hover,
+.zion-table tbody tr:hover,
 .satem-table tbody tr:hover {
   background: var(--bg-card-hover);
 }
 
-/* ========== FORMULARIOS CANÓNICOS SATEM ========== */
+/* ========== FORMULARIOS CANÓNICOS ZION SERVICES ========== */
 .form-group {
   display: flex;
   flex-direction: column;
@@ -280,7 +290,7 @@
   color: var(--text-muted);
 }
 
-/* ========== MODAL CANÓNICO SATEM ========== */
+/* ========== MODAL CANÓNICO ZION SERVICES ========== */
 .modal-overlay {
   position: fixed;
   inset: 0;

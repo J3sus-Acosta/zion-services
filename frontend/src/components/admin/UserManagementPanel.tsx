@@ -16,6 +16,8 @@ import {
 import { Button } from '../ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Badge } from '../ui/badge';
+import { apiUrl } from '../../config/api';
+import { EmpresaSelect } from '../common/EmpresaSelect';
 
 export const UserManagementPanel: React.FC = () => {
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
@@ -52,7 +54,7 @@ export const UserManagementPanel: React.FC = () => {
   const fetchUsuarios = async () => {
     setLoading(true);
     try {
-      const res = await fetch('http://localhost:3000/api/usuarios', { credentials: 'include' });
+      const res = await fetch(apiUrl('/api/usuarios'), { credentials: 'include' });
       if (res.ok) {
         const json = await res.json();
         setUsuarios(json.data.usuarios);
@@ -81,7 +83,7 @@ export const UserManagementPanel: React.FC = () => {
   const handleToggleEstado = async (id: string, estadoActual: boolean) => {
     const nuevoEstado = !estadoActual;
     try {
-      await fetch(`http://localhost:3000/api/usuarios/${id}/estado`, {
+      await fetch(apiUrl(`/api/usuarios/${id}/estado`), {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -115,7 +117,7 @@ export const UserManagementPanel: React.FC = () => {
     };
 
     try {
-      const res = await fetch('http://localhost:3000/api/usuarios', {
+      const res = await fetch(apiUrl('/api/usuarios'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -159,7 +161,7 @@ export const UserManagementPanel: React.FC = () => {
 
     setIsSubmittingPassword(true);
     try {
-      const res = await fetch(`http://localhost:3000/api/usuarios/${modalPasswordUser.id}/password`, {
+      const res = await fetch(apiUrl(`/api/usuarios/${modalPasswordUser.id}/password`), {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -203,7 +205,7 @@ export const UserManagementPanel: React.FC = () => {
 
     setIsSubmittingRol(true);
     try {
-      const res = await fetch(`http://localhost:3000/api/usuarios/${modalRolUser.id}/rol`, {
+      const res = await fetch(apiUrl(`/api/usuarios/${modalRolUser.id}/rol`), {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -586,13 +588,10 @@ export const UserManagementPanel: React.FC = () => {
                       <Building2 className="h-3.5 w-3.5" />
                       Empresa Cliente Asociada
                     </label>
-                    <input
-                      type="text"
-                      required
+                    <EmpresaSelect
                       value={nuevoEmpresaId}
-                      onChange={(e) => setNuevoEmpresaId(e.target.value)}
-                      placeholder="ej: empresa-horse, bravo-energy, etc."
-                      className="w-full h-9 px-3 rounded-lg border border-border bg-background text-sm"
+                      onChange={(id) => setNuevoEmpresaId(id)}
+                      placeholder="Seleccione la empresa para este usuario..."
                     />
                   </div>
                 )}
@@ -731,15 +730,12 @@ export const UserManagementPanel: React.FC = () => {
                   <div className="space-y-1.5">
                     <label className="text-xs font-medium text-primary flex items-center gap-1">
                       <Building2 className="h-3.5 w-3.5" />
-                      <span>Identificador de Empresa Cliente</span>
+                      <span>Empresa Cliente Asociada</span>
                     </label>
-                    <input
-                      type="text"
+                    <EmpresaSelect
                       value={modalEmpresaId}
-                      onChange={(e) => setModalEmpresaId(e.target.value)}
-                      placeholder="ej: empresa-horse, bravo-energy"
-                      className="w-full h-9 px-3 rounded-lg border border-border bg-background text-sm"
-                      required
+                      onChange={(id) => setModalEmpresaId(id)}
+                      placeholder="Seleccione la empresa asociada..."
                     />
                   </div>
                 )}

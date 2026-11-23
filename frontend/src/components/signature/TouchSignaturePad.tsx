@@ -48,7 +48,7 @@ export const TouchSignaturePad: React.FC<TouchSignaturePadProps> = ({
     canvas.height = rect.height * dpr;
 
     ctx.scale(dpr, dpr);
-    ctx.strokeStyle = '#10b981'; // SATEM Emerald
+    ctx.strokeStyle = '#10b981'; // Zion Emerald
     ctx.lineWidth = 2.5;
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';

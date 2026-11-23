@@ -27,7 +27,7 @@
 | **Frontend SPA** | React 18 · TypeScript · Vite | Single Page Application rápida y reactiva. |
 | **Diseño & UI** | SATEM Design System | Tokens de diseño Dark Mode nativos (Vanilla CSS Variables), accesibilidad y responsive. |
 | **Iconografía** | Lucide React | Iconos vectoriales consistentes y ligeros. |
-| **Autenticación** | JWT · Cookies HTTP-only | Control de acceso basado en roles (RBAC) y Tenant Isolation. |
+| **Autenticación** | JWT · Cookie HTTP-only `zion_auth_token` | Control de acceso basado en roles (RBAC), fallback dual para migración continua (`zion_auth_token` / `satem_auth_token` / `Bearer`) y Tenant Isolation. |
 | **Testing** | Vitest · Supertest | Suites automatizadas unitarias, de integración y E2E. |
 
 ---
@@ -70,7 +70,49 @@ Para una descripción técnica exhaustiva, revisa el documento dedicado:
 
 ---
 
-## 4. Estructura del Repositorio
+## 4. Módulo Destacado: Cero Papel, Documentación Oficial, Firmas y CRM
+
+El módulo **Cero Papel** digitaliza de punta a punta la documentación reglamentaria, formaliza la comunicación de incidentes y centraliza la gestión comercial:
+
+- **Generador de Documentos Oficiales PDF**: Renderizado vectorial programático de Órdenes de Servicio, Guías de Despacho, Actas de Recepción Conforme y Órdenes de Trabajo con membrete oficial Zion Services y resolución sanitaria.
+- **Firma Digital Táctil**: Captura en tablet e inserción vectorial en el Acta de Recepción Conforme con identificación del receptor y marca de tiempo.
+- **Verificación Criptográfica por Código QR**: Cada documento PDF incluye un hash SHA-256 y un código QR que apunta a la URL pública `GET /api/documentos/verificar/:hash`, accesible para fiscalizadores sin requerir login.
+- **Bitácora de Terreno (Anti-WhatsApp)**: Registro estructurado en 1 clic de hitos y novedades (`TRAFICO`, `ACCESO_DENEGADO`, `FALLA_EQUIPO`, etc.) con coordenadas GPS y fotografías, alertando a Operaciones y al Cliente en vivo.
+- **CRM de Clientes y Sucursales**: Administración integral de empresas clientes con validación estricta de RUT chileno (algoritmo Módulo 11) y sucursales georreferenciadas.
+- **Expedientes Digitales Limpios**: Streaming de descarga individual y consolidado en ZIP dinámico conteniendo exclusivamente documentos y fotos reales.
+
+Para una descripción técnica exhaustiva, revisa el documento dedicado:  
+👉 [Arquitectura Técnica: Cero Papel, Documentos Oficiales, Firmas y CRM](file:///d:/Dev/zion-services/docs/ARQUITECTURA_DOCUMENTOS_OFICIALES_CERO_PAPEL.md).
+
+---
+
+## 5. Módulo Destacado: Gestión de Flota e Inspecciones Operacionales
+
+El módulo de **Gestión de Flota** proporciona control en tiempo real sobre los vehículos (camiones cisterna, tolvas, camionetas) y equipamiento especializado (equipos de succión e hidrojet) de Zion Services:
+
+- **Interfaz Minimalista y Consistente**: Vistas refactorizadas con los componentes canónicos de interfaz (`Card`, `CardHeader`, `CardTitle`, `Badge`, `Button`, `.table-container`), eliminando estilos heterogéneos para una experiencia fluida.
+- **Métricas Operacionales en Tiempo Real (KPIs)**: Contadores ejecutivos para `Total Unidades`, `Habilitadas`, `En Mantenimiento/Bloqueadas` con actualización instantánea.
+- **Control de Estados Operacionales**: Gestión estricta de estados (`HABILITADO` / `DESHABILITADO`), auditoría de cambios y prevención de despacho de camiones no habilitados o sin checklist vigente.
+- **Transferencia y Reasignación de Faenas**: Flujo controlado para reasignar unidades entre bases y contratos operacionales con registro histórico.
+- **Identidad de Marca Exclusiva**: Erradicación de marcas y elementos externos, garantizando una presentación corporativa limpia bajo los estándares de Zion Services.
+
+---
+
+## 6. Seguridad, Autenticación y Control de Acceso (RBAC)
+
+La plataforma cuenta con un robusto subsistema de seguridad defensiva y gestión de identidades:
+
+- **Cookie HTTP-Only Oficial (`zion_auth_token`)**: El inicio de sesión emite un token JWT almacenado en cookies seguras (`HttpOnly`, `SameSite=Lax`, `Secure` en producción) para mitigar vectores de ataque XSS y CSRF.
+- **Fallback Dual Resiliente**: El middleware de autenticación (`auth.middleware.ts`) prioriza `zion_auth_token`, manteniendo soporte retroactivo para la cookie legacy `satem_auth_token` y cabeceras `Authorization: Bearer <token>`, evitando disrupciones a usuarios en faena.
+- **Cierre de Sesión Limpio**: El endpoint `POST /api/auth/logout` invalida y remueve concurrentemente las cookies `zion_auth_token`, `satem_auth_token`, `accessToken` y `refreshToken`.
+- **Aislamiento Multitenant (Tenant Isolation)**: Filtro estricto que restringe el acceso de usuarios externos con rol `CLIENTE` únicamente a los datos de su propia empresa contratante.
+
+Para una descripción técnica exhaustiva, revisa el documento dedicado:  
+👉 [Arquitectura Técnica: Seguridad, Autenticación y RBAC](file:///d:/Dev/zion-services/docs/ARQUITECTURA_SEGURIDAD_Y_AUTENTICACION.md).
+
+---
+
+## 7. Estructura del Repositorio
 
 ```text
 zion-services/
@@ -83,19 +125,24 @@ zion-services/
 │   │   └── seed-planning.ts    # Catálogo de servicios y plantas de destino
 │   ├── src/
 │   │   ├── controllers/        # Controladores HTTP (planning, catalogo, etc.)
-│   │   ├── middleware/         # Autenticación JWT y RBAC
-│   │   ├── routes/             # Enrutadores REST
+│   │   ├── middleware/         # Autenticación JWT, RBAC y Tenant Isolation
+│   │   ├── routes/             # Enrutadores REST (/api/auth, /api/flota, etc.)
 │   │   ├── services/           # Lógica de negocio y detección de conflictos
 │   │   └── validators/         # Esquemas de validación Zod
 │   ├── test/                   # Tests unitarios de servicios y validadores
 │   └── tests/                  # Tests de integración REST y flujos E2E
 ├── docs/                       # Documentación técnica y diagramas de arquitectura
-│   └── ARQUITECTURA_PLANIFICACION_AGENDA.md
+│   ├── ARQUITECTURA_DOCUMENTOS_OFICIALES_CERO_PAPEL.md
+│   ├── ARQUITECTURA_PLANIFICACION_AGENDA.md
+│   └── ARQUITECTURA_SEGURIDAD_Y_AUTENTICACION.md
 ├── frontend/                   # Frontend React / TypeScript / Vite
 │   ├── src/
-│   │   ├── components/         # Componentes UI (SATEM Design System)
-│   │   │   ├── client/         # MultiServiceRequestWizard
-│   │   │   └── commercial/     # ServiceCalendar, AssignmentModal, etc.
+│   │   ├── components/         # Componentes UI canónicos (Card, Badge, Button)
+│   │   │   ├── admin/          # ClientManagementView, UserManagementPanel
+│   │   │   ├── client/         # MultiServiceRequestWizard, ClientPortalView
+│   │   │   ├── commercial/     # ServiceCalendar, AssignmentModal, etc.
+│   │   │   ├── fleet/          # FleetManagementPanel, modales de flota
+│   │   │   └── ui/             # Componentes canónicos del sistema de diseño
 │   │   ├── hooks/              # Custom hooks (useServiceCalendar)
 │   │   └── services/           # Clientes HTTP hacia la API REST
 └── openspec/                   # Especificaciones OpenSpec (specs, changes, tasks)
@@ -103,14 +150,14 @@ zion-services/
 
 ---
 
-## 5. Puesta en Marcha en Entorno Local
+## 8. Puesta en Marcha en Entorno Local
 
-### 5.1 Requisitos Previos
+### 6.1 Requisitos Previos
 - **Node.js**: v22+
 - **npm**: v10+
 - **MySQL**: v8.0+
 
-### 5.2 Configuración del Backend
+### 6.2 Configuración del Backend
 
 1. Ingresar al directorio del backend e instalar dependencias:
    ```powershell
@@ -144,7 +191,7 @@ zion-services/
    ```
    *El servidor quedará escuchando en `http://localhost:4000`.*
 
-### 5.3 Configuración del Frontend
+### 6.3 Configuración del Frontend
 
 1. En una nueva terminal, ingresar al directorio del frontend e instalar dependencias:
    ```powershell
@@ -160,7 +207,7 @@ zion-services/
 
 ---
 
-## 6. Pruebas Automatizadas
+## 9. Pruebas Automatizadas
 
 El proyecto cuenta con suites de pruebas completas ejecutadas con **Vitest**:
 
@@ -171,12 +218,12 @@ npm --prefix backend test
 
 Las suites cubren:
 - **Pruebas Unitarias**: Detección de solapamiento horario y cálculo de márgenes de traslado (`test/services/conflict-detection.spec.ts`), validadores Zod (`test/validators/planning.validator.spec.ts`).
-- **Pruebas de Integración**: Endpoints REST, RBAC y emisión 1:1 de OS (`tests/planning.integration.test.ts`).
+- **Pruebas de Integración y Seguridad**: Autenticación con cookie `zion_auth_token` y fallback dual (`auth.security.test.ts`), endpoints REST, RBAC y emisión 1:1 de OS (`tests/planning.integration.test.ts`).
 - **Pruebas E2E**: Flujo integral de solicitud multi-atención, bloqueo por solapamiento, forzado de traslado con justificación obligatoria y reasignación (`tests/planning.e2e-flow.test.ts`).
 
 ---
 
-## 7. Metodología Multi-Agente y OpenSpec
+## 10. Metodología Multi-Agente y OpenSpec
 
 Este repositorio opera bajo el estándar de ingeniería **SATEM Multi-Agente + OpenSpec**:
 - Las especificaciones funcionales se encuentran en `openspec/specs/`.
