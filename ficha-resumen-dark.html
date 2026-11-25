@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Zion Services — Ficha Resumen Ejecutivo</title>
+  <style>
+    :root {
+      --zion-green: #10b981;
+      --zion-green-dim: #059669;
+      --zion-green-glow: rgba(16,185,129,0.15);
+      --zion-bg: #0f1117;
+      --zion-card: #161b27;
+      --zion-card2: #1e2535;
+      --zion-border: rgba(255,255,255,0.08);
+      --zion-text: #f1f5f9;
+      --zion-muted: #94a3b8;
+      --zion-accent: #3b82f6;
+    }
+
+    @page {
+      size: 210mm 297mm; /* A4 Portrait */
+      margin: 0;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+
+    body {
+      background-color: var(--zion-bg) !important;
+      color: var(--zion-text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .page {
+      width: 210mm;
+      height: 297mm;
+      max-height: 297mm;
+      page-break-after: always;
+      break-after: page;
+      position: relative;
+      background-color: var(--zion-bg) !important;
+      padding: 16mm 18mm 14mm 18mm;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      overflow: hidden;
+      box-sizing: border-box;
+    }
+
+    /* ---- TOP BAR ---- */
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--zion-border);
+      padding-bottom: 10px;
+      margin-bottom: 14px;
+    }
+    .brand-logo {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      font-weight: 800;
+      font-size: 14px;
+      letter-spacing: 0.1em;
+      color: #ffffff;
+    }
+    .brand-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--zion-green);
+      box-shadow: 0 0 8px var(--zion-green);
+    }
+    .topbar-subtitle {
+      font-size: 10.5px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--zion-green);
+    }
+    .topbar-badge {
+      font-size: 10px;
+      font-weight: 600;
+      padding: 2px 8px;
+      background: var(--zion-green-glow);
+      color: var(--zion-green);
+      border-radius: 16px;
+      border: 1px solid rgba(16,185,129,0.3);
+    }
+
+    /* ---- HEADINGS ---- */
+    .section-title {
+      font-size: 13.5px;
+      font-weight: 800;
+      color: #ffffff;
+      margin: 0 0 8px 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .section-title::before {
+      content: '';
+      width: 3.5px;
+      height: 14px;
+      background: var(--zion-green);
+      border-radius: 2px;
+    }
+
+    /* ---- CARDS & BLOCKS ---- */
+    .card {
+      background: var(--zion-card);
+      border: 1px solid var(--zion-border);
+      border-radius: 8px;
+      padding: 12px 14px;
+    }
+
+    /* Intro Block */
+    .intro-card {
+      background: var(--zion-card);
+      border: 1px solid var(--zion-border);
+      border-left: 3.5px solid var(--zion-green);
+      border-radius: 8px;
+      padding: 12px 14px;
+      margin-bottom: 14px;
+    }
+    .intro-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--zion-green);
+      margin-bottom: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .intro-text {
+      font-size: 11px;
+      color: #cbd5e1;
+      line-height: 1.5;
+      margin: 0;
+    }
+
+    /* Flow Grid */
+    .flow-steps-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+    .flow-step-item {
+      background: var(--zion-card);
+      border: 1px solid var(--zion-border);
+      border-radius: 7px;
+      padding: 8px 10px;
+      display: flex;
+      gap: 9px;
+      align-items: flex-start;
+    }
+    .flow-step-item.span-2 {
+      grid-column: span 2;
+    }
+    .step-num-circle {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--zion-green);
+      color: #0f1117;
+      font-size: 10.5px;
+      font-weight: 900;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+    .step-content {
+      flex: 1;
+    }
+    .step-header-text {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 2px;
+    }
+    .step-name {
+      font-size: 11px;
+      font-weight: 700;
+      color: #ffffff;
+    }
+    .step-doc-tag {
+      font-size: 9px;
+      font-weight: 700;
+      color: #60a5fa;
+      background: rgba(59,130,246,0.15);
+      border: 1px solid rgba(59,130,246,0.3);
+      padding: 1px 5px;
+      border-radius: 3px;
+    }
+    .step-desc {
+      font-size: 9.5px;
+      color: var(--zion-muted);
+      line-height: 1.35;
+      margin: 0;
+    }
+
+    /* Tables */
+    .dark-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 10px;
+      margin-bottom: 10px;
+      border: 1px solid var(--zion-border);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    .dark-table th {
+      background: var(--zion-card2);
+      color: #ffffff;
+      font-weight: 700;
+      text-align: left;
+      padding: 7px 9px;
+      border-bottom: 1px solid var(--zion-border);
+      font-size: 9.5px;
+      letter-spacing: 0.03em;
+    }
+    .dark-table td {
+      padding: 6.5px 9px;
+      border-bottom: 1px solid var(--zion-border);
+      color: #cbd5e1;
+      line-height: 1.35;
+    }
+    .dark-table tr:last-child td {
+      border-bottom: none;
+    }
+    .dark-table tr:nth-child(even) {
+      background: rgba(255,255,255,0.02);
+    }
+    .dark-table tr:hover {
+      background: rgba(255,255,255,0.04);
+    }
+    .table-bold {
+      font-weight: 700;
+      color: #ffffff;
+    }
+    .table-accent {
+      font-weight: 700;
+      color: var(--zion-green);
+    }
+
+    /* Callout .zip */
+    .zip-callout {
+      background: var(--zion-card2);
+      border: 1px solid rgba(16,185,129,0.3);
+      border-radius: 7px;
+      padding: 9px 12px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .zip-icon {
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+    .zip-text {
+      font-size: 10px;
+      color: var(--zion-muted);
+      line-height: 1.4;
+      margin: 0;
+    }
+    .zip-highlight {
+      color: #ffffff;
+      font-weight: 700;
+    }
+
+    /* Two columns block */
+    .two-col-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    /* Footer */
+    .footer {
+      border-top: 1px solid var(--zion-border);
+      padding-top: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 9.5px;
+      color: var(--zion-muted);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ========================================================
+       PÁGINA 1: INTRODUCCIÓN, FLUJO Y DOCUMENTOS
+       ======================================================== -->
+  <div class="page">
+    <div>
+      <!-- TOPBAR -->
+      <div class="topbar">
+        <div class="brand-logo">
+          <div class="brand-dot"></div>
+          ZION SERVICES
+        </div>
+        <span class="topbar-subtitle">Resumen Ejecutivo de Plataforma</span>
+        <span class="topbar-badge">v1.0 · Noviembre 2026</span>
+      </div>
+
+      <!-- 1. INTRODUCCIÓN -->
+      <div class="intro-card">
+        <div class="intro-title">¿Qué es esta plataforma?</div>
+        <p class="intro-text">
+          Herramienta web desarrollada a medida para digitalizar el ciclo operacional completo de <strong>Zion Services</strong>: desde la solicitud autónoma del cliente hasta el cierre con documentación oficial firmada in situ. Elimina radicalmente la coordinación por WhatsApp, los talonarios en papel y la dispersión de expedientes físicos, logrando un proceso <strong>100% auditable y con cero papeles</strong>.
+        </p>
+      </div>
+
+      <!-- 2. FLUJO DEL PROCESO -->
+      <div class="section-title">Flujo Operacional de Punta a Punta (7 Etapas)</div>
+      
+      <div class="flow-steps-grid">
+        
+        <div class="flow-step-item">
+          <div class="step-num-circle">1</div>
+          <div class="step-content">
+            <div class="step-header-text">
+              <span class="step-name">Administración Inicial</span>
+            </div>
+            <p class="step-desc">Creación de empresas (RUT Módulo 11), faenas con GPS, contactos operativos y registro de camiones/equipos.</p>
+          </div>
+        </div>
+
+        <div class="flow-step-item">
+          <div class="step-num-circle">2</div>
+          <div class="step-content">
+            <div class="step-header-text">
+              <span class="step-name">Portal del Cliente</span>
+            </div>
+            <p class="step-desc">Wizard de solicitud multi-atención: selección de faenas, catálogo de servicios requeridos y fechas solicitadas.</p>
+          </div>
+        </div>
+
+        <div class="flow-step-item">
+          <div class="step-num-circle">3</div>
+          <div class="step-content">
+            <div class="step-header-text">
+              <span class="step-name">Gestión Comercial</span>
+              <span class="step-doc-tag">Emite OS</span>
+            </div>
+            <p class="step-desc">Agenda multiasistencia, detección de conflictos (doble asignación / alerta 4h), asignación de chofer y emisión de OS.</p>
+          </div>
+        </div>
+
+        <div class="flow-step-item">
+          <div class="step-num-circle">4</div>
+          <div class="step-content">
+            <div class="step-header-text">
+              <span class="step-name">Pre-partida Conductor</span>
+              <span class="step-doc-tag">Emite GD</span>
+            </div>
+            <p class="step-desc">Checklist F-GMT obligatorio en tablet. Si se aprueba, se autoriza salida, se emite GD y se activa tracking GPS.</p>
+          </div>
+        </div>
+
+        <div class="flow-step-item">
+          <div class="step-num-circle">5</div>
+          <div class="step-content">
+            <div class="step-header-text">
+              <span class="step-name">Ejecución en Terreno</span>
+              <span class="step-doc-tag">Emite OT</span>
+            </div>
+            <p class="step-desc">Llegada registrada por GPS, fotos de evidencia (perimetral, EPP, proceso) y reporte de incidentes en un toque.</p>
+          </div>
+        </div>
+
+        <div class="flow-step-item">
+          <div class="step-num-circle">6</div>
+          <div class="step-content">
+            <div class="step-header-text">
+              <span class="step-name">Recepción Conforme</span>
+              <span class="step-doc-tag">Emite ARC</span>
+            </div>
+            <p class="step-desc">Firma digital táctil del cliente en la tablet, generación de Acta ARC con QR y habilitación de descarga del .zip.</p>
+          </div>
+        </div>
+
+        <div class="flow-step-item span-2">
+          <div class="step-num-circle">7</div>
+          <div class="step-content">
+            <div class="step-header-text">
+              <span class="step-name">Cierre Comercial & Facturación</span>
+            </div>
+            <p class="step-desc">Consolidación del Estado de Pago con soporte documental 100% verificado, sin papeles extraviados ni discrepancias de cobro.</p>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- 3. DOCUMENTOS OFICIALES -->
+      <div class="section-title">Documentos Oficiales Digitales (Cero Papel)</div>
+
+      <table class="dark-table">
+        <thead>
+          <tr>
+            <th style="width: 25%;">Documento</th>
+            <th style="width: 12%;">Abrev.</th>
+            <th style="width: 28%;">Momento de Emisión</th>
+            <th style="width: 35%;">Contenido y Seguridad</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="table-bold">Orden de Servicio</td>
+            <td class="table-accent">OS</td>
+            <td>Al confirmar programación</td>
+            <td>Datos del cliente, faena y servicios autorizados (PDF + QR).</td>
+          </tr>
+          <tr>
+            <td class="table-bold">Guía de Despacho</td>
+            <td class="table-accent">GD</td>
+            <td>Al autorizar salida del camión</td>
+            <td>Checklist F-GMT aprobado, chofer, patente y destino GPS.</td>
+          </tr>
+          <tr>
+            <td class="table-bold">Orden de Trabajo</td>
+            <td class="table-accent">OT</td>
+            <td>Durante la atención</td>
+            <td>Registro de faena, fotos perimetrales, uso de EPP e incidentes.</td>
+          </tr>
+          <tr>
+            <td class="table-bold">Acta Recepción Conforme</td>
+            <td class="table-accent">ARC</td>
+            <td>Al finalizar el servicio</td>
+            <td>Firma digital táctil in situ + Código QR de verificación pública.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- CALLOUT EXPEDIENTE ZIP -->
+      <div class="zip-callout">
+        <div class="zip-icon">📦</div>
+        <p class="zip-text">
+          <span class="zip-highlight">Expediente Digital Consolidado (.zip):</span> Al culminar la atención, el cliente puede descargar desde su portal un archivo comprimido con los 4 PDFs oficiales, todas las fotografías registradas en terreno y la bitácora cronológica con firmas criptográficas.
+        </p>
+      </div>
+
+    </div>
+
+    <!-- FOOTER PÁGINA 1 -->
+    <div class="footer">
+      <span>Zion Services · Transformación Digital Operacional</span>
+      <span>Ficha Resumen Ejecutivo · Página 1 de 2 · Confidencial</span>
+    </div>
+  </div>
+
+
+  <!-- ========================================================
+       PÁGINA 2: MÓDULOS, ROLES Y ARQUITECTURA TÉCNICA
+       ======================================================== -->
+  <div class="page">
+    <div>
+      <!-- TOPBAR -->
+      <div class="topbar">
+        <div class="brand-logo">
+          <div class="brand-dot"></div>
+          ZION SERVICES
+        </div>
+        <span class="topbar-subtitle">Módulos, Roles y Arquitectura</span>
+        <span class="topbar-badge">v1.0 · Noviembre 2026</span>
+      </div>
+
+      <!-- 4. MÓDULOS DEL SISTEMA -->
+      <div class="section-title">Módulos Operacionales Implementados</div>
+
+      <table class="dark-table" style="margin-bottom: 14px;">
+        <thead>
+          <tr>
+            <th style="width: 25%;">Módulo</th>
+            <th style="width: 20%;">Usuarios / Roles</th>
+            <th style="width: 55%;">Capacidades Principales</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="table-bold">🏢 Gestión de Clientes</td>
+            <td class="table-accent">Admin, Comercial</td>
+            <td>CRUD empresas con validación RUT (Módulo 11), sucursales con GPS, contactos operativos y búsqueda predictiva.</td>
+          </tr>
+          <tr>
+            <td class="table-bold">👥 Gestión de Usuarios</td>
+            <td class="table-accent">Admin, Superadmin</td>
+            <td>Cuentas por rol, vinculación directa a empresa cliente, reset de contraseñas y activación/bloqueo inmediato.</td>
+          </tr>
+          <tr>
+            <td class="table-bold">🚛 Gestión de Flota</td>
+            <td class="table-accent">Admin, Jefe Ops</td>
+            <td>Registro de camiones/equipos, habilitación con motivo, bloqueo por checklist y traspaso de servicios en curso.</td>
+          </tr>
+          <tr>
+            <td class="table-bold">📅 Gestión Comercial</td>
+            <td class="table-accent">Comercial, Admin</td>
+            <td>Calendario interactivo (mes/semana/día), asignación con detección de conflictos (doble asignación / alerta 4h), emails y Estado de Pago.</td>
+          </tr>
+          <tr>
+            <td class="table-bold">💻 Portal del Cliente</td>
+            <td class="table-accent">Cliente</td>
+            <td>Wizard de solicitud multi-atención, seguimiento GPS de camión en vivo, bitácora de servicio y descarga de dossier .zip.</td>
+          </tr>
+          <tr>
+            <td class="table-bold">🗺️ Jefe de Operaciones</td>
+            <td class="table-accent">Jefe Ops, Admin</td>
+            <td>Mapa de flota en tiempo real, supervisión de servicios activos simultáneos y monitoreo de trayectos.</td>
+          </tr>
+          <tr>
+            <td class="table-bold">📱 App Tablet Conductor</td>
+            <td class="table-accent">Conductor</td>
+            <td>Checklist F-GMT, navegación, llegada GPS, fotos de terreno, firma digital táctil del cliente y modo offline.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- 5. ROLES Y TECNOLOGÍA EN 2 COLUMNAS -->
+      <div class="two-col-grid">
+
+        <!-- Columna Izquierda: Roles de Acceso -->
+        <div>
+          <div class="section-title">Matriz de Roles de Acceso</div>
+          <table class="dark-table">
+            <thead>
+              <tr>
+                <th style="width: 40%;">Rol</th>
+                <th style="width: 60%;">Alcance Operacional</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="table-accent">SUPERADMIN</td>
+                <td>Control total del sistema y seguridad.</td>
+              </tr>
+              <tr>
+                <td class="table-accent">ADMIN</td>
+                <td>Clientes, usuarios, flota y operaciones.</td>
+              </tr>
+              <tr>
+                <td class="table-accent">COMERCIAL</td>
+                <td>Planificación, agenda y facturación.</td>
+              </tr>
+              <tr>
+                <td class="table-accent">JEFE_OPERACIONES</td>
+                <td>Mapa satelital y control de flota.</td>
+              </tr>
+              <tr>
+                <td class="table-accent">CONDUCTOR</td>
+                <td>App tablet, checklists, fotos y firmas.</td>
+              </tr>
+              <tr>
+                <td class="table-accent">CLIENTE</td>
+                <td>Portal propio: solicitudes y descargas.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Columna Derecha: Arquitectura Tecnológica -->
+        <div>
+          <div class="section-title">Arquitectura y Seguridad</div>
+          <table class="dark-table">
+            <thead>
+              <tr>
+                <th style="width: 35%;">Componente</th>
+                <th style="width: 65%;">Tecnología Implementada</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="table-bold">Backend API</td>
+                <td>Node.js + TypeScript + Express</td>
+              </tr>
+              <tr>
+                <td class="table-bold">Base de Datos</td>
+                <td>MySQL Relacional con Prisma ORM</td>
+              </tr>
+              <tr>
+                <td class="table-bold">Frontend</td>
+                <td>React + TypeScript (PWA Responsive)</td>
+              </tr>
+              <tr>
+                <td class="table-bold">Generación PDF</td>
+                <td>Motor PDFKit de alta fidelidad + QR</td>
+              </tr>
+              <tr>
+                <td class="table-bold">Autenticación</td>
+                <td>JWT con cookies seguras HTTP-only</td>
+              </tr>
+              <tr>
+                <td class="table-bold">Conectividad</td>
+                <td>Soporte offline en tablet con auto-sync</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- FOOTER PÁGINA 2 -->
+    <div class="footer">
+      <span>Zion Services · Transformación Digital Operacional</span>
+      <span>Ficha Resumen Ejecutivo · Página 2 de 2 · Confidencial</span>
+    </div>
+  </div>
+
+</body>
+</html>

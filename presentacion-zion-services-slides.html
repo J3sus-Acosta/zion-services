@@ -1,0 +1,1089 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Zion Services — Presentación Ejecutiva</title>
+  <style>
+    :root {
+      --zion-green: #10b981;
+      --zion-green-dim: #059669;
+      --zion-green-glow: rgba(16,185,129,0.15);
+      --zion-bg: #0f1117;
+      --zion-card: #161b27;
+      --zion-card2: #1e2535;
+      --zion-border: rgba(255,255,255,0.08);
+      --zion-text: #f1f5f9;
+      --zion-muted: #94a3b8;
+      --zion-accent: #3b82f6;
+    }
+
+    @page {
+      size: 297mm 210mm; /* A4 Landscape 16:9 feel */
+      margin: 0;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+
+    body {
+      background-color: var(--zion-bg) !important;
+      color: var(--zion-text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .slide {
+      width: 297mm;
+      height: 210mm;
+      max-height: 210mm;
+      page-break-after: always;
+      break-after: page;
+      position: relative;
+      background-color: var(--zion-bg) !important;
+      padding: 24mm 26mm 20mm 26mm;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      overflow: hidden;
+      box-sizing: border-box;
+    }
+
+    /* ---- TOP BAR ---- */
+    .slide-topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--zion-border);
+      padding-bottom: 12px;
+      margin-bottom: 18px;
+    }
+    .brand-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 800;
+      font-size: 14px;
+      letter-spacing: 0.1em;
+      color: var(--zion-text);
+    }
+    .brand-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--zion-green);
+      box-shadow: 0 0 10px var(--zion-green);
+    }
+    .slide-category {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--zion-green);
+    }
+    .slide-badge {
+      font-size: 10.5px;
+      font-weight: 600;
+      padding: 3px 10px;
+      background: var(--zion-green-glow);
+      color: var(--zion-green);
+      border-radius: 20px;
+      border: 1px solid rgba(16,185,129,0.3);
+    }
+
+    /* ---- HEADER TEXTS ---- */
+    .slide-header {
+      margin-bottom: 18px;
+    }
+    .slide-title {
+      font-size: 26px;
+      font-weight: 800;
+      margin: 0 0 6px 0;
+      color: #ffffff;
+      letter-spacing: -0.02em;
+    }
+    .slide-subtitle {
+      font-size: 13px;
+      color: var(--zion-muted);
+      margin: 0;
+      line-height: 1.45;
+    }
+
+    /* ---- CONTENT WRAPPER ---- */
+    .slide-body {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    /* ---- FOOTER ---- */
+    .slide-footer {
+      border-top: 1px solid var(--zion-border);
+      padding-top: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 10.5px;
+      color: var(--zion-muted);
+    }
+
+    /* ========================================================
+       SLIDE 1: PORTADA
+       ======================================================== */
+    .hero-content {
+      text-align: center;
+      max-width: 820px;
+      margin: 0 auto;
+    }
+    .hero-eyebrow {
+      display: inline-block;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--zion-green);
+      margin-bottom: 14px;
+      padding: 4px 14px;
+      background: var(--zion-green-glow);
+      border-radius: 30px;
+      border: 1px solid rgba(16,185,129,0.25);
+    }
+    .hero-title {
+      font-size: 42px;
+      font-weight: 900;
+      line-height: 1.15;
+      margin: 0 0 16px 0;
+      background: linear-gradient(135deg, #ffffff 40%, #10b981 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: -0.03em;
+    }
+    .hero-subtitle {
+      font-size: 15px;
+      color: var(--zion-muted);
+      line-height: 1.6;
+      margin: 0 auto 32px auto;
+      max-width: 700px;
+    }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-top: 10px;
+    }
+    .stat-card {
+      background: var(--zion-card);
+      border: 1px solid var(--zion-border);
+      border-radius: 12px;
+      padding: 18px 14px;
+      text-align: center;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+    }
+    .stat-number {
+      font-size: 34px;
+      font-weight: 900;
+      color: var(--zion-green);
+      line-height: 1;
+      margin-bottom: 6px;
+    }
+    .stat-label {
+      font-size: 11.5px;
+      color: var(--zion-muted);
+      font-weight: 500;
+    }
+
+    /* ========================================================
+       SLIDE 2: CONTEXTO (ANTES VS AHORA)
+       ======================================================== */
+    .compare-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      height: 100%;
+    }
+    .compare-box {
+      border-radius: 12px;
+      padding: 20px 22px;
+      border: 1px solid;
+      display: flex;
+      flex-direction: column;
+    }
+    .compare-box.before {
+      background: rgba(239, 68, 68, 0.05);
+      border-color: rgba(239, 68, 68, 0.25);
+    }
+    .compare-box.after {
+      background: rgba(16, 185, 129, 0.06);
+      border-color: rgba(16, 185, 129, 0.3);
+    }
+    .compare-tag {
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .compare-box.before .compare-tag { color: #f87171; }
+    .compare-box.after .compare-tag { color: var(--zion-green); }
+    .compare-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 9px;
+    }
+    .compare-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 12px;
+      color: #cbd5e1;
+      line-height: 1.4;
+    }
+    .compare-icon {
+      font-size: 14px;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    /* ========================================================
+       SLIDE 3: FLUJO OPERACIONAL (PIPELINE)
+       ======================================================== */
+    .flow-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+    .flow-grid-bottom {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+    }
+    .step-card {
+      background: var(--zion-card);
+      border: 1px solid var(--zion-border);
+      border-radius: 10px;
+      padding: 14px;
+      position: relative;
+    }
+    .step-card-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+    .step-badge {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: var(--zion-green);
+      color: #0f1117;
+      font-size: 11px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .step-title {
+      font-size: 12.5px;
+      font-weight: 700;
+      color: #ffffff;
+    }
+    .step-role {
+      font-size: 10px;
+      color: var(--zion-green);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 4px;
+    }
+    .step-desc {
+      font-size: 11px;
+      color: var(--zion-muted);
+      line-height: 1.35;
+    }
+    .step-doc {
+      display: inline-block;
+      margin-top: 6px;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 4px;
+      background: rgba(59,130,246,0.15);
+      border: 1px solid rgba(59,130,246,0.3);
+      color: #60a5fa;
+    }
+
+    /* ========================================================
+       SLIDE 4 & 5: MÓDULOS DEL SISTEMA
+       ======================================================== */
+    .modules-2x2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+    .modules-3col {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+    }
+    .mod-card {
+      background: var(--zion-card);
+      border: 1px solid var(--zion-border);
+      border-radius: 11px;
+      padding: 16px 18px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .mod-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+    .mod-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      background: var(--zion-green-glow);
+      border: 1px solid rgba(16,185,129,0.25);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+    .mod-name {
+      font-size: 14px;
+      font-weight: 700;
+      color: #ffffff;
+      margin: 0 0 2px 0;
+    }
+    .mod-role {
+      font-size: 10px;
+      color: var(--zion-green);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .mod-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    .mod-list li {
+      font-size: 11px;
+      color: #cbd5e1;
+      display: flex;
+      align-items: flex-start;
+      gap: 6px;
+      line-height: 1.35;
+    }
+    .mod-list li::before {
+      content: '▸';
+      color: var(--zion-green);
+      font-size: 10px;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+    .mod-tag {
+      align-self: flex-start;
+      margin-top: 10px;
+      font-size: 9.5px;
+      padding: 2px 8px;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--zion-border);
+      color: var(--zion-muted);
+    }
+
+    /* ========================================================
+       SLIDE 6: DOCUMENTOS OFICIALES
+       ======================================================== */
+    .docs-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+      margin-bottom: 16px;
+    }
+    .doc-box {
+      background: var(--zion-card);
+      border: 1px solid var(--zion-border);
+      border-radius: 11px;
+      padding: 16px 14px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .doc-icon {
+      font-size: 26px;
+      margin-bottom: 6px;
+    }
+    .doc-name {
+      font-size: 13px;
+      font-weight: 700;
+      color: #ffffff;
+      margin-bottom: 2px;
+    }
+    .doc-abbr {
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--zion-green);
+      letter-spacing: 0.08em;
+      margin-bottom: 8px;
+    }
+    .doc-desc {
+      font-size: 10.5px;
+      color: var(--zion-muted);
+      line-height: 1.4;
+      margin-bottom: 10px;
+      flex: 1;
+    }
+    .doc-chips {
+      display: flex;
+      gap: 4px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .doc-chip {
+      font-size: 9.5px;
+      font-weight: 600;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: rgba(59,130,246,0.12);
+      border: 1px solid rgba(59,130,246,0.25);
+      color: #60a5fa;
+    }
+
+    .dossier-callout {
+      background: var(--zion-card2);
+      border: 1px solid rgba(16,185,129,0.3);
+      border-radius: 11px;
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      gap: 18px;
+    }
+    .dossier-icon {
+      font-size: 32px;
+      flex-shrink: 0;
+    }
+    .dossier-title {
+      font-size: 13.5px;
+      font-weight: 700;
+      color: #ffffff;
+      margin-bottom: 4px;
+    }
+    .dossier-desc {
+      font-size: 11.5px;
+      color: var(--zion-muted);
+      line-height: 1.45;
+    }
+    .dossier-badges {
+      display: flex;
+      gap: 6px;
+      margin-top: 8px;
+    }
+    .dossier-badge {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 4px;
+      background: var(--zion-green-glow);
+      border: 1px solid rgba(16,185,129,0.3);
+      color: var(--zion-green);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ==========================================
+       SLIDE 1: PORTADA
+       ========================================== -->
+  <div class="slide">
+    <div class="slide-topbar">
+      <div class="brand-logo">
+        <div class="brand-dot"></div>
+        ZION SERVICES
+      </div>
+      <span class="slide-badge">v1.0 · Noviembre 2026</span>
+    </div>
+
+    <div class="slide-body">
+      <div class="hero-content">
+        <span class="hero-eyebrow">Plataforma de Gestión Operacional</span>
+        <h1 class="hero-title">Transformación Digital<br>para Zion Services</h1>
+        <p class="hero-subtitle">
+          Una plataforma completa que digitaliza el ciclo operacional completo — desde la solicitud autónoma del cliente hasta la facturación — eliminando la dependencia de WhatsApp, los talonarios en papel y los expedientes físicos dispersos.
+        </p>
+
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-number">7</div>
+            <div class="stat-label">Módulos Operacionales</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-number">4</div>
+            <div class="stat-label">Documentos Oficiales PDF</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-number">0</div>
+            <div class="stat-label">Papel en el Proceso</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-number">100%</div>
+            <div class="stat-label">Trazabilidad Inviolable</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="slide-footer">
+      <span>Zion Services · Plataforma de Gestión Operacional</span>
+      <span>Presentación Ejecutiva · Slide 1 de 6 · Documento Confidencial</span>
+    </div>
+  </div>
+
+
+  <!-- ==========================================
+       SLIDE 2: CONTEXTO (ANTES VS AHORA)
+       ========================================== -->
+  <div class="slide">
+    <div class="slide-topbar">
+      <div class="brand-logo">
+        <div class="brand-dot"></div>
+        ZION SERVICES
+      </div>
+      <span class="slide-category">Diagnóstico Operacional</span>
+      <span class="slide-badge">Problema vs Solución</span>
+    </div>
+
+    <div class="slide-header">
+      <h2 class="slide-title">Del Caos Manual a la Operación Digital</h2>
+      <p class="slide-subtitle">Comparativa entre las fricciones operacionales detectadas en terreno y la solución implementada.</p>
+    </div>
+
+    <div class="slide-body">
+      <div class="compare-container">
+        
+        <!-- ANTES -->
+        <div class="compare-box before">
+          <div class="compare-tag">❌ Antes — Proceso Manual / WhatsApp</div>
+          <ul class="compare-list">
+            <li class="compare-item">
+              <span class="compare-icon">📱</span>
+              <span>Coordinación de servicios dispersa en múltiples grupos de WhatsApp (operaciones, chofer, comercial).</span>
+            </li>
+            <li class="compare-item">
+              <span class="compare-icon">📄</span>
+              <span>Órdenes de Servicio y Guías impresas en papel, expuestas a pérdida, deterioro o manchado en faena.</span>
+            </li>
+            <li class="compare-item">
+              <span class="compare-icon">📋</span>
+              <span>Checklists de pre-partida en papel sin validación preventiva ni bloqueo en caso de falla crítica.</span>
+            </li>
+            <li class="compare-item">
+              <span class="compare-icon">🗂️</span>
+              <span>Expedientes de atención archivados físicamente; búsqueda de antecedentes lenta y propensa a extravíos.</span>
+            </li>
+            <li class="compare-item">
+              <span class="compare-icon">📞</span>
+              <span>Clientes llamando constantemente para conocer el estado y la hora de llegada estimada del camión.</span>
+            </li>
+            <li class="compare-item">
+              <span class="compare-icon">✍️</span>
+              <span>Recepción conforme firmada a mano en hojas sueltas, requiriendo escaneo posterior y re-digitación.</span>
+            </li>
+            <li class="compare-item">
+              <span class="compare-icon">🔍</span>
+              <span>Sin respaldo objetivo ante discrepancias de volumen, horario de atención o estado perimetral.</span>
+            </li>
+          </ul>
+        </div>
+
+        <!-- AHORA -->
+        <div class="compare-box after">
+          <div class="compare-tag">✅ Ahora — Con la Plataforma Zion Services</div>
+          <ul class="compare-list">
+            <li class="compare-item">
+              <span class="compare-icon">🖥️</span>
+              <span>Portal web clientes: autoservicio para solicitar atenciones, consultar agenda y descargar reportes.</span>
+            </li>
+            <li class="compare-item">
+              <span class="compare-icon">📑</span>
+              <span>4 documentos oficiales PDF auto-generados al instante con firma digital y código QR de verificación.</span>
+            </li>
+            <li class="compare-item">
+              <span class="compare-icon">📱</span>
+              <span>App tablet conductor: checklist digital F-GMT obligatorio antes de autorizar la salida del vehículo.</span>
+            </li>
+            <li class="compare-item">
+              <span class="compare-icon">📦</span>
+              <span>Expediente digital completo descargable en 1 clic (.zip) con PDFs, fotos de terreno y bitácora.</span>
+            </li>
+            <li class="compare-item">
+              <span class="compare-icon">🗺️</span>
+              <span>Monitoreo satelital GPS: el cliente visualiza la ubicación del camión durante la ventana activa.</span>
+            </li>
+            <li class="compare-item">
+              <span class="compare-icon">✍️</span>
+              <span>Firma táctil digital capturada in situ en la tablet del conductor e incrustada en el Acta oficial.</span>
+            </li>
+            <li class="compare-item">
+              <span class="compare-icon">🔒</span>
+              <span>Trazabilidad 100% inviolable: cada evento se registra con marca temporal exacta, usuario y geolocalización.</span>
+            </li>
+          </ul>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="slide-footer">
+      <span>Zion Services · Transformación Digital Operacional</span>
+      <span>Presentación Ejecutiva · Slide 2 de 6 · Documento Confidencial</span>
+    </div>
+  </div>
+
+
+  <!-- ==========================================
+       SLIDE 3: FLUJO OPERACIONAL (7 PASOS)
+       ========================================== -->
+  <div class="slide">
+    <div class="slide-topbar">
+      <div class="brand-logo">
+        <div class="brand-dot"></div>
+        ZION SERVICES
+      </div>
+      <span class="slide-category">Flujo Operacional</span>
+      <span class="slide-badge">Ciclo de Punta a Punta</span>
+    </div>
+
+    <div class="slide-header">
+      <h2 class="slide-title">Cómo Fluye una Atención de Servicio</h2>
+      <p class="slide-subtitle">Trazabilidad ininterrumpida en 7 etapas: desde la solicitud autónoma hasta la consolidación para facturación.</p>
+    </div>
+
+    <div class="slide-body">
+      
+      <!-- Fila Superior (Pasos 1 al 4) -->
+      <div class="flow-grid">
+        
+        <div class="step-card">
+          <div class="step-card-header">
+            <div class="step-badge">1</div>
+            <div class="step-title">Administración</div>
+          </div>
+          <div class="step-role">Admin · Comercial</div>
+          <div class="step-desc">Registro de empresa cliente con RUT validado (Módulo 11), faenas con GPS, contactos y flota disponible.</div>
+        </div>
+
+        <div class="step-card">
+          <div class="step-card-header">
+            <div class="step-badge">2</div>
+            <div class="step-title">Portal Cliente</div>
+          </div>
+          <div class="step-role">Cliente</div>
+          <div class="step-desc">Wizard de solicitud multi-atención: selección de faenas, catálogo de servicios requeridos y fechas deseadas.</div>
+        </div>
+
+        <div class="step-card">
+          <div class="step-card-header">
+            <div class="step-badge">3</div>
+            <div class="step-title">Gestión Comercial</div>
+          </div>
+          <div class="step-role">Comercial · Admin</div>
+          <div class="step-desc">Calendario con detección de conflictos (doble asignación / alerta 4h), asignación de chofer/camión y notificación email.</div>
+          <span class="step-doc">Genera Orden de Servicio (OS)</span>
+        </div>
+
+        <div class="step-card">
+          <div class="step-card-header">
+            <div class="step-badge">4</div>
+            <div class="step-title">Pre-partida & Despacho</div>
+          </div>
+          <div class="step-role">Conductor · App Tablet</div>
+          <div class="step-desc">Checklist F-GMT obligatorio en tablet. Si se aprueba, se autoriza salida y se activa el GPS en vivo para el cliente.</div>
+          <span class="step-doc">Genera Guía Despacho (GD)</span>
+        </div>
+
+      </div>
+
+      <!-- Fila Inferior (Pasos 5 al 7) -->
+      <div class="flow-grid-bottom">
+
+        <div class="step-card">
+          <div class="step-card-header">
+            <div class="step-badge">5</div>
+            <div class="step-title">Ejecución en Faena</div>
+          </div>
+          <div class="step-role">Conductor · Terreno</div>
+          <div class="step-desc">Registro de llegada por GPS, captura fotográfica obligatoria (perimetral, EPP, proceso) y reporte ágil de incidentes.</div>
+          <span class="step-doc">Genera Orden de Trabajo (OT)</span>
+        </div>
+
+        <div class="step-card">
+          <div class="step-card-header">
+            <div class="step-badge">6</div>
+            <div class="step-title">Recepción Conforme</div>
+          </div>
+          <div class="step-role">Cliente en Faena · Conductor</div>
+          <div class="step-desc">Firma táctil digital del cliente en la tablet. Generación de Acta con QR y habilitación inmediata de descarga de expediente .zip.</div>
+          <span class="step-doc">Genera Acta Recepción (ARC)</span>
+        </div>
+
+        <div class="step-card">
+          <div class="step-card-header">
+            <div class="step-badge">7</div>
+            <div class="step-title">Cierre & Facturación</div>
+          </div>
+          <div class="step-role">Comercial · Facturación</div>
+          <div class="step-desc">Consolidación del Estado de Pago con respaldo documental 100% validado y auditable. Cobro sin discrepancias ni demoras.</div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <div class="slide-footer">
+      <span>Zion Services · Transformación Digital Operacional</span>
+      <span>Presentación Ejecutiva · Slide 3 de 6 · Documento Confidencial</span>
+    </div>
+  </div>
+
+
+  <!-- ==========================================
+       SLIDE 4: MÓDULOS (PARTE 1: GESTIÓN)
+       ========================================== -->
+  <div class="slide">
+    <div class="slide-topbar">
+      <div class="brand-logo">
+        <div class="brand-dot"></div>
+        ZION SERVICES
+      </div>
+      <span class="slide-category">Capacidades del Sistema</span>
+      <span class="slide-badge">Módulos de Gestión</span>
+    </div>
+
+    <div class="slide-header">
+      <h2 class="slide-title">Módulos de Administración y Planificación Comercial</h2>
+      <p class="slide-subtitle">Control centralizado para configurar la operación, gestionar usuarios y programar servicios sin fricción.</p>
+    </div>
+
+    <div class="slide-body">
+      <div class="modules-2x2">
+
+        <!-- Modulo 1: Clientes -->
+        <div class="mod-card">
+          <div>
+            <div class="mod-header">
+              <div class="mod-icon">🏢</div>
+              <div>
+                <h3 class="mod-name">Gestión de Clientes</h3>
+                <div class="mod-role">Admin · Comercial</div>
+              </div>
+            </div>
+            <ul class="mod-list">
+              <li>Registro de empresas con validación matemática de RUT (Módulo 11).</li>
+              <li>Gestión de faenas y sucursales con georreferenciación GPS obligatoria.</li>
+              <li>Registro de contactos operativos y administrativos por faena.</li>
+              <li>Búsqueda predictiva ágil por Razón Social o RUT.</li>
+              <li>Historial consolidado de atenciones y estados de servicio.</li>
+            </ul>
+          </div>
+          <span class="mod-tag">Portal Web · Escritorio</span>
+        </div>
+
+        <!-- Modulo 2: Usuarios -->
+        <div class="mod-card">
+          <div>
+            <div class="mod-header">
+              <div class="mod-icon">👥</div>
+              <div>
+                <h3 class="mod-name">Gestión de Usuarios</h3>
+                <div class="mod-role">Admin · Superadmin</div>
+              </div>
+            </div>
+            <ul class="mod-list">
+              <li>Control de acceso granular por rol (Admin, Comercial, Conductor, Cliente, Ops).</li>
+              <li>Vinculación directa de usuarios cliente a sus empresas autorizadas.</li>
+              <li>Reseteo seguro de credenciales con caducidad programada.</li>
+              <li>Activación y bloqueo instantáneo de cuentas comprometidas o dadas de baja.</li>
+              <li>Auditoría de inicios de sesión y actividad administrativa.</li>
+            </ul>
+          </div>
+          <span class="mod-tag">Portal Web · Escritorio</span>
+        </div>
+
+        <!-- Modulo 3: Flota -->
+        <div class="mod-card">
+          <div>
+            <div class="mod-header">
+              <div class="mod-icon">🚛</div>
+              <div>
+                <h3 class="mod-name">Gestión de Flota y Equipos</h3>
+                <div class="mod-role">Admin · Jefe Operaciones</div>
+              </div>
+            </div>
+            <ul class="mod-list">
+              <li>Registro detallado de camiones y equipos especializados (hidrojet, vacío).</li>
+              <li>Habilitación y deshabilitación de unidades con registro de motivo auditado.</li>
+              <li>Checklist preventivo de seguridad: bloqueo si no aprueba la inspección.</li>
+              <li>Traspaso ágil de servicios activos a camión de reemplazo ante incidentes mecánicos.</li>
+              <li>Monitoreo del estado técnico y disponibilidad operativa de cada vehículo.</li>
+            </ul>
+          </div>
+          <span class="mod-tag">Portal Web · Escritorio</span>
+        </div>
+
+        <!-- Modulo 4: Comercial -->
+        <div class="mod-card">
+          <div>
+            <div class="mod-header">
+              <div class="mod-icon">📅</div>
+              <div>
+                <h3 class="mod-name">Gestión Comercial & Calendario</h3>
+                <div class="mod-role">Comercial · Admin</div>
+              </div>
+            </div>
+            <ul class="mod-list">
+              <li>Calendario interactivo multiasistencia con vistas de mes, semana y día.</li>
+              <li>Asignación inteligente de camión y conductor con detección de conflictos en tiempo real.</li>
+              <li>Alerta preventiva de 4 horas por traslados entre faenas geográficamente distantes.</li>
+              <li>Notificaciones automáticas por correo electrónico al cliente tras confirmar la agenda.</li>
+              <li>Generación del Estado de Pago consolidado para agilizar la facturación.</li>
+            </ul>
+          </div>
+          <span class="mod-tag">Portal Web · Escritorio</span>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="slide-footer">
+      <span>Zion Services · Transformación Digital Operacional</span>
+      <span>Presentación Ejecutiva · Slide 4 de 6 · Documento Confidencial</span>
+    </div>
+  </div>
+
+
+  <!-- ==========================================
+       SLIDE 5: MÓDULOS (PARTE 2: TERRENO & CLIENTES)
+       ========================================== -->
+  <div class="slide">
+    <div class="slide-topbar">
+      <div class="brand-logo">
+        <div class="brand-dot"></div>
+        ZION SERVICES
+      </div>
+      <span class="slide-category">Capacidades del Sistema</span>
+      <span class="slide-badge">Terreno y Clientes</span>
+    </div>
+
+    <div class="slide-header">
+      <h2 class="slide-title">Módulos de Terreno, Supervisión y Portal Clientes</h2>
+      <p class="slide-subtitle">Soluciones diseñadas para choferes en terreno, supervisión satelital y autoservicio transparente para clientes.</p>
+    </div>
+
+    <div class="slide-body">
+      <div class="modules-3col">
+
+        <!-- Modulo 5: Portal Cliente -->
+        <div class="mod-card">
+          <div>
+            <div class="mod-header">
+              <div class="mod-icon">💻</div>
+              <div>
+                <h3 class="mod-name">Portal del Cliente</h3>
+                <div class="mod-role">Cliente</div>
+              </div>
+            </div>
+            <ul class="mod-list">
+              <li>Wizard guiado para solicitudes de servicios multi-atención.</li>
+              <li>Selección de servicios del catálogo oficial según la faena.</li>
+              <li>Seguimiento GPS del camión en mapa satelital en ventana activa.</li>
+              <li>Bitácora cronológica con fotos de terreno y documentos firmados.</li>
+              <li>Descarga inmediata del dossier digital completo (.zip).</li>
+              <li>Autenticación segura con cookies HTTP-only de alta protección.</li>
+            </ul>
+          </div>
+          <span class="mod-tag">Portal Web · Responsive Móvil</span>
+        </div>
+
+        <!-- Modulo 6: Jefe Operaciones -->
+        <div class="mod-card">
+          <div>
+            <div class="mod-header">
+              <div class="mod-icon">🗺️</div>
+              <div>
+                <h3 class="mod-name">Jefe de Operaciones</h3>
+                <div class="mod-role">Jefe Ops · Admin</div>
+              </div>
+            </div>
+            <ul class="mod-list">
+              <li>Mapa de flota en vivo con posicionamiento GPS en tiempo real.</li>
+              <li>Supervisión de múltiples atenciones operando en simultáneo.</li>
+              <li>Indicadores de estado operativo de cada camión (en base, ruta, faena).</li>
+              <li>Consulta rápida del conductor asignado y destino en ruta.</li>
+              <li>Detección temprana de demoras o desvíos de trayecto.</li>
+            </ul>
+          </div>
+          <span class="mod-tag">Portal Web · Monitor de Control</span>
+        </div>
+
+        <!-- Modulo 7: Tablet Conductor -->
+        <div class="mod-card">
+          <div>
+            <div class="mod-header">
+              <div class="mod-icon">📱</div>
+              <div>
+                <h3 class="mod-name">App Tablet — Conductor</h3>
+                <div class="mod-role">Conductor</div>
+              </div>
+            </div>
+            <ul class="mod-list">
+              <li>Checklist F-GMT de pre-partida: bloquea salida si hay fallas de seguridad.</li>
+              <li>Ruta guiada hacia faena y registro de llegada con validación GPS.</li>
+              <li>Captura fotográfica: estado perimetral, uso de EPP y trabajo ejecutado.</li>
+              <li>Firma digital del cliente capturada directamente en pantalla táctil.</li>
+              <li>Reporte de incidentes en 1 toque (tráfico, acceso cerrado, desperfecto).</li>
+              <li>Arquitectura Offline-First: funciona sin señal y sincroniza al reconectar.</li>
+            </ul>
+          </div>
+          <span class="mod-tag">App Tablet · PWA Touch Optimizado</span>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="slide-footer">
+      <span>Zion Services · Transformación Digital Operacional</span>
+      <span>Presentación Ejecutiva · Slide 5 de 6 · Documento Confidencial</span>
+    </div>
+  </div>
+
+
+  <!-- ==========================================
+       SLIDE 6: DOCUMENTOS OFICIALES Y CERO PAPEL
+       ========================================== -->
+  <div class="slide">
+    <div class="slide-topbar">
+      <div class="brand-logo">
+        <div class="brand-dot"></div>
+        ZION SERVICES
+      </div>
+      <span class="slide-category">Seguridad Jurídica & Cero Papel</span>
+      <span class="slide-badge">Validez Legal Digital</span>
+    </div>
+
+    <div class="slide-header">
+      <h2 class="slide-title">Documentación Oficial Automatizada</h2>
+      <p class="slide-subtitle">Los 4 documentos del ciclo operacional se generan automáticamente en PDF con firma digital y verificación pública QR.</p>
+    </div>
+
+    <div class="slide-body">
+      
+      <!-- Grid de 4 Documentos -->
+      <div class="docs-grid">
+
+        <div class="doc-box">
+          <div>
+            <div class="doc-icon">📋</div>
+            <div class="doc-name">Orden de Servicio</div>
+            <div class="doc-abbr">OS</div>
+            <div class="doc-desc">Emitida al confirmar la agenda. Formaliza el compromiso operacional entre Zion Services y el cliente con datos de faena y fecha.</div>
+          </div>
+          <div class="doc-chips">
+            <span class="doc-chip">Automática</span>
+            <span class="doc-chip">PDF</span>
+            <span class="doc-chip">QR</span>
+          </div>
+        </div>
+
+        <div class="doc-box">
+          <div>
+            <div class="doc-icon">🚚</div>
+            <div class="doc-name">Guía de Despacho</div>
+            <div class="doc-abbr">GD</div>
+            <div class="doc-desc">Emitida al aprobar el checklist F-GMT y autorizar el despacho del camión. Respalda el traslado legal hacia la faena.</div>
+          </div>
+          <div class="doc-chips">
+            <span class="doc-chip">F-GMT Aprobado</span>
+            <span class="doc-chip">PDF</span>
+            <span class="doc-chip">GPS</span>
+          </div>
+        </div>
+
+        <div class="doc-box">
+          <div>
+            <div class="doc-icon">🔧</div>
+            <div class="doc-name">Orden de Trabajo</div>
+            <div class="doc-abbr">OT</div>
+            <div class="doc-desc">Detalla las actividades ejecutadas en terreno, fotografías de respaldo (perimetral y EPP) y registro de eventuales incidentes.</div>
+          </div>
+          <div class="doc-chips">
+            <span class="doc-chip">Terreno</span>
+            <span class="doc-chip">PDF</span>
+            <span class="doc-chip">Fotos</span>
+          </div>
+        </div>
+
+        <div class="doc-box">
+          <div>
+            <div class="doc-icon">✅</div>
+            <div class="doc-name">Acta Recepción Conforme</div>
+            <div class="doc-abbr">ARC</div>
+            <div class="doc-desc">Emitida al culminar los trabajos. Incrusta la firma táctil digital del cliente capturada en tablet y código QR de validación.</div>
+          </div>
+          <div class="doc-chips">
+            <span class="doc-chip">Firma Táctil</span>
+            <span class="doc-chip">QR Público</span>
+            <span class="doc-chip">PDF</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Callout Dossier Digital -->
+      <div class="dossier-callout">
+        <div class="dossier-icon">📦</div>
+        <div>
+          <div class="dossier-title">Expediente Digital Consolidado (.zip)</div>
+          <div class="dossier-desc">
+            Al finalizar la atención, el cliente y el área comercial pueden descargar en un solo clic un archivo comprimido <strong style="color:#ffffff;">.zip</strong> que reúne los 4 PDFs oficiales, las fotografías de terreno de alta resolución y la bitácora cronológica con firmas criptográficas. Reemplaza de forma permanente los archivadores físicos y elimina las discrepancias en el cobro.
+          </div>
+          <div class="dossier-badges">
+            <span class="dossier-badge">Descarga en 1 Clic</span>
+            <span class="dossier-badge">4 PDFs Oficiales</span>
+            <span class="dossier-badge">Fotos de Evidencia</span>
+            <span class="dossier-badge">Bitácora de Auditoría</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="slide-footer">
+      <span>Zion Services · Transformación Digital Operacional</span>
+      <span>Presentación Ejecutiva · Slide 6 de 6 · Documento Confidencial</span>
+    </div>
+  </div>
+
+</body>
+</html>

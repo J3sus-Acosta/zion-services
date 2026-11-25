@@ -1,0 +1,951 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Zion Services — Plataforma Digital</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <style>
+    :root {
+      --zion-green: #10b981;
+      --zion-green-dim: #059669;
+      --zion-green-glow: rgba(16,185,129,0.15);
+      --zion-bg: #0f1117;
+      --zion-card: #161b27;
+      --zion-card2: #1e2535;
+      --zion-border: rgba(255,255,255,0.08);
+      --zion-text: #f1f5f9;
+      --zion-muted: #94a3b8;
+      --zion-accent: #3b82f6;
+    }
+    * { box-sizing: border-box; }
+    body {
+      background: var(--zion-bg);
+      color: var(--zion-text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+    }
+
+    /* ---- NAV ---- */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(15,17,23,0.95);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--zion-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 32px;
+      height: 56px;
+    }
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+      font-size: 15px;
+      letter-spacing: 0.08em;
+      color: var(--zion-text);
+    }
+    .nav-logo .dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--zion-green);
+      box-shadow: 0 0 8px var(--zion-green);
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%,100%{opacity:1;transform:scale(1);}
+      50%{opacity:.6;transform:scale(.85);}
+    }
+    .nav-tabs {
+      display: flex;
+      gap: 4px;
+    }
+    .nav-tab {
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      background: transparent;
+      color: var(--zion-muted);
+      transition: all .2s;
+    }
+    .nav-tab:hover { color: var(--zion-text); background: rgba(255,255,255,0.05); }
+    .nav-tab.active { color: var(--zion-green); background: var(--zion-green-glow); }
+    .nav-badge {
+      font-size: 11px;
+      padding: 2px 8px;
+      background: var(--zion-green-glow);
+      color: var(--zion-green);
+      border-radius: 20px;
+      border: 1px solid rgba(16,185,129,0.3);
+    }
+
+    /* ---- SECTIONS ---- */
+    .section { display: none; padding: 48px 32px; max-width: 1100px; margin: 0 auto; }
+    .section.active { display: block; }
+
+    /* ---- HERO ---- */
+    .hero {
+      text-align: center;
+      padding: 80px 32px;
+    }
+    .hero-eyebrow {
+      font-size: 11px;
+      letter-spacing: .15em;
+      text-transform: uppercase;
+      color: var(--zion-green);
+      margin-bottom: 20px;
+    }
+    .hero-title {
+      font-size: clamp(32px, 5vw, 56px);
+      font-weight: 800;
+      line-height: 1.1;
+      margin: 0 0 20px;
+      background: linear-gradient(135deg, #f1f5f9 30%, var(--zion-green));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero-subtitle {
+      font-size: 17px;
+      color: var(--zion-muted);
+      max-width: 560px;
+      margin: 0 auto 40px;
+      line-height: 1.6;
+    }
+    .hero-stats {
+      display: flex;
+      justify-content: center;
+      gap: 48px;
+      flex-wrap: wrap;
+      margin-top: 48px;
+    }
+    .hero-stat { text-align: center; }
+    .hero-stat-num {
+      font-size: 36px;
+      font-weight: 800;
+      color: var(--zion-green);
+      display: block;
+    }
+    .hero-stat-label {
+      font-size: 12px;
+      color: var(--zion-muted);
+      margin-top: 4px;
+    }
+    .hero-divider {
+      width: 1px; height: 40px;
+      background: var(--zion-border);
+      align-self: center;
+    }
+    .cta-row {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+    }
+    .btn-primary {
+      padding: 12px 28px;
+      background: var(--zion-green);
+      color: #0f1117;
+      border: none;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all .2s;
+    }
+    .btn-primary:hover { background: #34d399; transform: translateY(-1px); }
+    .btn-outline {
+      padding: 12px 28px;
+      background: transparent;
+      color: var(--zion-text);
+      border: 1px solid var(--zion-border);
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all .2s;
+    }
+    .btn-outline:hover { border-color: rgba(255,255,255,.2); background: rgba(255,255,255,.04); }
+
+    /* ---- PROBLEM/SOLUTION ---- */
+    .compare-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-top: 32px;
+    }
+    .compare-card {
+      border-radius: 12px;
+      padding: 28px;
+      border: 1px solid var(--zion-border);
+    }
+    .compare-card.before {
+      background: rgba(239,68,68,.06);
+      border-color: rgba(239,68,68,.2);
+    }
+    .compare-card.after {
+      background: var(--zion-green-glow);
+      border-color: rgba(16,185,129,.25);
+    }
+    .compare-label {
+      font-size: 11px;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      font-weight: 700;
+      margin-bottom: 16px;
+    }
+    .compare-card.before .compare-label { color: #f87171; }
+    .compare-card.after .compare-label { color: var(--zion-green); }
+    .compare-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      margin-bottom: 12px;
+      font-size: 13.5px;
+      color: var(--zion-muted);
+      line-height: 1.5;
+    }
+    .compare-icon { flex-shrink: 0; margin-top: 1px; }
+
+    /* ---- FLOW DIAGRAM ---- */
+    .flow-container {
+      position: relative;
+      margin-top: 32px;
+    }
+    .flow-steps {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+    .flow-row {
+      display: flex;
+      align-items: stretch;
+      gap: 0;
+    }
+    .flow-row.reverse { flex-direction: row-reverse; }
+
+    .flow-node {
+      flex: 1;
+      background: var(--zion-card);
+      border: 1px solid var(--zion-border);
+      border-radius: 12px;
+      padding: 20px 22px;
+      position: relative;
+      cursor: pointer;
+      transition: all .25s;
+    }
+    .flow-node:hover {
+      border-color: rgba(16,185,129,.4);
+      background: var(--zion-card2);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0,0,0,.3);
+    }
+    .flow-node-num {
+      position: absolute;
+      top: -12px;
+      left: 20px;
+      width: 24px; height: 24px;
+      border-radius: 50%;
+      background: var(--zion-green);
+      color: #0f1117;
+      font-weight: 800;
+      font-size: 11px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .flow-node-icon { font-size: 22px; margin-bottom: 8px; }
+    .flow-node-title {
+      font-weight: 700;
+      font-size: 14px;
+      margin-bottom: 4px;
+      color: var(--zion-text);
+    }
+    .flow-node-role {
+      font-size: 11px;
+      color: var(--zion-green);
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      font-weight: 600;
+    }
+    .flow-node-desc {
+      font-size: 12.5px;
+      color: var(--zion-muted);
+      line-height: 1.5;
+    }
+    .flow-connector {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 8px 0;
+      position: relative;
+    }
+    .flow-connector-line {
+      width: 2px;
+      flex: 1;
+      background: linear-gradient(to bottom, rgba(16,185,129,.5), rgba(16,185,129,.1));
+      min-height: 24px;
+    }
+    .flow-connector-arrow {
+      color: var(--zion-green);
+      font-size: 16px;
+      margin: 2px 0;
+    }
+    .flow-doc-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: rgba(59,130,246,.12);
+      border: 1px solid rgba(59,130,246,.25);
+      color: #60a5fa;
+      border-radius: 6px;
+      padding: 2px 8px;
+      font-size: 11px;
+      font-weight: 600;
+      margin-top: 8px;
+    }
+    .flow-horizontal {
+      display: flex;
+      align-items: center;
+      gap: 0;
+    }
+    .flow-h-connector {
+      display: flex;
+      align-items: center;
+      padding: 0 4px;
+      flex-shrink: 0;
+    }
+    .flow-h-line {
+      height: 2px;
+      width: 32px;
+      background: linear-gradient(to right, rgba(16,185,129,.5), rgba(16,185,129,.2));
+    }
+    .flow-h-arrow {
+      color: var(--zion-green);
+      font-size: 14px;
+    }
+
+    /* ---- MODULES GRID ---- */
+    .modules-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 20px;
+      margin-top: 32px;
+    }
+    .module-card {
+      background: var(--zion-card);
+      border: 1px solid var(--zion-border);
+      border-radius: 12px;
+      padding: 24px;
+      transition: all .25s;
+      cursor: default;
+    }
+    .module-card:hover {
+      border-color: rgba(16,185,129,.35);
+      background: var(--zion-card2);
+    }
+    .module-card-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      margin-bottom: 16px;
+    }
+    .module-icon-wrap {
+      width: 44px; height: 44px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      flex-shrink: 0;
+      background: var(--zion-green-glow);
+      border: 1px solid rgba(16,185,129,.2);
+    }
+    .module-name {
+      font-weight: 700;
+      font-size: 15px;
+      margin-bottom: 3px;
+    }
+    .module-role {
+      font-size: 11px;
+      color: var(--zion-green);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+    .module-features {
+      list-style: none;
+      padding: 0; margin: 0;
+    }
+    .module-features li {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--zion-muted);
+      padding: 4px 0;
+      line-height: 1.4;
+    }
+    .module-features li::before {
+      content: '→';
+      color: var(--zion-green);
+      font-size: 11px;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .module-tag {
+      display: inline-block;
+      margin-top: 14px;
+      padding: 2px 10px;
+      background: rgba(255,255,255,.05);
+      border-radius: 20px;
+      font-size: 11px;
+      color: var(--zion-muted);
+      border: 1px solid var(--zion-border);
+    }
+
+    /* ---- DOCS SECTION ---- */
+    .docs-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 16px;
+      margin-top: 32px;
+    }
+    .doc-card {
+      background: var(--zion-card);
+      border: 1px solid var(--zion-border);
+      border-radius: 10px;
+      padding: 20px;
+      text-align: center;
+      transition: all .2s;
+    }
+    .doc-card:hover {
+      border-color: rgba(16,185,129,.3);
+      transform: translateY(-2px);
+    }
+    .doc-icon { font-size: 32px; margin-bottom: 10px; }
+    .doc-name {
+      font-weight: 700;
+      font-size: 14px;
+      margin-bottom: 6px;
+    }
+    .doc-abbr {
+      font-size: 11px;
+      color: var(--zion-green);
+      font-weight: 700;
+      letter-spacing: .05em;
+      margin-bottom: 10px;
+    }
+    .doc-desc {
+      font-size: 12px;
+      color: var(--zion-muted);
+      line-height: 1.5;
+    }
+    .doc-features {
+      margin-top: 12px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      justify-content: center;
+    }
+    .doc-chip {
+      padding: 2px 8px;
+      background: rgba(59,130,246,.1);
+      border: 1px solid rgba(59,130,246,.2);
+      color: #60a5fa;
+      border-radius: 20px;
+      font-size: 10px;
+      font-weight: 600;
+    }
+
+    /* ---- SECTION HEADER ---- */
+    .section-header {
+      margin-bottom: 8px;
+    }
+    .section-eyebrow {
+      font-size: 11px;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--zion-green);
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+    .section-title {
+      font-size: 28px;
+      font-weight: 800;
+      margin: 0 0 10px;
+    }
+    .section-desc {
+      font-size: 14px;
+      color: var(--zion-muted);
+      line-height: 1.6;
+      max-width: 640px;
+    }
+
+    /* ---- FOOTER ---- */
+    footer {
+      border-top: 1px solid var(--zion-border);
+      padding: 24px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--zion-muted);
+    }
+
+    /* ---- RESPONSIVE ---- */
+    @media(max-width: 700px) {
+      .compare-grid { grid-template-columns: 1fr; }
+      .hero-stats { gap: 24px; }
+      .hero-divider { display: none; }
+      .nav-tabs { gap: 2px; }
+      .nav-tab { padding: 5px 9px; font-size: 11px; }
+      section.active, .section { padding: 32px 16px; }
+      nav { padding: 0 16px; }
+    }
+
+    /* ---- TIMELINE ---- */
+    .timeline {
+      position: relative;
+      padding-left: 36px;
+      margin-top: 32px;
+    }
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 11px;
+      top: 0; bottom: 0;
+      width: 2px;
+      background: linear-gradient(to bottom, var(--zion-green), transparent);
+    }
+    .timeline-item {
+      position: relative;
+      margin-bottom: 28px;
+    }
+    .timeline-dot {
+      position: absolute;
+      left: -30px;
+      top: 4px;
+      width: 14px; height: 14px;
+      border-radius: 50%;
+      background: var(--zion-green);
+      border: 2px solid var(--zion-bg);
+      box-shadow: 0 0 8px rgba(16,185,129,.5);
+    }
+    .timeline-step {
+      font-size: 11px;
+      color: var(--zion-green);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      margin-bottom: 4px;
+    }
+    .timeline-title {
+      font-weight: 700;
+      font-size: 15px;
+      margin-bottom: 4px;
+    }
+    .timeline-desc {
+      font-size: 13px;
+      color: var(--zion-muted);
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">
+    <div class="dot"></div>
+    ZION SERVICES
+  </div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="showSection('inicio')">Inicio</button>
+    <button class="nav-tab" onclick="showSection('problema')">Contexto</button>
+    <button class="nav-tab" onclick="showSection('flujo')">Flujo de Proceso</button>
+    <button class="nav-tab" onclick="showSection('modulos')">Módulos</button>
+    <button class="nav-tab" onclick="showSection('documentos')">Documentos</button>
+  </div>
+  <span class="nav-badge">v1.0 · Nov 2026</span>
+</nav>
+
+<!-- ===== INICIO ===== -->
+<div class="section active" id="inicio">
+  <div class="hero">
+    <div class="hero-eyebrow">Plataforma de Gestión Operacional</div>
+    <h1 class="hero-title">Transformación Digital<br>para Zion Services</h1>
+    <p class="hero-subtitle">
+      Una plataforma completa que digitaliza el ciclo operacional completo — desde la solicitud del cliente hasta la facturación — eliminando el papel, el WhatsApp y los procesos manuales.
+    </p>
+    <div class="cta-row">
+      <button class="btn-primary" onclick="showSection('flujo')">Ver Flujo del Proceso →</button>
+      <button class="btn-outline" onclick="showSection('modulos')">Explorar Módulos</button>
+    </div>
+
+    <div class="hero-stats">
+      <div class="hero-stat">
+        <span class="hero-stat-num">7</span>
+        <div class="hero-stat-label">Módulos operacionales</div>
+      </div>
+      <div class="hero-divider"></div>
+      <div class="hero-stat">
+        <span class="hero-stat-num">4</span>
+        <div class="hero-stat-label">Documentos oficiales digitales</div>
+      </div>
+      <div class="hero-divider"></div>
+      <div class="hero-stat">
+        <span class="hero-stat-num">0</span>
+        <div class="hero-stat-label">Papel en el proceso</div>
+      </div>
+      <div class="hero-divider"></div>
+      <div class="hero-stat">
+        <span class="hero-stat-num">100%</span>
+        <div class="hero-stat-label">Trazabilidad de cada atención</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== CONTEXTO / PROBLEMA ===== -->
+<div class="section" id="problema">
+  <div class="section-header">
+    <div class="section-eyebrow">Por qué este sistema</div>
+    <h2 class="section-title">Del caos manual a la operación digital</h2>
+    <p class="section-desc">Esta plataforma nació de un diagnóstico real de la operación de Zion Services y ataca directamente los puntos de dolor identificados.</p>
+  </div>
+
+  <div class="compare-grid">
+    <div class="compare-card before">
+      <div class="compare-label">❌ Antes — Proceso actual</div>
+      <div class="compare-item"><span class="compare-icon">📱</span>Coordinación de servicios por WhatsApp entre conductor, operaciones y comercial.</div>
+      <div class="compare-item"><span class="compare-icon">📄</span>Órdenes de Servicio y Guías de Despacho impresas en papel, con riesgo de pérdida.</div>
+      <div class="compare-item"><span class="compare-icon">📋</span>Checklists de pre-partida en papel sin registro ni historial.</div>
+      <div class="compare-item"><span class="compare-icon">🗂️</span>Expedientes de atención dispersos en carpetas físicas.</div>
+      <div class="compare-item"><span class="compare-icon">📞</span>El cliente llama para saber el estado de su solicitud.</div>
+      <div class="compare-item"><span class="compare-icon">🧾</span>Recepción conforme firmada a mano, fotocopiada y archivada.</div>
+      <div class="compare-item"><span class="compare-icon">🔍</span>Sin trazabilidad: si algo falla, no hay evidencia clara.</div>
+    </div>
+    <div class="compare-card after">
+      <div class="compare-label">✅ Ahora — Con la plataforma</div>
+      <div class="compare-item"><span class="compare-icon">🖥️</span>Portal web para clientes: solicitudes, seguimiento y descarga de documentos.</div>
+      <div class="compare-item"><span class="compare-icon">📑</span>Documentos PDF generados automáticamente con firma digital y QR de verificación.</div>
+      <div class="compare-item"><span class="compare-icon">📱</span>App tablet para conductores: checklist digital, GPS, fotos y firma del cliente in situ.</div>
+      <div class="compare-item"><span class="compare-icon">📦</span>Expediente digital completo descargable en un clic (.zip).</div>
+      <div class="compare-item"><span class="compare-icon">🗺️</span>Mapa en tiempo real: el cliente ve dónde está el camión.</div>
+      <div class="compare-item"><span class="compare-icon">✍️</span>Firma digital del cliente capturada en tablet, embebida en el PDF.</div>
+      <div class="compare-item"><span class="compare-icon">🔒</span>Trazabilidad completa: cada acción queda registrada con hora y usuario.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== FLUJO ===== -->
+<div class="section" id="flujo">
+  <div class="section-header">
+    <div class="section-eyebrow">Proceso de punta a punta</div>
+    <h2 class="section-title">Cómo fluye una atención</h2>
+    <p class="section-desc">El ciclo completo de un servicio desde que el cliente lo solicita hasta que se cierra comercialmente y queda listo para facturar.</p>
+  </div>
+
+  <div class="timeline">
+
+    <div class="timeline-item">
+      <div class="timeline-dot"></div>
+      <div class="timeline-step">Paso 1 · Administración</div>
+      <div class="timeline-title">🏢 Configuración inicial del cliente</div>
+      <div class="timeline-desc">El administrador crea la empresa cliente con validación de RUT (Módulo 11), registra sus sucursales o faenas con coordenadas GPS y crea las cuentas de acceso. También registra la flota de camiones y equipos disponibles.</div>
+    </div>
+
+    <div class="timeline-item">
+      <div class="timeline-dot"></div>
+      <div class="timeline-step">Paso 2 · Portal del Cliente</div>
+      <div class="timeline-title">💻 El cliente genera una solicitud de atención</div>
+      <div class="timeline-desc">Desde su portal web, el cliente crea una solicitud multi-atención mediante un wizard guiado. Selecciona sus faenas, el catálogo de servicios para cada visita (hidrojet, vacío, etc.) y las fechas requeridas. La solicitud queda registrada instantáneamente en el sistema.</div>
+    </div>
+
+    <div class="timeline-item">
+      <div class="timeline-dot"></div>
+      <div class="timeline-step">Paso 3 · Gestión Comercial</div>
+      <div class="timeline-title">📅 Planificación y asignación de recursos</div>
+      <div class="timeline-desc">El equipo comercial revisa las solicitudes en el calendario de servicios (vista mensual, semanal o diaria). Asigna el camión y conductor a cada atención. El sistema detecta conflictos en tiempo real: mismo camión o conductor doble asignado, y emite alertas preventivas de 4 horas. Se genera automáticamente la <strong style="color:#60a5fa">Orden de Servicio PDF</strong>.</div>
+    </div>
+
+    <div class="timeline-item">
+      <div class="timeline-dot"></div>
+      <div class="timeline-step">Paso 4 · Conductor / Tablet</div>
+      <div class="timeline-title">🚛 Pre-partida y despacho del camión</div>
+      <div class="timeline-desc">El conductor abre la app tablet y completa el checklist F-GMT de pre-partida (revisión de seguridad del vehículo). Sin checklist aprobado, no puede salir. Al autorizar la salida, el sistema genera la <strong style="color:#60a5fa">Guía de Despacho PDF</strong>. El cliente puede rastrear la ubicación del camión en tiempo real desde su portal.</div>
+    </div>
+
+    <div class="timeline-item">
+      <div class="timeline-dot"></div>
+      <div class="timeline-step">Paso 5 · Ejecución del Servicio</div>
+      <div class="timeline-title">🔧 Trabajo en terreno con registro digital</div>
+      <div class="timeline-desc">En la faena, el conductor registra su llegada con GPS. Durante el trabajo captura fotografías (estado perimetral, EPP del personal, proceso). Si ocurre un incidente, lo reporta en un toque: tráfico, acceso bloqueado o falla de equipo. Se genera la <strong style="color:#60a5fa">Orden de Trabajo</strong>.</div>
+    </div>
+
+    <div class="timeline-item">
+      <div class="timeline-dot"></div>
+      <div class="timeline-step">Paso 6 · Cierre del Servicio</div>
+      <div class="timeline-title">✍️ Firma digital y recepción conforme</div>
+      <div class="timeline-desc">Al terminar el trabajo, el encargado de la faena firma digitalmente en la tablet del conductor. El sistema genera automáticamente el <strong style="color:#60a5fa">Acta de Recepción Conforme PDF</strong> con la firma embebida y un código QR de verificación de autenticidad. El cliente puede descargar el expediente completo (.zip) desde su portal.</div>
+    </div>
+
+    <div class="timeline-item">
+      <div class="timeline-dot"></div>
+      <div class="timeline-step">Paso 7 · Gestión Comercial</div>
+      <div class="timeline-title">💰 Consolidación para facturación</div>
+      <div class="timeline-desc">El área comercial tiene acceso al historial completo de servicios prestados, con todos los documentos firmados y validados. Consolida el Estado de Pago con la información ya registrada. El ciclo queda cerrado: sin papeles extraviados, sin discrepancias, sin WhatsApp.</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ===== MÓDULOS ===== -->
+<div class="section" id="modulos">
+  <div class="section-header">
+    <div class="section-eyebrow">Capacidades actuales del sistema</div>
+    <h2 class="section-title">Módulos operacionales</h2>
+    <p class="section-desc">Cada módulo tiene roles de acceso específicos. Los usuarios solo ven lo que necesitan para su función.</p>
+  </div>
+
+  <div class="modules-grid">
+
+    <div class="module-card">
+      <div class="module-card-header">
+        <div class="module-icon-wrap">🏢</div>
+        <div>
+          <div class="module-name">Gestión de Clientes</div>
+          <div class="module-role">Admin · Comercial</div>
+        </div>
+      </div>
+      <ul class="module-features">
+        <li>Registro de empresas con validación de RUT (Módulo 11)</li>
+        <li>Gestión de sucursales y faenas con coordenadas GPS</li>
+        <li>Contactos operacionales por faena</li>
+        <li>Búsqueda predictiva por nombre o RUT</li>
+        <li>Activar o desactivar clientes</li>
+        <li>Historial de atenciones por empresa</li>
+      </ul>
+      <span class="module-tag">Portal web · Escritorio</span>
+    </div>
+
+    <div class="module-card">
+      <div class="module-card-header">
+        <div class="module-icon-wrap">👥</div>
+        <div>
+          <div class="module-name">Gestión de Usuarios</div>
+          <div class="module-role">Admin · Superadmin</div>
+        </div>
+      </div>
+      <ul class="module-features">
+        <li>Creación de cuentas de acceso por rol</li>
+        <li>Roles: Admin, Comercial, Jefe Ops, Conductor, Cliente</li>
+        <li>Vinculación de usuarios a empresas cliente</li>
+        <li>Restablecimiento de contraseñas</li>
+        <li>Activar o desactivar acceso individual</li>
+      </ul>
+      <span class="module-tag">Portal web · Escritorio</span>
+    </div>
+
+    <div class="module-card">
+      <div class="module-card-header">
+        <div class="module-icon-wrap">🚛</div>
+        <div>
+          <div class="module-name">Gestión de Flota</div>
+          <div class="module-role">Admin · Jefe Operaciones</div>
+        </div>
+      </div>
+      <ul class="module-features">
+        <li>Registro de camiones y equipos (hidrojet, vacío, etc.)</li>
+        <li>Habilitación y deshabilitación con motivo registrado</li>
+        <li>Checklist de seguridad obligatorio antes de cada servicio</li>
+        <li>Transferencia de operaciones activas a vehículo de reemplazo</li>
+        <li>Mapa de flota en tiempo real con GPS</li>
+        <li>Estado operacional de cada unidad</li>
+      </ul>
+      <span class="module-tag">Portal web · Escritorio</span>
+    </div>
+
+    <div class="module-card">
+      <div class="module-card-header">
+        <div class="module-icon-wrap">📅</div>
+        <div>
+          <div class="module-name">Gestión Comercial</div>
+          <div class="module-role">Comercial · Admin</div>
+        </div>
+      </div>
+      <ul class="module-features">
+        <li>Calendario de servicios: vista mes, semana y día</li>
+        <li>Asignación de camión y conductor por atención</li>
+        <li>Detección de conflictos: doble asignación de recursos</li>
+        <li>Alerta preventiva a 4 horas entre servicios del mismo recurso</li>
+        <li>Reasignación de servicios con trazabilidad</li>
+        <li>Notificaciones por correo al cliente tras confirmación</li>
+        <li>Estado de Pago para consolidación de facturación</li>
+      </ul>
+      <span class="module-tag">Portal web · Escritorio</span>
+    </div>
+
+    <div class="module-card">
+      <div class="module-card-header">
+        <div class="module-icon-wrap">💻</div>
+        <div>
+          <div class="module-name">Portal del Cliente</div>
+          <div class="module-role">Cliente</div>
+        </div>
+      </div>
+      <ul class="module-features">
+        <li>Wizard de solicitud multi-atención (varias visitas en una solicitud)</li>
+        <li>Selección de servicios del catálogo por faena y fecha</li>
+        <li>Seguimiento GPS del camión en tiempo real</li>
+        <li>Acceso al expediente digital: fotos, documentos firmados</li>
+        <li>Descarga del dossier completo en formato .zip</li>
+        <li>Línea de tiempo de cada atención (bitácora de servicio)</li>
+        <li>Autenticación segura con sesión protegida</li>
+      </ul>
+      <span class="module-tag">Portal web · Responsive</span>
+    </div>
+
+    <div class="module-card">
+      <div class="module-card-header">
+        <div class="module-icon-wrap">🗺️</div>
+        <div>
+          <div class="module-name">Jefe de Operaciones</div>
+          <div class="module-role">Jefe Operaciones · Admin</div>
+        </div>
+      </div>
+      <ul class="module-features">
+        <li>Mapa en vivo con ubicación de toda la flota</li>
+        <li>Estado operacional de cada camión en tiempo real</li>
+        <li>Supervisión de servicios activos simultáneos</li>
+        <li>Acceso a ficha de cada unidad y conductor asignado</li>
+      </ul>
+      <span class="module-tag">Portal web · Escritorio</span>
+    </div>
+
+    <div class="module-card">
+      <div class="module-card-header">
+        <div class="module-icon-wrap">📱</div>
+        <div>
+          <div class="module-name">App Tablet — Conductor</div>
+          <div class="module-role">Conductor</div>
+        </div>
+      </div>
+      <ul class="module-features">
+        <li>Checklist F-GMT de pre-partida (bloquea salida si no se completa)</li>
+        <li>Ruta hacia la faena con navegación integrada</li>
+        <li>Registro de llegada con coordenadas GPS</li>
+        <li>Captura de fotos: perimetral, EPP, proceso</li>
+        <li>Firma digital del cliente en pantalla táctil</li>
+        <li>Reporte de incidentes en un toque (tráfico, acceso, equipo)</li>
+        <li>Funciona offline — sincroniza al recuperar señal</li>
+      </ul>
+      <span class="module-tag">App Tablet · Touch optimizado</span>
+    </div>
+
+  </div>
+</div>
+
+<!-- ===== DOCUMENTOS ===== -->
+<div class="section" id="documentos">
+  <div class="section-header">
+    <div class="section-eyebrow">Cero papel en el proceso</div>
+    <h2 class="section-title">Documentos oficiales digitales</h2>
+    <p class="section-desc">Los 4 documentos del ciclo operacional se generan automáticamente en PDF. Cada uno incluye datos en tiempo real, firma digital y código QR de verificación de autenticidad.</p>
+  </div>
+
+  <div class="docs-grid">
+    <div class="doc-card">
+      <div class="doc-icon">📋</div>
+      <div class="doc-name">Orden de Servicio</div>
+      <div class="doc-abbr">OS</div>
+      <div class="doc-desc">Generada al confirmar la programación. Formaliza el compromiso de servicio entre Zion Services y el cliente.</div>
+      <div class="doc-features">
+        <span class="doc-chip">Auto-generada</span>
+        <span class="doc-chip">PDF</span>
+        <span class="doc-chip">QR</span>
+      </div>
+    </div>
+
+    <div class="doc-card">
+      <div class="doc-icon">🚚</div>
+      <div class="doc-name">Guía de Despacho</div>
+      <div class="doc-abbr">GD</div>
+      <div class="doc-desc">Generada al aprobar el checklist del conductor y autorizar la salida del vehículo hacia la faena.</div>
+      <div class="doc-features">
+        <span class="doc-chip">Auto-generada</span>
+        <span class="doc-chip">PDF</span>
+        <span class="doc-chip">GPS</span>
+      </div>
+    </div>
+
+    <div class="doc-card">
+      <div class="doc-icon">🔧</div>
+      <div class="doc-name">Orden de Trabajo</div>
+      <div class="doc-abbr">OT</div>
+      <div class="doc-desc">Detalla los trabajos realizados en la faena, fotos capturadas e incidentes reportados durante el servicio.</div>
+      <div class="doc-features">
+        <span class="doc-chip">Auto-generada</span>
+        <span class="doc-chip">PDF</span>
+        <span class="doc-chip">Fotos</span>
+      </div>
+    </div>
+
+    <div class="doc-card">
+      <div class="doc-icon">✅</div>
+      <div class="doc-name">Acta de Recepción Conforme</div>
+      <div class="doc-abbr">ARC</div>
+      <div class="doc-desc">Generada al finalizar el servicio. Incluye la firma digital del encargado de faena capturada en tablet.</div>
+      <div class="doc-features">
+        <span class="doc-chip">Firma digital</span>
+        <span class="doc-chip">QR verificación</span>
+        <span class="doc-chip">PDF</span>
+      </div>
+    </div>
+  </div>
+
+  <div style="margin-top:32px; background:var(--zion-card); border:1px solid var(--zion-border); border-radius:12px; padding:28px; display:flex; align-items:flex-start; gap:20px;">
+    <div style="font-size:36px; flex-shrink:0;">📦</div>
+    <div>
+      <div style="font-weight:700; font-size:16px; margin-bottom:8px;">Expediente digital completo</div>
+      <div style="font-size:13.5px; color:var(--zion-muted); line-height:1.6;">
+        Al cierre de cada atención, el cliente puede descargar desde su portal un archivo <strong style="color:var(--zion-text)">.zip</strong> que contiene los 4 documentos en PDF, todas las fotografías registradas en terreno y la bitácora completa del servicio. Este expediente digital reemplaza al carpetón físico y queda disponible en cualquier momento, desde cualquier dispositivo.
+      </div>
+      <div style="margin-top:12px; display:flex; gap:8px; flex-wrap:wrap;">
+        <span style="padding:4px 12px; background:rgba(16,185,129,.1); border:1px solid rgba(16,185,129,.25); color:var(--zion-green); border-radius:6px; font-size:12px; font-weight:600;">OS · GD · OT · ARC</span>
+        <span style="padding:4px 12px; background:rgba(255,255,255,.05); border:1px solid var(--zion-border); color:var(--zion-muted); border-radius:6px; font-size:12px;">Fotografías de terreno</span>
+        <span style="padding:4px 12px; background:rgba(255,255,255,.05); border:1px solid var(--zion-border); color:var(--zion-muted); border-radius:6px; font-size:12px;">Bitácora y trazabilidad</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <span>Zion Services — Plataforma de Gestión Operacional</span>
+  <span>Versión 1.0 &nbsp;·&nbsp; Noviembre 2026 &nbsp;·&nbsp; Documento Confidencial</span>
+</footer>
+
+<script>
+  function showSection(id) {
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    const tabs = ['inicio','problema','flujo','modulos','documentos'];
+    document.querySelectorAll('.nav-tab')[tabs.indexOf(id)].classList.add('active');
+    window.scrollTo({top:0, behavior:'smooth'});
+  }
+</script>
+</body>
+</html>
