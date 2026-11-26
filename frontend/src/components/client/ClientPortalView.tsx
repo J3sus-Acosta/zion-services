@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Truck,
   MapPin,
   Download,
   Eye,
@@ -10,7 +9,6 @@ import {
   CheckCircle2,
   CalendarPlus,
   QrCode,
-  Activity,
   FileCheck2,
   RefreshCw
 } from 'lucide-react';
@@ -19,23 +17,9 @@ import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
 import { Modal } from '../ui/Modal';
 import { MultiServiceRequestWizard } from './MultiServiceRequestWizard';
+import { TrackingMapView, TrackingData } from './TrackingMapView';
 import { useAuth } from '../../context/AuthContext';
-import { apiUrl } from '../../config/api';
-
-interface TrackingData {
-  ordenServicioId: string;
-  patente?: string;
-  conductorNombre?: string;
-  trackingDisponible: boolean;
-  motivo?: string;
-  estadoTramo: string;
-  coordenadas?: {
-    latitud: number;
-    longitud: number;
-    precisionMts: number;
-    ultimaActualizacion: string;
-  };
-}
+import { apiUrl, resolveFileUrl } from '../../config/api';
 
 interface DocumentoItem {
   id: string;
@@ -408,83 +392,7 @@ export const ClientPortalView: React.FC = () => {
       {/* Grid Superior: Seguimiento Satelital GPS + Timeline en Vivo de Bitácora */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Mapa y Estado Satelital de Ruta */}
-        <Card className="border-border bg-card overflow-hidden">
-          <CardHeader className="pb-3 border-b border-border bg-muted/40">
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="text-base flex items-center gap-2 text-foreground">
-                  <Truck className="h-4 w-4 text-emerald-500" />
-                  <span>Seguimiento GPS del Camión Asignado</span>
-                </CardTitle>
-                <CardDescription className="text-xs text-muted-foreground">
-                  {tracking?.trackingDisponible
-                    ? `Unidad ${tracking.patente} · Conductor: ${tracking.conductorNombre}`
-                    : 'Seguimiento en ventana activa'}
-                </CardDescription>
-              </div>
-              <Badge variant={tracking?.trackingDisponible ? 'default' : 'outline'} className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20 font-mono text-[11px]">
-                {tracking?.estadoTramo ? tracking.estadoTramo.replace(/_/g, ' ') : 'STANDBY'}
-              </Badge>
-            </div>
-          </CardHeader>
-          <CardContent className="p-0">
-            {tracking?.trackingDisponible ? (
-              <div className="relative h-72 w-full bg-muted/30 flex items-center justify-center overflow-hidden">
-                <div
-                  className="absolute inset-0 opacity-20"
-                  style={{
-                    backgroundImage:
-                      'radial-gradient(#10b981 1px, transparent 1px), radial-gradient(#10b981 1px, var(--card) 1px)',
-                    backgroundSize: '24px 24px',
-                    backgroundPosition: '0 0, 12px 12px'
-                  }}
-                />
-
-                <svg className="absolute inset-0 h-full w-full pointer-events-none opacity-40">
-                  <path d="M 80 200 Q 200 120, 340 140" fill="none" stroke="#10b981" strokeWidth="3" strokeDasharray="5 5" />
-                </svg>
-
-                <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center">
-                  <div className="relative">
-                    <span className="animate-ping absolute inset-0 rounded-full bg-emerald-500 opacity-70 scale-150" />
-                    <div className="h-10 w-10 rounded-full bg-emerald-600 text-white flex items-center justify-center shadow-xl border-2 border-background relative z-10">
-                      <Truck className="h-5 w-5" />
-                    </div>
-                  </div>
-                  <div className="bg-card/95 border border-border text-foreground rounded-lg p-2 text-center mt-2 shadow-lg">
-                    <div className="text-xs font-bold font-mono">{tracking.patente}</div>
-                    <div className="text-[10px] text-emerald-400 font-semibold">En camino a sus instalaciones</div>
-                  </div>
-                </div>
-
-                <div className="absolute right-12 top-14 flex flex-col items-center">
-                  <MapPin className="h-6 w-6 text-emerald-500 fill-emerald-500" />
-                  <span className="text-[10px] text-foreground font-bold bg-card/90 border border-border px-1.5 py-0.5 rounded mt-1 shadow-xs">
-                    Planta Cliente
-                  </span>
-                </div>
-
-                <div className="absolute bottom-2 left-2 right-2 bg-card/95 backdrop-blur-xs p-2.5 rounded-lg border border-border text-xs flex items-center justify-between text-foreground">
-                  <span className="text-muted-foreground flex items-center gap-1.5">
-                    <Activity className="h-3.5 w-3.5 text-emerald-400" />
-                    Última actualización de telemetría:
-                  </span>
-                  <span className="font-semibold text-emerald-400 font-mono">En vivo (±8m)</span>
-                </div>
-              </div>
-            ) : (
-              <div className="p-8 text-center space-y-3">
-                <Clock className="h-8 w-8 text-muted-foreground mx-auto" />
-                <div>
-                  <h4 className="font-semibold text-sm text-foreground">Seguimiento en preparación</h4>
-                  <p className="text-xs text-muted-foreground max-w-sm mx-auto mt-1">
-                    El seguimiento satelital se habilita automáticamente tan pronto el camión inicia el tramo de despacho hacia sus instalaciones.
-                  </p>
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        <TrackingMapView tracking={tracking} />
 
         {/* Timeline de Servicio en Vivo (Bitácora Oficial de Terreno) */}
         <Card className="border-border bg-card flex flex-col">
@@ -682,7 +590,7 @@ export const ClientPortalView: React.FC = () => {
             <div className="p-6 bg-background flex flex-col items-center justify-center min-h-[260px] max-h-[60vh] overflow-y-auto">
               {modalArchivo.mimeType.startsWith('image/') ? (
                 <img
-                  src={modalArchivo.rutaAlmacenamiento}
+                  src={resolveFileUrl(modalArchivo.rutaAlmacenamiento)}
                   alt={modalArchivo.nombreArchivo}
                   onError={(e) => {
                     (e.target as HTMLElement).style.display = 'none';

@@ -2,7 +2,7 @@ import { Router, Response } from 'express';
 import archiver from 'archiver';
 import fs from 'fs';
 import path from 'path';
-import { authenticate, AuthenticatedRequest } from '../middleware/auth.middleware.js';
+import { authenticate, authorize, AuthenticatedRequest } from '../middleware/auth.middleware.js';
 import { RolUsuario, CategoriaDocumento } from '@prisma/client';
 import { prisma } from '../utils/prisma.js';
 import { DossierIndexService, RegistrarDocumentoExpedienteInput } from '../services/dossier-index.service.js';
@@ -10,6 +10,30 @@ import { DossierIndexService, RegistrarDocumentoExpedienteInput } from '../servi
 export const expedienteRouter = Router();
 
 expedienteRouter.use(authenticate);
+
+/**
+ * Resuelve una URL relativa (/uploads/...) o ruta de almacenamiento
+ * a una ruta absoluta segura bajo STORAGE_PATH garantizando protección anti-traversal.
+ */
+function resolverRutaFisica(rutaAlmacenamiento: string): string {
+  const baseStorage = process.env.STORAGE_PATH || path.resolve(process.cwd(), 'uploads');
+  if (!rutaAlmacenamiento || typeof rutaAlmacenamiento !== 'string') {
+    throw new Error('Ruta de almacenamiento inválida o vacía.');
+  }
+  const limpia = rutaAlmacenamiento.replace(/^\/?uploads\/?/, '').trim();
+  if (!limpia || limpia === '.' || limpia === '') {
+    throw new Error('Ruta de almacenamiento inválida o vacía.');
+  }
+  const resolved = path.resolve(baseStorage, limpia);
+  const rel = path.relative(baseStorage, resolved);
+  if (rel.startsWith('..') || path.isAbsolute(rel)) {
+    throw new Error('Ruta de almacenamiento no permitida');
+  }
+  if (fs.existsSync(resolved) && fs.statSync(resolved).isDirectory()) {
+    throw new Error('La ruta apunta a un directorio y no a un archivo.');
+  }
+  return resolved;
+}
 
 /**
  * GET /api/expedientes/:ordenId/en-vivo
@@ -167,7 +191,10 @@ expedienteRouter.get('/:ordenId/descargar-zip', async (req: AuthenticatedRequest
     }
 
     const expediente = orden.expediente;
-    const docs = expediente?.documentos || [];
+    let docs = expediente?.documentos || [];
+    if (req.user?.rol === RolUsuario.CLIENTE) {
+      docs = docs.filter(d => d.visibleParaCliente);
+    }
 
     const zipFilename = `Expediente_${orden.folio}_${Date.now()}.zip`;
 
@@ -201,11 +228,13 @@ expedienteRouter.get('/:ordenId/descargar-zip', async (req: AuthenticatedRequest
 
     // Agregar exclusivamente archivos físicos reales existentes en disco (sin mocks ni archivos simulados)
     for (const doc of docs) {
-      const filePath = path.isAbsolute(doc.rutaAlmacenamiento)
-        ? doc.rutaAlmacenamiento
-        : path.resolve(process.cwd(), doc.rutaAlmacenamiento);
-      if (fs.existsSync(filePath)) {
-        archive.file(filePath, { name: `${doc.categoria}/${doc.nombreArchivo}` });
+      try {
+        const filePath = resolverRutaFisica(doc.rutaAlmacenamiento);
+        if (fs.existsSync(filePath)) {
+          archive.file(filePath, { name: `${doc.categoria}/${doc.nombreArchivo}` });
+        }
+      } catch {
+        // Omitir de forma segura archivos ausentes o con rutas inválidas
       }
     }
 
@@ -284,9 +313,15 @@ expedienteRouter.get('/:ordenId/documentos/:documentoId/descargar', async (req: 
       return;
     }
 
-    const filePath = path.isAbsolute(documento.rutaAlmacenamiento)
-      ? documento.rutaAlmacenamiento
-      : path.resolve(process.cwd(), documento.rutaAlmacenamiento);
+    let filePath: string;
+    try {
+      filePath = resolverRutaFisica(documento.rutaAlmacenamiento);
+    } catch {
+      res.status(400).json({
+        error: { code: 'INVALID_PATH', message: 'Ruta de almacenamiento no permitida.' }
+      });
+      return;
+    }
 
     // Validación física estricta en disco: NUNCA generar un archivo simulado o mock
     if (!fs.existsSync(filePath)) {
@@ -308,27 +343,41 @@ expedienteRouter.get('/:ordenId/documentos/:documentoId/descargar', async (req: 
  * POST /api/expedientes/:ordenId/documentos
  * Indexación inmediata de un documento o evidencia en el expediente de la orden
  */
-expedienteRouter.post('/:ordenId/documentos', async (req: AuthenticatedRequest, res: Response) => {
-  try {
-    const ordenId = req.params.ordenId;
-    const { categoria, nombreArchivo, mimeType, pesoBytes, rutaAlmacenamiento, visibleParaCliente } = req.body;
+expedienteRouter.post(
+  '/:ordenId/documentos',
+  authorize(RolUsuario.ADMIN, RolUsuario.SUPERADMIN, RolUsuario.JEFE_OPERACIONES, RolUsuario.CONDUCTOR, RolUsuario.CLIENTE),
+  async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const ordenId = req.params.ordenId;
+      const { categoria, nombreArchivo, mimeType, pesoBytes, rutaAlmacenamiento, visibleParaCliente } = req.body;
 
-    const orden = await prisma.ordenServicio.findFirst({
-      where: {
-        OR: [
-          { id: ordenId },
-          { folio: ordenId }
-        ]
-      },
-      include: { expediente: true }
-    });
-
-    if (!orden) {
-      res.status(404).json({
-        error: { code: 'ORDER_NOT_FOUND', message: 'Orden de servicio no encontrada.' }
+      const orden = await prisma.ordenServicio.findFirst({
+        where: {
+          OR: [
+            { id: ordenId },
+            { folio: ordenId }
+          ]
+        },
+        include: {
+          solicitudServicio: { include: { empresaCliente: true } },
+          expediente: true
+        }
       });
-      return;
-    }
+
+      if (!orden) {
+        res.status(404).json({
+          error: { code: 'ORDER_NOT_FOUND', message: 'Orden de servicio no encontrada.' }
+        });
+        return;
+      }
+
+      // Tenant Isolation: Si el rol es CLIENTE, la orden debe pertenecer a su empresa
+      if (req.user?.rol === RolUsuario.CLIENTE && orden.solicitudServicio?.empresaClienteId !== req.user.empresaClienteId) {
+        res.status(403).json({
+          error: { code: 'TENANT_ISOLATION_VIOLATION', message: 'Acceso denegado a este expediente.' }
+        });
+        return;
+      }
 
     let expediente = orden.expediente;
     if (!expediente) {

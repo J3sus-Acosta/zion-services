@@ -25,7 +25,8 @@ import { TouchSignaturePad, SignatureData } from '../signature/TouchSignaturePad
 import { OfflineStorageService } from '../../services/offline-storage';
 import { fleetApi } from '../../services/fleetApi';
 import { NotificacionConductor } from '../../types/fleet';
-import { apiUrl } from '../../config/api';
+import { apiUrl, resolveFileUrl } from '../../config/api';
+import { ItemChecklist } from '../../data/checklist-items';
 
 const NOMBRES_FOTOS_360 = ['Frontal', 'Lateral Izquierda', 'Trasera', 'Lateral Derecha'];
 
@@ -95,9 +96,15 @@ export const TabletConductorView: React.FC = () => {
 
   // Paso 1: Salida
   const [checklistSalidaListo, setChecklistSalidaListo] = useState<boolean>(false);
+  const [checklistSalidaData, setChecklistSalidaData] = useState<{
+    items: ItemChecklist[];
+    kilometraje: number;
+    horometro: number;
+  } | null>(null);
   const [isChecklistSalidaOpen, setIsChecklistSalidaOpen] = useState<boolean>(false);
   const [fotosSalida, setFotosSalida] = useState<string[]>([]);
   const [isCameraSalidaOpen, setIsCameraSalidaOpen] = useState<boolean>(false);
+  const [isSubmittingSalida, setIsSubmittingSalida] = useState<boolean>(false);
 
   // Paso 2: Faena y Firma Táctil
   const [llegadaMarcada, setLlegadaMarcada] = useState<boolean>(false);
@@ -108,6 +115,8 @@ export const TabletConductorView: React.FC = () => {
   const [fotosFaena, setFotosFaena] = useState<string[]>([]);
   const [isCameraFaenaOpen, setIsCameraFaenaOpen] = useState<boolean>(false);
   const [recepcionFirmada, setRecepcionFirmada] = useState<boolean>(false);
+  const [isSignatureRecepcionOpen, setIsSignatureRecepcionOpen] = useState<boolean>(false);
+  const [isSubmittingRecepcion, setIsSubmittingRecepcion] = useState<boolean>(false);
 
   // Paso 3: Romana
   const [sidrepSellado, setSidrepSellado] = useState<boolean>(false);
@@ -116,6 +125,13 @@ export const TabletConductorView: React.FC = () => {
   // Paso 4: Retorno
   const [isChecklistRetornoOpen, setIsChecklistRetornoOpen] = useState<boolean>(false);
   const [checklistRetornoListo, setChecklistRetornoListo] = useState<boolean>(false);
+  const [checklistRetornoData, setChecklistRetornoData] = useState<{
+    kilometrajeFinal: number;
+    horometroFinal: number;
+    herramientasCompletas: boolean;
+    danosReportados: boolean;
+    observaciones: string;
+  } | null>(null);
   const [fotosRetorno, setFotosRetorno] = useState<string[]>([]);
   const [isCameraRetornoOpen, setIsCameraRetornoOpen] = useState<boolean>(false);
 
@@ -206,6 +222,51 @@ export const TabletConductorView: React.FC = () => {
     fotosRetorno
   ]);
 
+  // Handler para completar checklist de salida F-GMT-MAN-004
+  const handleCompletarChecklistSalida = (
+    items: ItemChecklist[],
+    kilometraje: number,
+    horometro: number
+  ) => {
+    setChecklistSalidaListo(true);
+    setChecklistSalidaData({ items, kilometraje, horometro });
+  };
+
+  // Handler para autorizar salida e iniciar ruta enviando F-GMT-MAN-004 y fotos 360 al backend
+  const handleAutorizarSalida = async () => {
+    setIsSubmittingSalida(true);
+    registrarHitoGps(ordenServicioId, 'EN_RUTA_CLIENTE');
+    setPasoTablet(2);
+
+    const tipos360 = ['FRONTAL', 'LATERAL_IZQUIERDA', 'TRASERA', 'LATERAL_DERECHA'] as const;
+    const fotos360Payload = fotosSalida.map((url, i) => ({
+      tipo: tipos360[i] || 'FRONTAL',
+      archivoUrl: url
+    }));
+
+    const inspectionPayload = {
+      vehiculoId: 'veh-01',
+      conductorId: usuario?.id || 'cond-01',
+      kilometraje: checklistSalidaData?.kilometraje || 142500,
+      horometro: checklistSalidaData?.horometro || 4180,
+      items: checklistSalidaData?.items || [],
+      fotos360: fotos360Payload
+    };
+
+    try {
+      await fetch(apiUrl('/api/inspecciones/salida'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(inspectionPayload)
+      });
+    } catch {
+      await OfflineStorageService.guardarChecklist(ordenServicioId, inspectionPayload, false);
+    } finally {
+      setIsSubmittingSalida(false);
+    }
+  };
+
   // Handler para captura de fotos de salida con envío inmediato a Expediente
   const handleCapturarFotoSalida = async (url: string) => {
     const idx = fotosSalida.length;
@@ -249,6 +310,49 @@ export const TabletConductorView: React.FC = () => {
     }
   };
 
+  // Handler para completar checklist de retorno
+  const handleCompletarChecklistRetorno = (datos: {
+    kilometrajeFinal: number;
+    horometroFinal: number;
+    herramientasCompletas: boolean;
+    danosReportados: boolean;
+    observaciones: string;
+  }) => {
+    setChecklistRetornoListo(true);
+    setChecklistRetornoData(datos);
+  };
+
+  // Handler para persistir la inspección de retorno al completar las 4 fotos
+  const handleEnviarInspeccionRetorno = async (fotos: string[]) => {
+    const tipos360 = ['FRONTAL', 'LATERAL_IZQUIERDA', 'TRASERA', 'LATERAL_DERECHA'] as const;
+    const payload = {
+      vehiculoId: 'veh-01',
+      conductorId: usuario?.id || 'cond-01',
+      kilometrajeRetorno: checklistRetornoData?.kilometrajeFinal || 142585,
+      horometroRetorno: checklistRetornoData?.horometroFinal || 4186,
+      items: [],
+      novedades:
+        checklistRetornoData?.observaciones ||
+        (checklistRetornoData?.danosReportados ? 'Con daños reportados' : 'Sin novedades en el retorno'),
+      nivelCombustible: '3/4',
+      fotos: fotos.map((f, i) => ({
+        tipo: tipos360[i] || 'FRONTAL',
+        archivoUrl: f
+      }))
+    };
+
+    try {
+      await fetch(apiUrl('/api/inspecciones/retorno'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(payload)
+      });
+    } catch {
+      await OfflineStorageService.guardarChecklist(ordenServicioId, payload, true);
+    }
+  };
+
   // Handler para captura de fotos de retorno con envío inmediato a Expediente
   const handleCapturarFotoRetorno = async (url: string) => {
     const idx = fotosRetorno.length;
@@ -285,6 +389,77 @@ export const TabletConductorView: React.FC = () => {
     } catch {
       await OfflineStorageService.encolarPeticion(
         'FOTO_360',
+        `/api/expedientes/${ordenServicioId}/documentos`,
+        docPayload
+      );
+    }
+
+    if (nuevasFotos.length === 4) {
+      handleEnviarInspeccionRetorno(nuevasFotos);
+    }
+  };
+
+  // Handler para captura de fotos de faena y EPP con sincronización a ciclo y expediente
+  const handleCapturarFotoFaena = async (url: string) => {
+    const idx = fotosFaena.length;
+    const nuevasFotos = [...fotosFaena, url];
+    setFotosFaena(nuevasFotos);
+    setIsCameraFaenaOpen(false);
+
+    const descripcion = idx === 0 ? 'Foto Succión en Faena' : 'Foto Cuadrilla con EPP';
+    const categoria = idx === 0 ? 'FOTO_FAENA_PROCESO' : 'FOTO_EPP_SEGURIDAD';
+
+    // 1. Guardar copia local en IndexedDB
+    await OfflineStorageService.guardarFoto(
+      `${ordenServicioId}_faena_${idx}`,
+      idx === 0 ? 'FAENA_SUCCION' : 'EPP_CUADRILLA',
+      url,
+      { cicloTransporteId: ordenServicioId, slot: idx }
+    );
+
+    // 2. Notificar ciclo de transporte
+    const evidenciaPayload = {
+      cicloTransporteId: ordenServicioId,
+      archivoUrl: url,
+      descripcion,
+      estadoCiclo: 'FAENA_AUTORIZADA'
+    };
+
+    try {
+      await fetch(apiUrl('/api/ciclo-transporte/evidencias'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(evidenciaPayload)
+      });
+    } catch {
+      await OfflineStorageService.encolarPeticion(
+        'FOTO_FAENA',
+        '/api/ciclo-transporte/evidencias',
+        evidenciaPayload
+      );
+    }
+
+    // 3. Indexar en expediente documental
+    const docPayload = {
+      categoria,
+      nombreArchivo: `${ordenServicioId}_${idx === 0 ? 'FAENA' : 'EPP'}_${Date.now()}.jpg`,
+      mimeType: 'image/jpeg',
+      pesoBytes: Math.round(url.length * 0.75),
+      rutaAlmacenamiento: url,
+      visibleParaCliente: true
+    };
+
+    try {
+      await fetch(apiUrl(`/api/expedientes/${ordenServicioId}/documentos`), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(docPayload)
+      });
+    } catch {
+      await OfflineStorageService.encolarPeticion(
+        'FOTO_FAENA',
         `/api/expedientes/${ordenServicioId}/documentos`,
         docPayload
       );
@@ -346,6 +521,42 @@ export const TabletConductorView: React.FC = () => {
       setIsSubmittingOT(false);
       setIsSignatureOTOpen(false);
       setOtFirmada(true);
+    }
+  };
+
+  // Handler para firma y confirmación del Acta de Recepción Conforme (CU-19)
+  const handleConfirmarFirmaRecepcion = async (sigData: SignatureData) => {
+    setIsSubmittingRecepcion(true);
+
+    const payload = {
+      cicloTransporteId: ordenServicioId,
+      tipoRecepcion: 'CONFORME',
+      nombreFirmante: `${sigData.encargadoNombre} ${sigData.encargadoApellido}`.trim(),
+      rutFirmante: sigData.encargadoRut.trim(),
+      firmaDataUrl: sigData.firmaDataUrl,
+      observaciones: 'Recepción conforme en terreno validada por cliente'
+    };
+
+    try {
+      const res = await fetch(apiUrl('/api/ciclo-transporte/recepcion-conforme'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(payload)
+      });
+      if (!res.ok) throw new Error('Error al registrar recepción');
+    } catch {
+      await OfflineStorageService.encolarPeticion(
+        'RECEPCION_CONFORME',
+        '/api/ciclo-transporte/recepcion-conforme',
+        payload
+      );
+    } finally {
+      setIsSubmittingRecepcion(false);
+      setIsSignatureRecepcionOpen(false);
+      setRecepcionFirmada(true);
+      registrarHitoGps(ordenServicioId, 'HACIA_ROMANA');
+      setPasoTablet(3);
     }
   };
 
@@ -644,7 +855,7 @@ export const TabletConductorView: React.FC = () => {
               <div className="grid grid-cols-4 gap-1">
                 {fotosSalida.map((url, idx) => (
                   <div key={idx} className="relative aspect-square rounded overflow-hidden border border-border">
-                    <img src={url} alt={`Foto ${idx}`} className="w-full h-full object-cover" />
+                    <img src={resolveFileUrl(url)} alt={`Foto ${idx}`} className="w-full h-full object-cover" />
                   </div>
                 ))}
               </div>
@@ -662,14 +873,12 @@ export const TabletConductorView: React.FC = () => {
             ) : (
               <Button
                 variant="default"
+                disabled={isSubmittingSalida}
                 className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs"
-                onClick={() => {
-                  registrarHitoGps(ordenServicioId, 'EN_RUTA_CLIENTE');
-                  setPasoTablet(2);
-                }}
+                onClick={handleAutorizarSalida}
               >
                 <CheckCircle2 className="h-4 w-4 mr-1.5" />
-                Autorizar Salida e Iniciar Ruta
+                {isSubmittingSalida ? 'Persistiendo Salida...' : 'Autorizar Salida e Iniciar Ruta'}
               </Button>
             )}
           </CardContent>
@@ -728,14 +937,11 @@ export const TabletConductorView: React.FC = () => {
                   </Button>
                 ) : !recepcionFirmada ? (
                   <Button
-                    className="w-full text-xs"
-                    onClick={() => {
-                      setRecepcionFirmada(true);
-                      registrarHitoGps(ordenServicioId, 'HACIA_ROMANA');
-                      setPasoTablet(3);
-                    }}
+                    className="w-full text-xs bg-emerald-600 hover:bg-emerald-500 text-white font-semibold flex items-center justify-center gap-1.5"
+                    onClick={() => setIsSignatureRecepcionOpen(true)}
                   >
-                    Firma Recepción Conforme
+                    <PenTool className="h-4 w-4" />
+                    Firma Recepción Conforme (CU-19)
                   </Button>
                 ) : (
                   <div className="rounded-lg bg-emerald-500/10 border border-emerald-500/20 p-2.5 text-center text-xs font-semibold text-emerald-500 flex items-center justify-center gap-1.5">
@@ -833,6 +1039,16 @@ export const TabletConductorView: React.FC = () => {
               <span className="font-semibold">{fotosRetorno.length} / 4</span>
             </div>
 
+            {fotosRetorno.length > 0 && (
+              <div className="grid grid-cols-4 gap-1">
+                {fotosRetorno.map((url, idx) => (
+                  <div key={idx} className="relative aspect-square rounded overflow-hidden border border-border">
+                    <img src={resolveFileUrl(url)} alt={`Foto Retorno ${idx}`} className="w-full h-full object-cover" />
+                  </div>
+                ))}
+              </div>
+            )}
+
             {fotosRetorno.length < 4 ? (
               <Button
                 className="w-full text-xs"
@@ -856,7 +1072,7 @@ export const TabletConductorView: React.FC = () => {
       <ChecklistSalidaModal
         isOpen={isChecklistSalidaOpen}
         onClose={() => setIsChecklistSalidaOpen(false)}
-        onCompletar={() => setChecklistSalidaListo(true)}
+        onCompletar={handleCompletarChecklistSalida}
       />
 
       <CameraCaptureModal
@@ -878,15 +1094,23 @@ export const TabletConductorView: React.FC = () => {
         />
       )}
 
+      {/* Modal de Firma Táctil para Acta de Recepción Conforme (CU-19) */}
+      {isSignatureRecepcionOpen && (
+        <TouchSignaturePad
+          title="Acta de Recepción Conforme"
+          subtitle="El cliente valida el servicio prestado registrando sus antecedentes y firmando en pantalla."
+          isSubmitting={isSubmittingRecepcion}
+          onCancel={() => setIsSignatureRecepcionOpen(false)}
+          onConfirm={handleConfirmarFirmaRecepcion}
+        />
+      )}
+
       <CameraCaptureModal
         isOpen={isCameraFaenaOpen}
         titulo={fotosFaena.length === 0 ? 'Foto Succión en Faena' : 'Foto Cuadrilla con EPP'}
         subtitulo="Evidencia fotográfica obligatoria del servicio en instalaciones del cliente."
         onClose={() => setIsCameraFaenaOpen(false)}
-        onCapture={(url: string) => {
-          setFotosFaena((prev) => [...prev, url]);
-          setIsCameraFaenaOpen(false);
-        }}
+        onCapture={handleCapturarFotoFaena}
       />
 
       <CameraCaptureModal
@@ -903,7 +1127,7 @@ export const TabletConductorView: React.FC = () => {
       <ChecklistRetornoModal
         isOpen={isChecklistRetornoOpen}
         onClose={() => setIsChecklistRetornoOpen(false)}
-        onCompletar={() => setChecklistRetornoListo(true)}
+        onCompletar={handleCompletarChecklistRetorno}
       />
 
       <CameraCaptureModal

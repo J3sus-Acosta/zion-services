@@ -138,15 +138,40 @@ export class OfflineStorageService {
       const endpoint = esFaena ? '/api/ciclo-transporte/evidencias' : '/api/inspecciones/fotos-360';
       const queueTipo = esFaena ? 'FOTO_FAENA' : 'FOTO_360';
 
+      let payloadFinal: any;
+      if (esFaena) {
+        payloadFinal = {
+          cicloTransporteId: payloadExtra.cicloTransporteId || payloadExtra.ordenServicioId || 'OS-000561',
+          archivoUrl: dataUrl,
+          descripcion: payloadExtra.descripcion || (tipo.startsWith('FAENA') ? 'Foto Succión en Faena' : 'Foto Cuadrilla con EPP'),
+          estadoCiclo: 'FAENA_AUTORIZADA'
+        };
+      } else {
+        const tipoMapeado = tipo.includes('FRONTAL')
+          ? 'FRONTAL'
+          : tipo.includes('IZQUIERDA') || tipo.includes('IZQ')
+          ? 'LATERAL_IZQUIERDA'
+          : tipo.includes('TRASERA')
+          ? 'TRASERA'
+          : tipo.includes('DERECHA') || tipo.includes('DER')
+          ? 'LATERAL_DERECHA'
+          : 'FRONTAL';
+
+        payloadFinal = {
+          vehiculoId: payloadExtra.vehiculoId || 'veh-01',
+          fotos: [
+            {
+              tipo: tipoMapeado,
+              archivoUrl: dataUrl
+            }
+          ]
+        };
+      }
+
       tx.objectStore(STORE_SYNC_QUEUE).add({
         tipo: queueTipo,
         endpoint,
-        payload: {
-          idReferencia: id,
-          tipoFoto: tipo,
-          archivoUrl: dataUrl,
-          ...payloadExtra
-        },
+        payload: payloadFinal,
         timestamp: Date.now(),
         reintentos: 0
       });

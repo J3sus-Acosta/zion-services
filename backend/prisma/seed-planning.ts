@@ -178,4 +178,6 @@ async function main() {
   }
 }
 
-main();
+if (process.argv[1]?.endsWith('seed-planning.ts') || process.argv[1]?.endsWith('seed-planning.js')) {
+  main();
+}

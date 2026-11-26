@@ -1,6 +1,7 @@
 import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
+import path from 'path';
 import { logger } from './utils/logger.js';
 
 import { authRouter } from './routes/auth.routes.js';
@@ -29,6 +30,26 @@ app.use(cors({
 app.use(cookieParser(process.env.COOKIE_SECRET || 'zion_default_secret'));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Servicio Estático Seguro de Archivos Físicos (/uploads)
+const storagePath = process.env.STORAGE_PATH || path.resolve(process.cwd(), 'uploads');
+app.use(
+  '/uploads',
+  (_req: Request, res: Response, next: NextFunction) => {
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    next();
+  },
+  express.static(storagePath, {
+    dotfiles: 'ignore',
+    index: false,
+    maxAge: '1d',
+    immutable: true,
+    fallthrough: false,
+    setHeaders: (res: Response) => {
+      res.setHeader('X-Content-Type-Options', 'nosniff');
+    }
+  })
+);
 
 // Health Check
 app.get('/health', (_req: Request, res: Response) => {
@@ -66,7 +87,17 @@ app.use('/api/bitacora', bitacoraRouter);
 app.use('/api', trackingRouter);
 
 // Manejo centralizado de errores
-app.use((err: Error, req: Request, res: Response, _next: NextFunction) => {
+app.use((err: any, req: Request, res: Response, _next: NextFunction) => {
+  const status = err.status || err.statusCode || 500;
+  if (status === 404) {
+    return res.status(404).json({
+      error: {
+        code: 'NOT_FOUND',
+        message: 'Archivo o recurso no encontrado.'
+      }
+    });
+  }
+
   logger.error('Error no controlado en endpoint', {
     error: err.message,
     stack: err.stack,

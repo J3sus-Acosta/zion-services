@@ -27,6 +27,10 @@ RUN cd frontend && npm run build
 FROM node:22-alpine AS backend-runner
 WORKDIR /app
 ENV NODE_ENV=production
+ENV STORAGE_PATH=/app/uploads
+
+# Asegurar existencia de directorio de almacenamiento para EasyPanel
+RUN mkdir -p /app/uploads
 
 COPY package*.json ./
 COPY backend/package*.json ./backend/
@@ -36,6 +40,8 @@ COPY --from=builder /app/backend/dist ./backend/dist
 COPY --from=builder /app/backend/prisma ./backend/prisma
 COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
+
+VOLUME ["/app/uploads"]
 
 EXPOSE 3000
 CMD ["node", "backend/dist/index.js"]

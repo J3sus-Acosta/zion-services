@@ -4,7 +4,10 @@
  */
 
 export const API_BASE_URL: string =
-  (import.meta as any).env?.VITE_API_URL || 'http://localhost:3000';
+  (import.meta as any).env?.VITE_API_URL ??
+  (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1'
+    ? ''
+    : 'http://localhost:3000');
 
 /**
  * Resuelve una ruta relativa al endpoint base de la API.
@@ -13,6 +16,26 @@ export const API_BASE_URL: string =
 export function apiUrl(path: string): string {
   const normalizedPath = path.startsWith('/') ? path : `/${path}`;
   return `${API_BASE_URL}${normalizedPath}`;
+}
+
+/**
+ * Resuelve una URL de archivo o imagen servida estáticamente desde /uploads/.
+ * Si la URL ya es absoluta (http/https/data/blob), la retorna sin alteración.
+ * Si es una ruta relativa (/uploads/...), la resuelve contra API_BASE_URL.
+ *
+ * @param url Ruta relativa o absoluta del recurso
+ */
+export function resolveFileUrl(url?: string | null): string {
+  if (!url) return '';
+  if (
+    url.startsWith('data:') ||
+    url.startsWith('blob:') ||
+    url.startsWith('http://') ||
+    url.startsWith('https://')
+  ) {
+    return url;
+  }
+  return apiUrl(url);
 }
 
 /**

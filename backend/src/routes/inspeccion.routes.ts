@@ -1,6 +1,6 @@
 import { Router, Response } from 'express';
 import { authenticate, authorize, AuthenticatedRequest } from '../middleware/auth.middleware.js';
-import { RolUsuario, TipoFotoInspeccion } from '@prisma/client';
+import { RolUsuario } from '@prisma/client';
 import { InspectionService, InspeccionSalidaInput } from '../services/inspection.service.js';
 import { FleetService, FleetError } from '../services/fleet.service.js';
 
@@ -11,14 +11,14 @@ inspeccionRouter.use(authenticate);
 
 /**
  * POST /api/inspecciones/salida
- * Registro y evaluación del checklist de salida F-GMT-MAN-004 y fotos 360°
+ * Registro y evaluación del checklist de salida F-GMT-MAN-004 y fotos 360° con persistencia física y en MySQL
  */
 inspeccionRouter.post(
   '/salida',
   authorize(RolUsuario.CONDUCTOR, RolUsuario.JEFE_OPERACIONES, RolUsuario.ADMIN, RolUsuario.SUPERADMIN),
   async (req: AuthenticatedRequest, res: Response) => {
     try {
-      const { vehiculoId, kilometraje, horometro, items, fotos360 } = req.body;
+      const { vehiculoId, kilometraje, horometro, items, fotos360, observaciones } = req.body;
       const conductorId = req.body.conductorId || req.user?.conductorId || req.user?.userId;
 
       if (!vehiculoId || !conductorId || !items || !fotos360) {
@@ -40,29 +40,27 @@ inspeccionRouter.post(
         kilometraje: Number(kilometraje) || undefined,
         horometro: Number(horometro) || undefined,
         items,
-        fotos360
+        fotos360,
+        observaciones
       };
 
-      const resultado = InspectionService.evaluarInspeccionSalida(input);
-
-      // Si la inspección resulta bloqueada por falla crítica, persistir bloqueo en flota (D4, 3.3)
-      if (resultado.bloqueado) {
-        await InspectionService.aplicarBloqueoSeguridad(vehiculoId, resultado, {
-          userId: req.user?.userId,
-          ip: req.ip
-        });
-      }
+      const { inspeccion, evaluacion } = await InspectionService.registrarInspeccionSalida(
+        input,
+        { userId: req.user?.userId, ip: req.ip }
+      );
 
       res.status(201).json({
         data: {
-          vehiculoId,
-          conductorId,
-          estado: resultado.estado,
-          bloqueado: resultado.bloqueado,
-          motivoBloqueo: resultado.motivoBloqueo,
-          fotosRecibidas: fotos360.length,
-          fechaHora: new Date().toISOString(),
-          mensaje: resultado.bloqueado
+          id: inspeccion.id,
+          vehiculoId: inspeccion.vehiculoId,
+          conductorId: inspeccion.conductorId,
+          estado: inspeccion.estado,
+          bloqueado: evaluacion.bloqueado,
+          motivoBloqueo: evaluacion.motivoBloqueo,
+          fotosRecibidas: inspeccion.fotos360.length,
+          fotos360: inspeccion.fotos360,
+          fechaHora: inspeccion.fechaHora.toISOString(),
+          mensaje: evaluacion.bloqueado
             ? 'Inspección completada con fallas críticas. Unidad bloqueada para operación.'
             : 'Checklist de salida aprobado satisfactoriamente.'
         }
@@ -90,14 +88,14 @@ inspeccionRouter.post(
 
 /**
  * POST /api/inspecciones/fotos-360
- * Captura individual o por lote de fotografías perimetrales 360° del camión
+ * Captura individual o por lote de fotografías perimetrales 360° del camión con persistencia física en disco
  */
 inspeccionRouter.post(
   '/fotos-360',
   authorize(RolUsuario.CONDUCTOR, RolUsuario.JEFE_OPERACIONES, RolUsuario.ADMIN, RolUsuario.SUPERADMIN),
   async (req: AuthenticatedRequest, res: Response) => {
     try {
-      const { vehiculoId, jornadaId, fotos } = req.body;
+      const { vehiculoId, jornadaId, fotos, inspeccionSalidaId, inspeccionRetornoId } = req.body;
 
       if (!vehiculoId || !Array.isArray(fotos) || fotos.length === 0) {
         res.status(400).json({
@@ -109,24 +107,21 @@ inspeccionRouter.post(
         return;
       }
 
-      const fotosValidadas = fotos.map((f: any) => {
-        if (!Object.values(TipoFotoInspeccion).includes(f.tipo)) {
-          throw new Error(`Tipo de foto inválido: ${f.tipo}`);
-        }
-        return {
-          tipo: f.tipo,
-          archivoUrl: f.archivoUrl,
-          fechaRegistro: new Date().toISOString()
-        };
+      const fotosGuardadas = await InspectionService.registrarFotos360({
+        vehiculoId,
+        jornadaId,
+        inspeccionSalidaId,
+        inspeccionRetornoId,
+        fotos
       });
 
-      res.status(200).json({
+      res.status(201).json({
         data: {
           vehiculoId,
           jornadaId: jornadaId || null,
-          totalFotos: fotosValidadas.length,
-          fotos: fotosValidadas,
-          mensaje: 'Fotografías 360° registradas correctamente.'
+          totalFotos: fotosGuardadas.length,
+          fotos: fotosGuardadas,
+          mensaje: 'Fotografías 360° guardadas y persistidas correctamente.'
         }
       });
     } catch (error: any) {
@@ -142,14 +137,27 @@ inspeccionRouter.post(
 
 /**
  * POST /api/inspecciones/retorno
- * Checklist de retorno a planta y cierre de jornada
+ * Checklist de retorno a planta, fotos de cierre y cierre de jornada con persistencia en MySQL
  */
 inspeccionRouter.post(
   '/retorno',
   authorize(RolUsuario.CONDUCTOR, RolUsuario.JEFE_OPERACIONES, RolUsuario.ADMIN, RolUsuario.SUPERADMIN),
   async (req: AuthenticatedRequest, res: Response) => {
     try {
-      const { vehiculoId, kilometrajeRetorno, horometroRetorno, items, novedades, nivelCombustible } = req.body;
+      const {
+        vehiculoId,
+        kilometrajeRetorno,
+        horometroRetorno,
+        items,
+        novedades,
+        observaciones,
+        danosDetectados,
+        herramientasOK,
+        estadoGeneral,
+        nivelCombustible,
+        fotosRetorno,
+        fotos360
+      } = req.body;
       const conductorId = req.body.conductorId || req.user?.conductorId || req.user?.userId;
 
       if (!vehiculoId || !conductorId) {
@@ -162,17 +170,36 @@ inspeccionRouter.post(
         return;
       }
 
-      res.status(200).json({
-        data: {
+      const fotos = fotosRetorno || fotos360 || [];
+
+      const inspeccionRetorno = await InspectionService.registrarInspeccionRetorno(
+        {
           vehiculoId,
           conductorId,
-          kilometrajeRetorno: Number(kilometrajeRetorno) || null,
-          horometroRetorno: Number(horometroRetorno) || null,
+          kilometrajeFinal: Number(kilometrajeRetorno) || undefined,
+          horometroFinal: Number(horometroRetorno) || undefined,
+          estadoGeneral: estadoGeneral || 'CONFORME',
+          danosDetectados,
+          herramientasOK,
+          observaciones: observaciones || novedades || (nivelCombustible ? `Nivel combustible: ${nivelCombustible}` : undefined),
+          fotosRetorno: fotos
+        },
+        { userId: req.user?.userId, ip: req.ip }
+      );
+
+      res.status(201).json({
+        data: {
+          id: inspeccionRetorno.id,
+          vehiculoId: inspeccionRetorno.vehiculoId,
+          conductorId: inspeccionRetorno.conductorId,
+          kilometrajeRetorno: inspeccionRetorno.kilometrajeFinal,
+          horometroRetorno: inspeccionRetorno.horometroFinal,
           nivelCombustible: nivelCombustible || '3/4',
           totalItemsRevisados: Array.isArray(items) ? items.length : 0,
-          novedades: novedades || 'Sin novedades en el retorno',
-          fechaHoraRetorno: new Date().toISOString(),
-          estadoRetorno: 'CONFORME',
+          novedades: inspeccionRetorno.observaciones || 'Sin novedades en el retorno',
+          fechaHoraRetorno: inspeccionRetorno.fechaHora.toISOString(),
+          estadoRetorno: inspeccionRetorno.estadoGeneral,
+          fotosRetorno: inspeccionRetorno.fotos360Retorno,
           mensaje: 'Inspección de retorno a planta registrada satisfactoriamente.'
         }
       });

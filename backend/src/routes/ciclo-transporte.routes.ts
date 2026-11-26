@@ -37,11 +37,10 @@ cicloTransporteRouter.post(
         coordenadas
       };
 
-      const resultado = TransportCycleService.registrarLlegada(input);
+      const resultado = await TransportCycleService.registrarLlegada(input);
 
       res.status(200).json({
         data: {
-          cicloTransporteId,
           ...resultado
         }
       });
@@ -113,11 +112,10 @@ cicloTransporteRouter.post(
         fechaHora: new Date()
       };
 
-      const resultado = TransportCycleService.autorizarInicioFaena(input);
+      const resultado = await TransportCycleService.autorizarInicioFaena(input);
 
       res.status(200).json({
         data: {
-          cicloTransporteId,
           encargado: {
             nombre: nombre.trim(),
             apellido: apellido.trim(),
@@ -159,11 +157,10 @@ cicloTransporteRouter.post(
       };
 
       const estado = (estadoCiclo as EstadoCicloTransporte) || EstadoCicloTransporte.FAENA_AUTORIZADA;
-      const resultado = TransportCycleService.registrarFotoFaena(estado, input);
+      const resultado = await TransportCycleService.registrarFotoFaena(estado, input);
 
       res.status(201).json({
         data: {
-          cicloTransporteId,
           ...resultado,
           fechaRegistro: new Date().toISOString()
         }
@@ -185,7 +182,16 @@ cicloTransporteRouter.post(
   authorize(RolUsuario.CONDUCTOR, RolUsuario.JEFE_OPERACIONES, RolUsuario.ADMIN, RolUsuario.SUPERADMIN),
   async (req: AuthenticatedRequest, res: Response) => {
     try {
-      const { cicloTransporteId, tipoRecepcion, nombreFirmante, rutFirmante, firmaDataUrl, firmaSvg, observaciones, fotoRespaldoUrl } = req.body;
+      const {
+        cicloTransporteId,
+        tipoRecepcion,
+        nombreFirmante,
+        rutFirmante,
+        firmaDataUrl,
+        firmaSvg,
+        observaciones,
+        fotoRespaldoUrl
+      } = req.body;
 
       if (!cicloTransporteId || !tipoRecepcion) {
         res.status(400).json({
@@ -204,11 +210,10 @@ cicloTransporteRouter.post(
         fotoRespaldoUrl
       };
 
-      const resultado = TransportCycleService.finalizarRecepcion(input);
+      const resultado = await TransportCycleService.finalizarRecepcion(input);
 
       res.status(200).json({
         data: {
-          cicloTransporteId,
           ...resultado
         }
       });

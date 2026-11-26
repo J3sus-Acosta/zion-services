@@ -1,4 +1,17 @@
-import { EstadoEquipo, PrismaClient, RolUsuario, TipoCliente, TipoEquipo } from '@prisma/client';
+import {
+  EstadoAtencionProgramada,
+  EstadoCicloTransporte,
+  EstadoEquipo,
+  EstadoJornada,
+  EstadoOrdenServicio,
+  EstadoSolicitud,
+  ModalidadJornada,
+  PrismaClient,
+  RolUsuario,
+  TipoCliente,
+  TipoEquipo,
+  TipoTramo
+} from '@prisma/client';
 import { CryptoUtil } from '../src/utils/crypto.js';
 import { seedPlanningData } from './seed-planning.js';
 
@@ -302,6 +315,246 @@ export async function seedDemoData(client: PrismaClient = prisma) {
 
   // 6. Catálogos y Plantas de Planificación
   await seedPlanningData(client);
+
+  // 7. Solicitudes y Órdenes de Servicio con Ciclos de Transporte Inicializados
+  console.log('--- Creando Solicitudes, Órdenes y Ciclos de Transporte Demo ---');
+
+  const solicitudesDemo = [
+    {
+      id: 'sol-demo-01',
+      folio: 'SOL-2026-0001',
+      empresaClienteId: 'empresa-horse',
+      sucursalFaenaId: 'suc-horse-panamericana',
+      tipoResiduo: 'RILes Peligrosos',
+      descripcion: 'Succión y transporte certificado de RILes en faena Panamericana Norte.',
+      cantidadEstimada: 15.0,
+      unidadEstimada: 'M3',
+      fechaPreferente: new Date(),
+      estado: EstadoSolicitud.APROBADA
+    },
+    {
+      id: 'sol-demo-02',
+      folio: 'SOL-2026-0002',
+      empresaClienteId: 'empresa-acme',
+      sucursalFaenaId: 'suc-acme-pudahuel',
+      tipoResiduo: 'Lodos de Fosa Séptica',
+      descripcion: 'Limpieza y mantención preventiva de cámaras desgrasadoras y fosa séptica.',
+      cantidadEstimada: 8.0,
+      unidadEstimada: 'M3',
+      fechaPreferente: new Date(),
+      estado: EstadoSolicitud.APROBADA
+    }
+  ];
+
+  for (const sol of solicitudesDemo) {
+    await client.solicitudServicio.upsert({
+      where: { id: sol.id },
+      update: sol,
+      create: sol
+    });
+  }
+  console.log(`✓ ${solicitudesDemo.length} Solicitudes de servicio demo verificadas/creadas.`);
+
+  // Órdenes de servicio
+  const ordenesDemo = [
+    {
+      id: 'os-demo-01',
+      folio: 'OS-2026-0001',
+      solicitudServicioId: 'sol-demo-01',
+      estado: EstadoOrdenServicio.EN_EJECUCION,
+      observaciones: 'Servicio en ejecución activo para pruebas operativas de terreno y telemetría.'
+    },
+    {
+      id: 'os-demo-02',
+      folio: 'OS-2026-0002',
+      solicitudServicioId: 'sol-demo-02',
+      estado: EstadoOrdenServicio.PLANIFICADA,
+      observaciones: 'Servicio planificado para pruebas de inicio de ciclo de transporte.'
+    }
+  ];
+
+  for (const os of ordenesDemo) {
+    await client.ordenServicio.upsert({
+      where: { id: os.id },
+      update: os,
+      create: os
+    });
+  }
+  console.log(`✓ ${ordenesDemo.length} Órdenes de servicio demo verificadas/creadas.`);
+
+  // Ciclos de Transporte (1:1 con OrdenServicio)
+  const ciclosDemo = [
+    {
+      id: 'ciclo-demo-01',
+      ordenServicioId: 'os-demo-01',
+      estado: EstadoCicloTransporte.EN_RUTA_CLIENTE,
+      horaLlegadaFaena: null,
+      horaSalidaFaena: null
+    },
+    {
+      id: 'ciclo-demo-02',
+      ordenServicioId: 'os-demo-02',
+      estado: EstadoCicloTransporte.PENDIENTE,
+      horaLlegadaFaena: null,
+      horaSalidaFaena: null
+    }
+  ];
+
+  for (const ciclo of ciclosDemo) {
+    await client.cicloTransporte.upsert({
+      where: { id: ciclo.id },
+      update: ciclo,
+      create: ciclo
+    });
+  }
+  console.log(`✓ ${ciclosDemo.length} Ciclos de transporte inicializados para terreno y tracking.`);
+
+  // Expedientes Documentales (1:1 con OrdenServicio)
+  const expedientesDemo = [
+    {
+      id: 'exp-demo-01',
+      ordenServicioId: 'os-demo-01',
+      completo: false
+    },
+    {
+      id: 'exp-demo-02',
+      ordenServicioId: 'os-demo-02',
+      completo: false
+    }
+  ];
+
+  for (const exp of expedientesDemo) {
+    await client.expedienteDocumental.upsert({
+      where: { id: exp.id },
+      update: exp,
+      create: exp
+    });
+  }
+  console.log(`✓ ${expedientesDemo.length} Expedientes documentales demo inicializados.`);
+
+  // Jornada Demo
+  await client.jornada.upsert({
+    where: { id: 'jornada-demo-01' },
+    update: {
+      vehiculoId: 'veh-01',
+      conductorId: 'cond-01',
+      modalidad: ModalidadJornada.LOCAL_SANTIAGO,
+      fechaInicio: new Date(),
+      estado: EstadoJornada.EN_CURSO
+    },
+    create: {
+      id: 'jornada-demo-01',
+      vehiculoId: 'veh-01',
+      conductorId: 'cond-01',
+      modalidad: ModalidadJornada.LOCAL_SANTIAGO,
+      fechaInicio: new Date(),
+      estado: EstadoJornada.EN_CURSO
+    }
+  });
+  console.log('✓ Jornada jornada-demo-01 verificada/creada.');
+
+  // Hoja de Ruta Demo
+  await client.hojaDeRuta.upsert({
+    where: { id: 'hdr-demo-01' },
+    update: {
+      jornadaId: 'jornada-demo-01',
+      codigo: 'HDR-2026-0001'
+    },
+    create: {
+      id: 'hdr-demo-01',
+      jornadaId: 'jornada-demo-01',
+      codigo: 'HDR-2026-0001'
+    }
+  });
+
+  // Tramo de Ruta Demo
+  await client.tramoRuta.upsert({
+    where: { id: 'tramo-demo-01' },
+    update: {
+      hojaDeRutaId: 'hdr-demo-01',
+      ordenSecuencia: 1,
+      tipo: TipoTramo.HACIA_CLIENTE,
+      origenNombre: 'Base Operaciones Zion Quilicura',
+      destinoNombre: 'Planta Panamericana Norte (Horse Chile)',
+      completado: false,
+      fechaHoraInicio: new Date(),
+      ordenServicioId: 'os-demo-01'
+    },
+    create: {
+      id: 'tramo-demo-01',
+      hojaDeRutaId: 'hdr-demo-01',
+      ordenSecuencia: 1,
+      tipo: TipoTramo.HACIA_CLIENTE,
+      origenNombre: 'Base Operaciones Zion Quilicura',
+      destinoNombre: 'Planta Panamericana Norte (Horse Chile)',
+      completado: false,
+      fechaHoraInicio: new Date(),
+      ordenServicioId: 'os-demo-01'
+    }
+  });
+  console.log('✓ Hoja de ruta y tramo vinculados a jornada y orden de servicio creados.');
+
+  // Atención Programada Demo
+  await client.atencionProgramada.upsert({
+    where: { id: 'atencion-demo-01' },
+    update: {
+      folio: 'AP-2026-00001',
+      solicitudServicioId: 'sol-demo-01',
+      sucursalFaenaId: 'suc-horse-panamericana',
+      plantaDestinoId: 'planta-la-farfana',
+      fechaHoraInicio: new Date(),
+      fechaHoraFinEstimada: new Date(Date.now() + 2 * 3600 * 1000),
+      duracionEstimadaMinutos: 120,
+      estado: EstadoAtencionProgramada.EN_CURSO,
+      vehiculoId: 'veh-01',
+      conductorId: 'usr-conductor-01',
+      ordenServicioId: 'os-demo-01',
+      jornadaId: 'jornada-demo-01'
+    },
+    create: {
+      id: 'atencion-demo-01',
+      folio: 'AP-2026-00001',
+      solicitudServicioId: 'sol-demo-01',
+      sucursalFaenaId: 'suc-horse-panamericana',
+      plantaDestinoId: 'planta-la-farfana',
+      fechaHoraInicio: new Date(),
+      fechaHoraFinEstimada: new Date(Date.now() + 2 * 3600 * 1000),
+      duracionEstimadaMinutos: 120,
+      estado: EstadoAtencionProgramada.EN_CURSO,
+      vehiculoId: 'veh-01',
+      conductorId: 'usr-conductor-01',
+      ordenServicioId: 'os-demo-01',
+      jornadaId: 'jornada-demo-01'
+    }
+  });
+  console.log('✓ Atención programada AP-2026-00001 creada y vinculada a OS-2026-0001.');
+
+  // Registro de Telemetría GPS Demo inicial
+  await client.registroTelemetriaGPS.upsert({
+    where: { id: 'gps-demo-01' },
+    update: {
+      jornadaId: 'jornada-demo-01',
+      ordenServicioId: 'os-demo-01',
+      latitud: -33.3645,
+      longitud: -70.6892,
+      precisionMts: 5.0,
+      velocidadKmh: 42.5,
+      rumbo: 180.0,
+      timestamp: new Date()
+    },
+    create: {
+      id: 'gps-demo-01',
+      jornadaId: 'jornada-demo-01',
+      ordenServicioId: 'os-demo-01',
+      latitud: -33.3645,
+      longitud: -70.6892,
+      precisionMts: 5.0,
+      velocidadKmh: 42.5,
+      rumbo: 180.0,
+      timestamp: new Date()
+    }
+  });
+  console.log('✓ Registro inicial de telemetría GPS demo verificado/creado.');
 
   console.log('--- Seed completado exitosamente ---');
 }
